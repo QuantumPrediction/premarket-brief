@@ -1,0 +1,32 @@
+# 美股盤前簡報 v6.3：網站設定（對應 Colab 格子 1 的表單）
+# 改法：在 GitHub 打開這個檔案，按右上筆圖示，改等號右邊的值，按「Commit changes」。下一次執行就生效。
+# 等號左邊的名稱不要改。是非題填 true 或 false。留空就用預設值。
+# 這個檔案是公開的：戶口和持倉只放示範數字；API key 不要寫在這裡，要放 Settings → Secrets。
+
+# 戶口（表單 ACCOUNT_EQUITY）
+DEMO_ACCOUNT=100000
+# 每注風險佔戶口 %（表單 BASE_RISK_PCT）
+RISK_PCT=0.75
+# 風險上限 %（表單 MAX_HEAT_PCT）；0 = 按 Regime 自動（A 6%、B 4%、C 2%、D 和 E 1%）
+MAX_HEAT_PCT=0
+
+# 股票池（表單 UNIVERSE）：sp500+ndx100+sp400、sp500+ndx100、sp500+ndx100+sp400+sp600 三選一
+UNIVERSE=sp500+ndx100+sp400
+# 自選名單（表單 EXTRA_TICKERS_TEXT），逗號分隔，例：PLTR, CRWD
+EXTRA_TICKERS=
+# 示範持倉（格子 1 的 POSITIONS_TEXT，也用作格子 2 的 POSITIONS_OVERRIDE）
+# 格式：代號:股數:止蝕價:入場價:入場日，逗號分隔，例：AAPL:100:330:352.4:2026-11-03；沒有就留空
+DEMO_POSITIONS=
+
+# 高而窄旗形全市場掃描（表單 HTF_WIDE_SCAN）；Colab 預設開，這裡預設關以縮短時間
+HTF_WIDE_SCAN=false
+# OpenBB 補充數據層（表單 USE_OPENBB）
+USE_OPENBB=true
+
+# AI 消息面（表單 AI_NEWS，收費）；要先在 Secrets 加 ANTHROPIC_API_KEY
+AI_NEWS=false
+# AI 模型（表單 AI_MODEL）：claude-sonnet-5-5、claude-opus-5-5、claude-haiku-5-5
+AI_MODEL=claude-sonnet-5-5
+
+# 網站「之前的簡報」保留日數（最少保留 5 份）
+ARCHIVE_DAYS=30

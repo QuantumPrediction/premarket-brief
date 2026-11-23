@@ -1,0 +1,98 @@
+name: Daily pre-market brief
+
+# Cell 1 (v6.3) every US weekday morning, then the website is rebuilt and published.
+# GitHub cron uses UTC and ignores daylight saving, so there are two schedules an hour apart;
+# runner/time_window.py lets exactly one through at about 07:17 New York time
+# (winter: the 12:17 UTC run, summer: the 11:17 UTC run). Scheduled runs can start late when GitHub is busy.
+on:
+  schedule:
+    - cron: "17 11 * * 1-5"
+    - cron: "17 12 * * 1-5"
+  workflow_dispatch:        # the "Run workflow" button; manual runs skip the time check
+
+permissions:
+  contents: write           # save history to the data branch
+  pages: write              # publish the website
+  id-token: write
+
+concurrency:
+  group: premarket-brief-site # the brief and the pre-open update never write at the same time
+  cancel-in-progress: false
+
+jobs:
+  check:                    # cheap check first: skipped runs never touch the website
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      go: ${{ steps.win.outputs.go }}
+    env:
+      STATE_DIR: ${{ github.workspace }}/state
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Restore history (data branch)
+        run: bash runner/state.sh restore
+      - name: Check the time window
+        id: win
+        run: python3 runner/time_window.py brief "${{ github.event_name }}" "$STATE_DIR" >> "$GITHUB_OUTPUT"
+
+  brief:
+    needs: check
+    if: needs.check.outputs.go == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    env:
+      STATE_DIR: ${{ github.workspace }}/state
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+      DEMO_ACCOUNT: ${{ vars.DEMO_ACCOUNT }}
+      RISK_PCT: ${{ vars.RISK_PCT }}
+      MAX_HEAT_PCT: ${{ vars.MAX_HEAT_PCT }}
+      UNIVERSE: ${{ vars.UNIVERSE }}
+      EXTRA_TICKERS: ${{ vars.EXTRA_TICKERS }}
+      DEMO_POSITIONS: ${{ vars.DEMO_POSITIONS }}
+      HTF_WIDE_SCAN: ${{ vars.HTF_WIDE_SCAN }}
+      USE_OPENBB: ${{ vars.USE_OPENBB }}
+      AI_NEWS: ${{ vars.AI_NEWS }}
+      AI_MODEL: ${{ vars.AI_MODEL }}
+      ARCHIVE_DAYS: ${{ vars.ARCHIVE_DAYS }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Restore history (data branch)
+        run: bash runner/state.sh restore
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install packages
+        run: |
+          pip install -r requirements.txt
+          if [ "$(python3 runner/common.py USE_OPENBB true)" != "false" ]; then
+            pip install "openbb-core[pandas]" openbb-cboe openbb-finra || echo "OpenBB did not install; the brief runs without the extra data layer."
+          fi
+
+      - name: Run the brief (cell 1)
+        run: python runner/run_brief.py
+
+      - name: Build the website
+        run: python runner/build_site.py
+
+      - name: Save history (data branch)
+        run: bash runner/state.sh save "brief"
+
+      - uses: actions/configure-pages@v6
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: state/site
+
+      - name: Publish the website
+        id: deploy
+        uses: actions/deploy-pages@v5

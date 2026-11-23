@@ -1,0 +1,84 @@
+name: Pre-open update
+
+# Cell 2 (v6.3) about 45 minutes before the 09:30 New York open: pre-market prices against today's plan.
+# Two UTC schedules an hour apart; runner/time_window.py lets exactly one through at about 08:47 New York time
+# (winter: the 13:47 UTC run, summer: the 12:47 UTC run). It needs today's brief, so run that first.
+on:
+  schedule:
+    - cron: "47 12 * * 1-5"
+    - cron: "47 13 * * 1-5"
+  workflow_dispatch:        # the "Run workflow" button; manual runs skip the time check
+
+permissions:
+  contents: write           # save history to the data branch
+  pages: write              # publish the website
+  id-token: write
+
+concurrency:
+  group: premarket-brief-site # the brief and the pre-open update never write at the same time
+  cancel-in-progress: false
+
+jobs:
+  check:                    # cheap check first: skipped runs never touch the website
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      go: ${{ steps.win.outputs.go }}
+    env:
+      STATE_DIR: ${{ github.workspace }}/state
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Restore history (data branch)
+        run: bash runner/state.sh restore
+      - name: Check the time window
+        id: win
+        run: python3 runner/time_window.py preopen "${{ github.event_name }}" "$STATE_DIR" >> "$GITHUB_OUTPUT"
+
+  preopen:
+    needs: check
+    if: needs.check.outputs.go == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    env:
+      STATE_DIR: ${{ github.workspace }}/state
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      DEMO_ACCOUNT: ${{ vars.DEMO_ACCOUNT }}
+      DEMO_POSITIONS: ${{ vars.DEMO_POSITIONS }}
+      ARCHIVE_DAYS: ${{ vars.ARCHIVE_DAYS }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Restore history (data branch)
+        run: bash runner/state.sh restore
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install packages
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run the pre-open update (cell 2)
+        run: python runner/run_preopen.py
+
+      - name: Build the website
+        run: python runner/build_site.py
+
+      - name: Save history (data branch)
+        run: bash runner/state.sh save "pre-open"
+
+      - uses: actions/configure-pages@v6
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: state/site
+
+      - name: Publish the website
+        id: deploy
+        uses: actions/deploy-pages@v5
