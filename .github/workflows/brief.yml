@@ -41,9 +41,6 @@ jobs:
     if: needs.check.outputs.go == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 75
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
     env:
       STATE_DIR: ${{ github.workspace }}/state
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -93,6 +90,24 @@ jobs:
         with:
           path: state/site
 
+  publish:                  # its own job: if publishing fails, "Re-run failed jobs" retries only this, not the brief
+    needs: brief
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url || steps.deploy2.outputs.page_url }}
+    steps:
       - name: Publish the website
         id: deploy
+        continue-on-error: true
+        uses: actions/deploy-pages@v5
+
+      - name: Wait a minute before trying again
+        if: steps.deploy.outcome == 'failure'
+        run: sleep 60
+
+      - name: Publish the website (second try)
+        id: deploy2
+        if: steps.deploy.outcome == 'failure'
         uses: actions/deploy-pages@v5
