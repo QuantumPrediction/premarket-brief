@@ -13,7 +13,7 @@ import shutil
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import (HK, LANGS, ROOT, env, env_bool, env_num, now_et, run_script, translate_doc, write)  # noqa: E402
+from common import (HK, LANGS, ROOT, env, env_bool, env_num, github_wording, now_et, run_script, translate_doc, write)  # noqa: E402
 
 SCRIPT = "premarket_brief_v6_3.py"
 HIST = "premarket_out"
@@ -127,8 +127,8 @@ def main():
 
     run_id = G["RUN_ID"]
     out = os.path.join(state, "site", "briefs", run_id)
-    dash = open(os.path.join(state, G["DASH_PATH"]), encoding="utf-8").read()     # the script's paths are relative to state/
-    txt = G["BRIEF_TXT"] + "\n\n" + G["NEWS_TXT"]
+    dash = github_wording(open(os.path.join(state, G["DASH_PATH"]), encoding="utf-8").read())   # the script's paths are relative to state/
+    txt = github_wording(G["BRIEF_TXT"] + "\n\n" + G["NEWS_TXT"])
     s = summary(G)
     for lang in LANGS:
         write(os.path.join(out, f"{lang}.html"), translate_doc(G, dash, lang))

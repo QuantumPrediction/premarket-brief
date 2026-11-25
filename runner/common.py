@@ -141,6 +141,22 @@ def now_et():
     return dt.datetime.now(ET)
 
 
+# Lines the Colab script writes about Google Drive. On GitHub the history is kept on the data branch
+# and every brief stays on the website, so these are replaced before the pages are published.
+GITHUB_WORDING = [
+    ("要在表單勾選 SAVE_TO_DRIVE，名單才會存到 Google Drive，下次執行才可以跟進。", "今日的名單已存起來，下次執行就會有跟進。"),
+    ("；這次沒有存到 Google Drive，紀錄只存在這次的 Colab 工作階段", ""),
+    ("這次沒有存到 Google Drive，紀錄只存在 Colab 的臨時資料夾，工作階段結束就會刪除。要回看之前的簡報，請勾選 SAVE_TO_DRIVE，並在彈出的視窗允許 Colab 連接 Google Drive。",
+     "每日的完整簡報都保留在網站首頁的「之前的簡報」。"),
+]
+
+
+def github_wording(text):
+    for old, new in GITHUB_WORDING:
+        text = text.replace(old, new)
+    return text
+
+
 def write(path, text):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
