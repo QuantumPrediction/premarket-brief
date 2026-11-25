@@ -33,7 +33,7 @@ def summary(G):
     F, secn = G["F"], G.get("SECTOR_ETFS", {})
     sec = lambda t: secn.get(str(F.at[t, "SecETF"]), "") if (t in F.index and "SecETF" in F.columns) else ""
 
-    def pick(c, tier):
+    def pick(c, tier, live=False):
         t = c["Ticker"]
         close, trig, stop = num(c.get("Close")), num(c.get("Trigger")), num(c.get("Stop"))
         dist = (trig / close - 1) * 100 if (close and trig) else None
@@ -42,9 +42,11 @@ def summary(G):
                 "tier": tier, "setup": str(c.get("Setup", "")), "sector": sec(t), "close": close, "trigger": trig, "stop": stop,
                 "dist": num(dist, 1), "risk": num(risk, 1), "earn": str(c.get("Earn", "") or ""),
                 "missing": str(c.get("Reason", "") or "") or "；".join(str(m[1]) for m in c.get("Miss", []) or []),   # what the brief shows as 尚欠
-                "why": str(c.get("Why", "") or "")}
+                "why": str(c.get("Why", "") or ""), "live": bool(live)}   # live = its gate is open today, so it can become an order
 
-    picks = [pick(c, G.get("T6_TOP_L", "A 級")) for c in G.get("T6_LA", [])] + [pick(c, G.get("T6_TOP_S", "A 級")) for c in G.get("T6_SA", [])]
+    long_ok, short_ok = bool(G.get("long_ok")), bool(G.get("T6_SGATE"))
+    picks = ([pick(c, G.get("T6_TOP_L", "A 級"), long_ok) for c in G.get("T6_LA", [])]
+             + [pick(c, G.get("T6_TOP_S", "A 級"), short_ok) for c in G.get("T6_SA", [])])
     bgrade = [pick(c, "B 級") for c in G.get("T6_LB", [])[:10]]
     timeline, day0 = [], None
     for x in G.get("T6_TL", []):
@@ -70,7 +72,7 @@ def summary(G):
         "event_day": bool(G.get("EVENT_DAY")), "n_long": int(bud.get("n_long", 0) or 0), "n_short": int(bud.get("n_short", 0) or 0),
         "universe": len(G.get("TICKS", [])), "long_candidates": len(G.get("T6_L", [])),
         "pct50": num(G.get("pct50_now"), 0), "vix": num(G.get("vix_now"), 1), "bo_follow": num(G.get("BO_FOLLOW"), 0),
-        "anchor": "QQQ", "anchor_close": num(G["q"].c, 2), "picks_live": bool(G.get("long_ok") or G.get("T6_SGATE")),
+        "anchor": "QQQ", "anchor_close": num(G["q"].c, 2), "picks_live": long_ok or short_ok, "long_ok": long_ok, "short_ok": short_ok,
         "play": list(G.get("PLAY", []))[:8], "picks": picks, "bgrade": bgrade, "timeline": timeline, "sectors": secs,
     }
 

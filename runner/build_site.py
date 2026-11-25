@@ -60,13 +60,24 @@ L = {
     "pre_time": ("checked at {t} ET", "美東 {t} 檢查", "美东 {t} 检查"),
     "no_pre": ("Pre-open update runs about an hour before the open", "開市前約一小時會有開市前更新", "开盘前约一小时会有开盘前更新"),
     "plan_h": ("Today’s plan", "今日計劃", "今日计划"),
-    "picks_h": ("Top picks", "首選", "首选"),
-    "picks_none": ("No top picks today. The rules found nothing ready to trade; waiting is part of the plan.",
-                   "今日沒有首選：規則找不到可以交易的形態，等待也是計劃的一部分。",
-                   "今日没有首选：规则找不到可以交易的形态，等待也是计划的一部分。"),
-    "ready_note": ("The gates are closed, so these setups get alert prices only, no orders.",
-                   "閘門未開，以下形態只設提示價，不落單。", "闸门未开，以下形态只设提示价，不下单。"),
-    "b_h": ("Near ready (alerts only)", "接近成熟（只設提示）", "接近成熟（只设提示）"),
+    "picks_none": ("Nothing to trade today: the rules found no setup ready. Waiting is part of the plan.",
+                   "今日沒有可以交易的形態，等待也是計劃的一部分。", "今日没有可以交易的形态，等待也是计划的一部分。"),
+    "b_h": ("Near ready, alerts only", "接近成熟，只設提示", "接近成熟，只设提示"),
+    "live_h": ("Orders for today", "今日可落單", "今日可下单"),
+    "live_none": ("No orders today: no setup has an open gate.", "今日沒有可落單的股票：沒有一個形態的閘門是開的。",
+                  "今日没有可下单的股票：没有一个形态的闸门是开的。"),
+    "watch_h": ("Watch list: gate closed, no orders", "觀察名單：閘門關，不落單", "观察名单：闸门关，不下单"),
+    "watch_note": ("Good setups, but their gate is closed. The prices are alerts only; they become orders only after the gate opens.",
+                   "形態本身不錯，但對應的閘門未開。以下價位只是提示價，閘門打開後才會變成落單價。",
+                   "形态本身不错，但对应的闸门未开。以下价位只是提示价，闸门打开后才会变成下单价。"),
+    "watch_tag": ("watch only", "只觀察", "只观察"),
+    "c_alert": ("Alert", "提示價", "提示价"),
+    "side_long": ("Long", "做多", "做多"), "side_short": ("Short", "做空", "做空"),
+    "sp_max": ("up to {n} new positions", "最多開 {n} 注", "最多开 {n} 注"), "sp_max1": ("up to 1 new position", "最多開 1 注", "最多开 1 注"),
+    "sp_zero": ("gate open, but no new positions today", "閘門開，但今日不開新倉", "闸门开，但今日不开新仓"),
+    "sp_closed_l": ("gate closed, no buying today", "閘門關，今日不買", "闸门关，今日不买"),
+    "sp_closed_s": ("gate closed, no new shorts today", "閘門關，今日不沽空", "闸门关，今日不沽空"),
+    "sp_watch": ("{k} on the watch list", "{k} 隻只作觀察", "{k} 只仅作观察"),
     "play_h": ("Playbook", "今日劇本", "今日剧本"),
     "c_ticker": ("Stock", "股票", "股票"), "c_setup": ("Setup", "形態", "形态"), "c_trigger": ("Trigger", "觸發價", "触发价"),
     "c_stop": ("Stop", "止蝕", "止损"), "c_risk": ("Risk", "風險", "风险"), "c_dist": ("To trigger", "距觸發價", "距触发价"),
@@ -271,19 +282,55 @@ def subs_chart(subs, lang):
             f'<th class="n">{e(t("c_top", lang))}</th></tr></thead><tbody>{table}</tbody></table></div></details>')
 
 
-def picks_table(picks, lang):
-    if not picks:
-        return f'<p class="quiet">{e(t("picks_none", lang))}</p>'
+def picks_table(picks, lang, watch=False):
+    """watch=True: the gate is closed, so the trigger is only an alert price and the row is shown muted."""
     body = "".join(
-        f'<tr><th scope="row"><b>{e(p["ticker"])}</b><small>{e(p["name"])}</small></th><td class="side">{e(p["side"])}<small>{e(p["tier"])}</small></td>'
+        f'<tr><th scope="row"><b>{e(p["ticker"])}</b><small>{e(p["name"])}</small></th><td class="side">{e(p["side"])}'
+        + (f'<small><span class="tagw">{e(t("watch_tag", lang))}</span></small>' if watch else f'<small>{e(p["tier"])}</small>') + '</td>'
         f'<td class="wrap">{e(p["setup"])}<small>{e(p["sector"])}</small></td><td class="n">{fmt(p["trigger"])}</td><td class="n">{fmt(p["stop"])}</td>'
         f'<td class="n">{fmt(p["risk"], 1)}%</td><td class="n">{fmt(p["dist"], 1, True)}%</td><td class="n">{e(p["earn"]) or "–"}</td></tr>'
         + (f'<tr class="why"><td colspan="8"><div class="whyt"><span class="quiet">{e(t("c_why", lang))}{PUN[lang]["k"]}</span>{e(p["why"])}</div></td></tr>' if p.get("why") else "")
         for p in picks)
-    return (f'<div class="scroll"><table class="picks"><thead><tr><th>{e(t("c_ticker", lang))}</th><th>{e(t("c_side", lang))}</th>'
-            f'<th>{e(t("c_setup", lang))}</th><th class="n">{e(t("c_trigger", lang))}</th><th class="n">{e(t("c_stop", lang))}</th>'
+    return (f'<div class="scroll"><table class="picks{" watch" if watch else ""}"><thead><tr><th>{e(t("c_ticker", lang))}</th><th>{e(t("c_side", lang))}</th>'
+            f'<th>{e(t("c_setup", lang))}</th><th class="n">{e(t("c_alert" if watch else "c_trigger", lang))}</th><th class="n">{e(t("c_stop", lang))}</th>'
             f'<th class="n">{e(t("c_risk", lang))}</th><th class="n">{e(t("c_dist", lang))}</th><th class="n">{e(t("c_cat", lang))}</th></tr></thead>'
             f'<tbody>{body}</tbody></table></div>')
+
+
+def split_picks(s, s_tc):
+    """Picks that can become orders today, and picks whose gate is closed. Older summaries have no live flag:
+    there the brief's own label decides (預備 = gate closed)."""
+    tc = s_tc.get("picks", [])
+    live, watch = [], []
+    for i, p in enumerate(s.get("picks", [])):
+        ok = p["live"] if "live" in p else (tc[i].get("tier") != "預備" if i < len(tc) else True)
+        (live if ok else watch).append(p)
+    return live, watch
+
+
+def side_ok(s, s_tc, side_tc):
+    """Is this side's gate open today (the brief's long_ok / short gate)?"""
+    key = "long_ok" if side_tc == "做多" else "short_ok"
+    if key in s:
+        return bool(s[key])
+    mine = [p for p in s_tc.get("picks", []) if p.get("side") == side_tc]
+    if mine:
+        return mine[0].get("tier") != "預備"
+    g = s["gates"]
+    return bool(g["long"] or g["pilot"]) if side_tc == "做多" else bool(g["short"])
+
+
+def side_plan(s, s_tc, watch_tc, lang):
+    """Two lines, long and short, saying plainly what may be done today."""
+    rows = []
+    for side_tc, lab, n, closed in (("做多", "side_long", s.get("n_long", 0), "sp_closed_l"), ("做空", "side_short", s.get("n_short", 0), "sp_closed_s")):
+        k = sum(1 for p in watch_tc if p.get("side") == side_tc)
+        if side_ok(s, s_tc, side_tc):
+            on, txt = n > 0, t("sp_max1" if n == 1 else "sp_max", lang, n=n) if n > 0 else t("sp_zero", lang)
+        else:
+            on, txt = False, t(closed, lang) + (PUN[lang]["c"] + t("sp_watch", lang, k=k) if k else "")
+        rows.append(f'<li class="{"on" if on else "off"}"><b>{e(t(lab, lang))}</b><span>{e(txt)}</span></li>')
+    return f'<ul class="sideplan">{"".join(rows)}</ul>'
 
 
 def bgrade_table(rows, lang):
@@ -291,8 +338,8 @@ def bgrade_table(rows, lang):
         return ""
     body = "".join(f'<tr><th scope="row"><b>{e(p["ticker"])}</b><small>{e(p["sector"])}</small></th><td class="wrap">{e(p["setup"])}</td>'
                    f'<td class="n">{fmt(p["dist"], 1, True)}%</td><td class="wrap">{e(p["missing"] or p["why"]) or "–"}</td></tr>' for p in rows)
-    return (f'<h3>{e(t("b_h", lang))}</h3><div class="scroll"><table class="bgrade"><thead><tr><th>{e(t("c_ticker", lang))}</th><th>{e(t("c_setup", lang))}</th>'
-            f'<th class="n">{e(t("c_dist", lang))}</th><th>{e(t("c_missing", lang))}</th></tr></thead><tbody>{body}</tbody></table></div>')
+    return (f'<details class="near"><summary>{e(t("b_h", lang))}{PUN[lang]["o"]}{len(rows)}{PUN[lang]["x"]}</summary><div class="scroll"><table class="bgrade"><thead><tr><th>{e(t("c_ticker", lang))}</th><th>{e(t("c_setup", lang))}</th>'
+            f'<th class="n">{e(t("c_dist", lang))}</th><th>{e(t("c_missing", lang))}</th></tr></thead><tbody>{body}</tbody></table></div></details>')
 
 
 def timeline_list(tl, lang, tl_tc=None):
@@ -351,6 +398,8 @@ def page(lang, latest, latest_pre, hist):
     run, S = latest[d]
     s = S[lang]
     g, p = s["gates"], PUN[lang]
+    live, watch = split_picks(s, S["tc"])
+    watch_tc = split_picks(S["tc"], S["tc"])[1]
     pre_btn = f'<span class="btn ghost" aria-disabled="true">{e(t("no_pre", lang))}</span>'
     if d in latest_pre:
         prun, P = latest_pre[d]
@@ -383,9 +432,11 @@ def page(lang, latest, latest_pre, hist):
         + f'<div class="actions"><a class="btn" href="{up}briefs/{e(run)}/{lang}.html">{e(t("open_brief", lang))}</a>{pre_btn}</div>'
         f'</div></section>'
         f'<dl class="stats">{stat_html}</dl>'
-        f'<section id="plan" class="grid2"><div><h2>{e(t("plan_h", lang))}</h2><h3>{e(t("picks_h", lang))}</h3>' + ("" if s.get("picks_live", True) or not s["picks"] else f'<p class="small quiet">{e(t("ready_note", lang))}</p>')
-        + f'{picks_table(s["picks"], lang)}'
-        f'{bgrade_table(s["bgrade"], lang)}<p class="small quiet">{e(t("demo_note", lang, a=acct))}</p></div>'
+        f'<section id="plan" class="grid2"><div><h2>{e(t("plan_h", lang))}</h2>{side_plan(s, S["tc"], watch_tc, lang)}'
+        f'<h3>{e(t("live_h", lang))}</h3>'
+        + (picks_table(live, lang) if live else f'<p class="quiet">{e(t("live_none" if s["picks"] else "picks_none", lang))}</p>')
+        + (f'<h3>{e(t("watch_h", lang))}</h3><p class="small quiet">{e(t("watch_note", lang))}</p>{picks_table(watch, lang, watch=True)}' if watch else "")
+        + f'{bgrade_table(s["bgrade"], lang)}<p class="small quiet">{e(t("demo_note", lang, a=acct))}</p></div>'
         f'<aside><h2>{e(t("play_h", lang))}</h2><ul class="play">' + "".join(f"<li>{e(x)}</li>" for x in s["play"]) + "</ul></aside></section>"
         f'<section class="grid2 tlsec"><div><h2>{e(t("tl_h", lang))}</h2>{timeline_list(s.get("timeline", []), lang, S["tc"].get("timeline", []))}</div>'
         f'<div><h2>{e(t("subs_h", lang))}</h2><p class="small quiet">{e(t("subs_note", lang))}</p>{subs_chart(s.get("sectors", []), lang)}</div></section>')
@@ -498,6 +549,16 @@ td.links,td.links a,td.pre{white-space:nowrap}td.side{white-space:nowrap}
 .timeline .kind{grid-column:3;grid-row:1/3;align-self:center;font-size:13px;color:var(--ink2);border:1px solid var(--rule);border-radius:999px;padding:1px 9px;white-space:nowrap}
 .timeline li.k-me .what{font-weight:600}
 table.picks tr.why td{padding-top:0;font-size:14px;color:var(--ink2);border-top:0}
+details.near{margin:20px 0 8px}details.near summary{font-size:16px;font-weight:600;cursor:pointer}details.near[open] summary{margin-bottom:8px}
+.sideplan{list-style:none;margin:0 0 6px;padding:0;display:grid;gap:8px}
+.sideplan li{display:flex;gap:14px;align-items:baseline;padding:9px 14px;border:1px solid var(--rule);border-radius:8px}
+.sideplan li b{flex:none;min-width:3em}
+.sideplan li.on{border-color:var(--brand);box-shadow:inset 4px 0 0 var(--brand)}
+.sideplan li.on span{font-weight:600}
+.sideplan li.off{color:var(--ink2)}
+table.picks.watch tbody th b{font-size:16px;font-weight:600;color:var(--ink2)}
+table.picks.watch td,table.picks.watch tbody th small{color:var(--ink2)}
+.tagw{display:inline-block;margin-top:2px;font-size:12px;line-height:1.5;border:1px solid var(--muted);border-radius:999px;padding:0 8px;color:var(--ink2)}
 .whyt{position:sticky;left:0;max-width:calc(100vw - 40px)}
 table.picks tr:has(+ tr.why) > *{border-bottom:0}
 .hname small{color:var(--muted);font-size:12px}
