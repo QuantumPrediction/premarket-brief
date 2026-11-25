@@ -129,6 +129,12 @@ def translate_doc(doc, lang):
     return out if lang == "tc" else out.replace("</body>", FONT_CSS[lang] + "</body>", 1)
 
 
+def redirect_page(target):
+    """A tiny page that sends the visitor on to target (kept where an older link pointed)."""
+    return (f'<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="refresh" content="0; url={target}">'
+            f'<link rel="canonical" href="{target}"><title>Pre-market brief</title></head><body><a href="{target}">{target}</a></body></html>')
+
+
 BAR_RX = re.compile(r"<!--sitebar[^>]*-->.*?<!--/sitebar-->", re.S)
 
 

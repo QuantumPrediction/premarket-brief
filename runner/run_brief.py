@@ -13,7 +13,8 @@ import shutil
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import (HK, ROOT, ensure_languages, env, env_bool, env_num, github_wording, now_et, run_script, translate_doc, write)  # noqa: E402
+from common import (HK, LANGS, ROOT, ensure_languages, env, env_bool, env_num, github_wording, now_et, redirect_page, run_script,
+                    translate_doc, write)  # noqa: E402
 
 SCRIPT = "premarket_brief_v6_3.py"
 HIST = "premarket_out"
@@ -89,8 +90,11 @@ def prune(state, keep_days):
                 continue
             by_date.setdefault(r[:10], []).append((run_et, r))
         for runs in by_date.values():
-            for _, r in sorted(runs)[:-1]:
+            keep = sorted(runs)[-1][1]
+            for _, r in sorted(runs)[:-1]:                     # an older run of the same date: its links now open the newest run
                 shutil.rmtree(os.path.join(base, r), ignore_errors=True)
+                for lang in LANGS:
+                    write(os.path.join(base, r, f"{lang}.html"), redirect_page(f"../{keep}/{lang}.html"))
         for r in sorted(os.listdir(base))[:-5]:                # always keep the last 5
             try:
                 d = dt.date.fromisoformat(r[:10])

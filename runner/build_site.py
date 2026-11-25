@@ -639,7 +639,7 @@ def prepare_pages(site):
                 if not os.path.exists(path):
                     continue
                 doc = open(path, encoding="utf-8").read()
-                if f"<!--sitebar v{BAR_VER}-->" not in doc:
+                if f"<!--sitebar v{BAR_VER}-->" not in doc and 'http-equiv="refresh"' not in doc:
                     open(path, "w", encoding="utf-8").write(decorate(doc, lang, 3))
                     fixed += 1
     return made, fixed
