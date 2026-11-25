@@ -5,8 +5,8 @@ The two scripts in scripts/ (v6.3) are the same files you paste into Colab. This
    environment variables; google.colab.drive refuses, so files stay in the state folder),
 2. replaces the Colab form values (#@param lines) with values from settings.txt
    (or a GitHub repository variable of the same name, which wins when set),
-3. runs the script in its own namespace and hands that namespace back, so the runner
-   can reuse the script's own translation function for the other two languages.
+3. runs the script in its own namespace and hands that namespace back to the runner.
+English and Simplified Chinese copies are made afterwards by i18n.py.
 """
 import datetime as dt
 import importlib
@@ -16,9 +16,12 @@ import sys
 import types
 from zoneinfo import ZoneInfo
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import i18n  # noqa: E402
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ET, HK = ZoneInfo("America/New_York"), ZoneInfo("Asia/Hong_Kong")
-LANGS = ("tc",)                                  # v6.3 writes Traditional Chinese only
+LANGS = ("tc", "sc", "en")                       # v6.3 writes Traditional Chinese; i18n.py makes the other two
 HTML_LANG = {"en": "en", "tc": "zh-Hant", "sc": "zh-Hans"}
 FONT_CSS = {"tc": "",
             "sc": '<style>.pmb{font-family:-apple-system,"Segoe UI","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif}</style>',
@@ -114,27 +117,46 @@ def run_script(path, values, workdir):
     return G
 
 
-def translate(G, text, lang, html=True):
-    """Translate output written in Traditional Chinese with the script's own table."""
-    if lang == "tc" or not text or "_tr" not in G:        # v6.3 has no translation table
-        return text
-    old = G["_LANG"]
-    G["_LANG"] = lang
-    G["_TR"].clear()
-    try:
-        return G["_tr"](text, html)
-    finally:
-        G["_LANG"] = old
-        G["_TR"].clear()
+def translate(text, lang, html=False):
+    """Text written by v6.3 in Traditional Chinese -> lang (see i18n.py)."""
+    return i18n.translate(text, lang, html)
 
 
-def translate_doc(G, doc, lang):
+def translate_doc(doc, lang):
     """A whole saved HTML page: text, <html lang>, and a font that suits the language."""
-    if lang == "tc" or "_tr" not in G:
-        return doc
-    out = translate(G, doc, lang, True)
-    out = out.replace('<html lang="zh-Hant">', f'<html lang="{HTML_LANG[lang]}">', 1)
-    return out.replace("</body>", FONT_CSS[lang] + "</body>", 1)
+    out = doc if lang == "tc" else i18n.translate(doc, lang, True)
+    out = re.sub(r"<html(?: lang=\"[^\"]*\")?>", f'<html lang="{HTML_LANG[lang]}">', out, count=1)
+    return out if lang == "tc" else out.replace("</body>", FONT_CSS[lang] + "</body>", 1)
+
+
+BAR_RX = re.compile(r"<!--sitebar[^>]*-->.*?<!--/sitebar-->", re.S)
+
+
+def strip_bar(doc):
+    """Remove what build_site.py added to a saved page (the language bar and its style)."""
+    return BAR_RX.sub("", doc)
+
+
+def ensure_languages(folder):
+    """A brief or pre-open folder holds the Traditional Chinese files; add the other languages if missing."""
+    import json
+    made = 0
+    tc_html = os.path.join(folder, "tc.html")
+    for lang in LANGS:
+        if lang == "tc":
+            continue
+        path = os.path.join(folder, f"{lang}.html")
+        if os.path.exists(tc_html) and not os.path.exists(path):
+            write(path, translate_doc(strip_bar(open(tc_html, encoding="utf-8").read()), lang))
+            made += 1
+        for stem in ("brief", "preopen"):
+            src, dst = os.path.join(folder, f"{stem}_tc.txt"), os.path.join(folder, f"{stem}_{lang}.txt")
+            if os.path.exists(src) and not os.path.exists(dst):
+                write(dst, translate(open(src, encoding="utf-8").read(), lang))
+        src, dst = os.path.join(folder, "summary_tc.json"), os.path.join(folder, f"summary_{lang}.json")
+        if os.path.exists(src) and not os.path.exists(dst):
+            write(dst, json.dumps(i18n.translate_obj(json.load(open(src, encoding="utf-8")), lang), ensure_ascii=False, indent=1))
+    return made
 
 
 def now_et():

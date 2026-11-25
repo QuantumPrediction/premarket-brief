@@ -28,5 +28,5 @@ AI_NEWS=false
 # AI 模型（表單 AI_MODEL）：claude-sonnet-5-5、claude-opus-5-5、claude-haiku-5-5
 AI_MODEL=claude-sonnet-5-5
 
-# 網站「之前的簡報」保留日數（最少保留 5 份）
-ARCHIVE_DAYS=30
+# 網站「之前的簡報」保留日數（最少保留 5 份；365 = 一年，每份三種語言約 1.5 MB）
+ARCHIVE_DAYS=365

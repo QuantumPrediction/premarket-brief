@@ -2,8 +2,10 @@
 
 Reads   state/site/briefs/<run>/summary_tc.json, state/site/preopen/<stem>/summary_tc.json,
         state/premarket_out/score_history.csv
-Writes  state/site/index.html, state/site/latest/tc.html (always opens the newest full brief),
-        state/site/assets/site.css + site.js
+Writes  state/site/index.html (Traditional Chinese), state/site/zh-hans/index.html, state/site/en/index.html,
+        state/site/latest/<lang>.html (always opens the newest full brief), state/site/assets/site.css + site.js,
+        the Simplified Chinese and English copies of every brief and pre-open page that lacks them,
+        and the bar at the top of those pages (back to the home page, language switch)
 The full briefs themselves (briefs/<run>/<lang>.html) are written by run_brief.py and only linked from here.
 """
 import csv
@@ -11,14 +13,16 @@ import glob
 import html
 import json
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import LANGS, ROOT, env, now_et  # noqa: E402
+from common import LANGS, ROOT, ensure_languages, env, now_et, strip_bar  # noqa: E402
 
-LANG_DIR = {"tc": ""} if LANGS == ("tc",) else {"en": "", "tc": "zh-hant/", "sc": "zh-hans/"}
+LANG_DIR = {"tc": "", "sc": "zh-hans/", "en": "en/"}             # the home page is Traditional Chinese
 HTML_LANG = {"en": "en", "tc": "zh-Hant", "sc": "zh-Hans"}
 LANG_NAME = {"en": "English", "tc": "繁體", "sc": "简体"}
+ARCHIVE_SHOWN = 30                                                # older briefs sit in a folded list below these
 REG_ORDER = ["E", "D", "C", "B", "A"]
 REG_BANDS = {"E": (0, 25), "D": (25, 40), "C": (40, 55), "B": (55, 70), "A": (70, 100)}
 
@@ -120,6 +124,8 @@ L = {
               "還未有簡報。在 GitHub 打開 Actions，選「Daily pre-market brief」，按「Run workflow」。",
               "还未有简报。在 GitHub 打开 Actions，选“Daily pre-market brief”，按“Run workflow”。"),
     "open_brief_short": ("Open", "打開", "打开"),
+    "arch_more": ("{n} earlier briefs", "更早的 {n} 份簡報", "更早的 {n} 份简报"),
+    "home": ("Home", "首頁", "首页"),
     "skip": ("Skip to today’s plan", "跳到今日計劃", "跳到今日计划"),
     "lang": ("Language", "語言", "语言"),
 }
@@ -162,8 +168,9 @@ def load(state):
         except (OSError, ValueError):
             continue
         pre.setdefault(s[LANGS[0]]["brief_date"], []).append((run, s))
-    latest = {d: sorted(v)[-1] for d, v in briefs.items()}           # the last run of each brief date
-    latest_pre = {d: sorted(v)[-1] for d, v in pre.items()}
+    newest = lambda v: max(v, key=lambda rs: (rs[1][LANGS[0]].get("run_et", ""), rs[0]))   # noqa: E731
+    latest = {d: newest(v) for d, v in briefs.items()}               # the last run of each brief date
+    latest_pre = {d: newest(v) for d, v in pre.items()}
     hist = []
     path = os.path.join(state, "premarket_out", "score_history.csv")
     if os.path.exists(path):
@@ -287,12 +294,14 @@ def bgrade_table(rows, lang):
             f'<th class="n">{e(t("c_dist", lang))}</th><th>{e(t("c_missing", lang))}</th></tr></thead><tbody>{body}</tbody></table></div>')
 
 
-def timeline_list(tl, lang):
+def timeline_list(tl, lang, tl_tc=None):
     if not tl:
         return f'<p class="quiet">{e(t("tl_none", lang))}</p>'
-    items = "".join(f'<li class="k-{e(KIND.get(x["kind"], "other"))}"><time>{e(x["hk"])}' + (f'<small>{e(t("next_day", lang))}</small>' if x.get("next") else "")
+    tl_tc = tl_tc or tl                                          # older summaries have no kind code: use the Chinese kind
+    code = [x.get("code") or KIND.get(y.get("kind"), "other") for x, y in zip(tl, tl_tc)]
+    items = "".join(f'<li class="k-{e(c)}"><time>{e(x["hk"])}' + (f'<small>{e(t("next_day", lang))}</small>' if x.get("next") else "")
                     + f'</time><span class="et">{e(t("c_et", lang))} {e(x["et"])}</span><span class="what">{e(x["what"])}</span>'
-                    f'<span class="kind">{e(x["kind"])}</span></li>' for x in tl)
+                    f'<span class="kind">{e(x["kind"])}</span></li>' for x, c in zip(tl, code))
     return f'<ol class="timeline">{items}</ol>'
 
 
@@ -301,20 +310,23 @@ KIND = {"我": "me", "市場": "mkt", "數據": "data", "財報": "earn"}
 
 def archive_table(latest, latest_pre, lang, up):
     rows = []
-    for d in sorted(latest, reverse=True)[:40]:
-        run, s = latest[d]
-        x = s[lang]
-        links = " ".join(f'<a href="{up}briefs/{e(run)}/{lg}.html" hreflang="{HTML_LANG[lg]}">{LANG_NAME[lg] if len(LANGS) > 1 else e(t("open_brief_short", lang))}</a>'
-                         for lg in LANGS)
+    for d in sorted(latest, reverse=True):
+        run, S = latest[d]
+        x = S[lang]
+        link = f'<a href="{up}briefs/{e(run)}/{lang}.html">{e(t("open_brief_short", lang))}</a>'
         pre = ""
         if d in latest_pre:
             prun, _ = latest_pre[d]
             pre = f'<a href="{up}preopen/{e(prun)}/{lang}.html">{e(t("c_pre", lang))}</a>'
         rows.append(f'<tr><td class="n">{e(d)}</td><td class="side"><span class="chip r{e(x["regime"])}">{e(x["regime"])}</span> {e(x["regime_name"])}</td>'
-                    f'<td class="n">{fmt(x["score"], 0)}</td><td class="wrap">{e(x["verdict"])}</td><td class="links">{links}</td><td class="pre">{pre}</td></tr>')
-    return (f'<div class="scroll"><table class="archive"><thead><tr><th class="n">{e(t("c_date", lang))}</th><th>{e(t("regime", lang))}</th>'
-            f'<th class="n">{e(t("score", lang))}</th><th>{e(t("c_verdict", lang))}</th><th>{e(t("c_brief", lang))}</th><th>{e(t("c_pre", lang))}</th>'
-            f'</tr></thead><tbody>{"".join(rows)}</tbody></table></div>')
+                    f'<td class="n">{fmt(x["score"], 0)}</td><td class="wrap">{e(x["verdict"])}</td><td class="links">{link}</td><td class="pre">{pre}</td></tr>')
+    head = (f'<thead><tr><th class="n">{e(t("c_date", lang))}</th><th>{e(t("regime", lang))}</th>'
+            f'<th class="n">{e(t("score", lang))}</th><th>{e(t("c_verdict", lang))}</th><th>{e(t("c_brief", lang))}</th><th>{e(t("c_pre", lang))}</th></tr></thead>')
+    out = f'<div class="scroll"><table class="archive">{head}<tbody>{"".join(rows[:ARCHIVE_SHOWN])}</tbody></table></div>'
+    if len(rows) > ARCHIVE_SHOWN:
+        out += (f'<details class="older"><summary>{e(t("arch_more", lang, n=len(rows) - ARCHIVE_SHOWN))}</summary>'
+                f'<div class="scroll"><table class="archive">{head}<tbody>{"".join(rows[ARCHIVE_SHOWN:])}</tbody></table></div></details>')
+    return out
 
 
 def page(lang, latest, latest_pre, hist):
@@ -374,7 +386,7 @@ def page(lang, latest, latest_pre, hist):
         + f'{picks_table(s["picks"], lang)}'
         f'{bgrade_table(s["bgrade"], lang)}<p class="small quiet">{e(t("demo_note", lang, a=acct))}</p></div>'
         f'<aside><h2>{e(t("play_h", lang))}</h2><ul class="play">' + "".join(f"<li>{e(x)}</li>" for x in s["play"]) + "</ul></aside></section>"
-        f'<section class="grid2 tlsec"><div><h2>{e(t("tl_h", lang))}</h2>{timeline_list(s.get("timeline", []), lang)}</div>'
+        f'<section class="grid2 tlsec"><div><h2>{e(t("tl_h", lang))}</h2>{timeline_list(s.get("timeline", []), lang, S["tc"].get("timeline", []))}</div>'
         f'<div><h2>{e(t("subs_h", lang))}</h2><p class="small quiet">{e(t("subs_note", lang))}</p>{subs_chart(s.get("sectors", []), lang)}</div></section>')
     sc = score_chart(hist, lang)
     if sc:
@@ -390,9 +402,9 @@ def page(lang, latest, latest_pre, hist):
 
 
 CSS = r"""
-:root{--paper:#f2f6f5;--panel:#ffffff;--ink:#0f2a33;--ink2:#47606a;--muted:#6f858d;--rule:#d3dedf;--brand:#0b6574;--brand-ink:#ffffff;
+:root{--paper:#fff8e1;--panel:#ffffff;--ink:#1d2a2e;--ink2:#574f43;--muted:#7a6f5f;--rule:#eadcb6;--brand:#0b6574;--brand-ink:#ffffff;
 --rA:#13753f;--rB:#3f7f24;--rC:#9a6200;--rD:#b4501c;--rE:#b03030;
---tA:#dff1e6;--tB:#e7f1dc;--tC:#f6ecd5;--tD:#f8e3d6;--tE:#f6dddd;--line:#2a78d6;--pos:#2a78d6;--neg:#e34948;--grid:#e1e0d9;--focus:#0b6574}
+--tA:#dff1e6;--tB:#e7f1dc;--tC:#f6ecd5;--tD:#f8e3d6;--tE:#f6dddd;--line:#2a78d6;--pos:#2a78d6;--neg:#e34948;--grid:#ece2c8;--focus:#0b6574}
 @media (prefers-color-scheme:dark){:root{--paper:#10191c;--panel:#162327;--ink:#e8f0f0;--ink2:#b7c7cb;--muted:#8fa3a8;--rule:#2b3b40;--brand:#5fc0cf;--brand-ink:#0b1d21;
 --rA:#4cc47f;--rB:#8fc46a;--rC:#e0a541;--rD:#ec8a55;--rE:#ec6b6b;--tA:#16362a;--tB:#22341b;--tC:#3a2f17;--tD:#3d2618;--tE:#3d1e1e;--line:#3987e5;--pos:#3987e5;--neg:#e66767;--grid:#2c2c2a;--focus:#5fc0cf}}
 *{box-sizing:border-box}
@@ -405,10 +417,13 @@ a:focus-visible,summary:focus-visible,[tabindex]:focus-visible,.btn:focus-visibl
 .wrap{max-width:1120px;margin:0 auto;padding:0 20px}
 .skip{position:absolute;left:-999px;top:8px}.skip:focus{left:12px;background:var(--panel);padding:6px 10px;z-index:9}
 .top{border-bottom:1px solid var(--rule);background:var(--panel)}
-.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:56px}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 16px;min-height:56px;padding-top:6px;padding-bottom:6px}
 .brand{font-weight:800;font-size:17px;color:var(--ink);text-decoration:none;letter-spacing:-.01em}
-nav a{margin-left:14px;text-decoration:none;color:var(--ink2);font-size:15px;padding:4px 0;border-bottom:2px solid transparent}
-nav a[aria-current=page]{color:var(--ink);border-bottom-color:var(--brand);font-weight:600}
+.top nav{display:inline-flex;background:var(--paper);border:1px solid var(--rule);border-radius:999px;padding:3px}
+.top nav a{text-decoration:none;color:var(--ink2);font-size:15px;padding:6px 14px;border-radius:999px;min-height:32px;display:inline-flex;align-items:center}
+.top nav a:hover{color:var(--ink)}
+.top nav a[aria-current=page]{background:var(--brand);color:var(--brand-ink);font-weight:600}
+details.older{margin-top:14px}details.older summary{cursor:pointer;color:var(--brand);font-weight:600;padding:6px 0}
 main{padding-bottom:24px}
 h1{font-size:clamp(26px,3.4vw,38px);line-height:1.18;font-weight:800;letter-spacing:-.015em;margin:.2em 0 .35em;max-width:26ch}
 html[lang^=zh] h1{max-width:20em;letter-spacing:0}
@@ -584,6 +599,52 @@ JS = r"""
 """
 
 
+BAR_VER = "1"
+BAR_CSS = """<style>
+body{background:#fff8e1!important}
+.sitebar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;max-width:1200px;margin:0 auto 12px;
+font:400 15px/1.4 -apple-system,"Segoe UI",Roboto,"Noto Sans TC","Noto Sans SC","PingFang TC","Microsoft JhengHei",sans-serif}
+.sitebar a{color:#0b6574;text-decoration:none}
+.sitebar .home{font-weight:600;padding:8px 0}
+.sitebar .home:hover{text-decoration:underline}
+.sitebar .langs{display:inline-flex;background:#fff;border:1px solid #e6d7ae;border-radius:999px;padding:3px}
+.sitebar .langs a{padding:6px 14px;border-radius:999px;color:#574f43}
+.sitebar .langs a[aria-current=page]{background:#0b6574;color:#fff;font-weight:600}
+.sitebar a:focus-visible{outline:3px solid #0b6574;outline-offset:2px}
+</style>"""
+
+
+def decorate(doc, lang, depth):
+    """Add the bar (back to the home page, language switch) and the page colour to a saved brief or pre-open page."""
+    up = "../" * depth
+    langs = "".join(f'<a href="{lg}.html" hreflang="{HTML_LANG[lg]}" lang="{HTML_LANG[lg]}"' + (' aria-current="page"' if lg == lang else "")
+                    + f">{LANG_NAME[lg]}</a>" for lg in LANGS)
+    bar = (f'<!--sitebar v{BAR_VER}-->{BAR_CSS}<nav class="sitebar"><a class="home" href="{up}{LANG_DIR[lang]}index.html">‹ {e(t("site", lang))}</a>'
+           f'<span class="langs" aria-label="{e(t("lang", lang))}">{langs}</span></nav><!--/sitebar-->')
+    doc = strip_bar(doc)
+    m = re.search(r"<body[^>]*>", doc)
+    return doc[:m.end()] + bar + doc[m.end():] if m else bar + doc
+
+
+def prepare_pages(site):
+    """Every brief and pre-open folder: make the missing languages, then add the bar where it is missing or out of date."""
+    made = fixed = 0
+    for kind in ("briefs", "preopen"):
+        for folder in sorted(glob.glob(os.path.join(site, kind, "*"))):
+            if not os.path.isdir(folder):
+                continue
+            made += ensure_languages(folder)
+            for lang in LANGS:
+                path = os.path.join(folder, f"{lang}.html")
+                if not os.path.exists(path):
+                    continue
+                doc = open(path, encoding="utf-8").read()
+                if f"<!--sitebar v{BAR_VER}-->" not in doc:
+                    open(path, "w", encoding="utf-8").write(decorate(doc, lang, 3))
+                    fixed += 1
+    return made, fixed
+
+
 def redirect(target):
     return (f'<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="refresh" content="0; url={target}">'
             f'<link rel="canonical" href="{target}"><title>Latest brief</title></head><body><a href="{target}">{target}</a></body></html>')
@@ -592,6 +653,7 @@ def redirect(target):
 def main():
     state = os.path.abspath(env("STATE_DIR", os.path.join(ROOT, "state")))
     site = os.path.join(state, "site")
+    made, fixed = prepare_pages(site)
     latest, latest_pre, hist = load(state)
     os.makedirs(os.path.join(site, "assets"), exist_ok=True)
     open(os.path.join(site, "assets", "site.css"), "w", encoding="utf-8").write(CSS.strip() + "\n")
@@ -606,7 +668,8 @@ def main():
         os.makedirs(os.path.join(site, "latest"), exist_ok=True)
         for lang in LANGS:
             open(os.path.join(site, "latest", f"{lang}.html"), "w", encoding="utf-8").write(redirect(f"../briefs/{run}/{lang}.html"))
-    print(f"Website built in {site}: {len(latest)} brief dates, {len(latest_pre)} pre-open updates, {len(hist)} score points")
+    print(f"Website built in {site}: {len(latest)} brief dates, {len(latest_pre)} pre-open updates, {len(hist)} score points; "
+          f"{made} translated pages added, {fixed} pages given the language bar")
 
 
 if __name__ == "__main__":

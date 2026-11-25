@@ -3,7 +3,7 @@
 Settings come from GitHub repository variables and secrets (see README.md). Output goes into the
 state folder, which the workflow keeps on the `data` branch between runs:
   state/premarket_out/              the script's own folder (daily_log.csv, tier_history.csv, latest_plan.json, ...)
-  state/site/briefs/<run id>/       tc.html, brief_tc.txt, summary_tc.json
+  state/site/briefs/<run id>/       tc.html, brief_tc.txt, summary_tc.json, and the sc / en copies
 """
 import datetime as dt
 import json
@@ -13,7 +13,7 @@ import shutil
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import (HK, LANGS, ROOT, env, env_bool, env_num, github_wording, now_et, run_script, translate_doc, write)  # noqa: E402
+from common import (HK, ROOT, ensure_languages, env, env_bool, env_num, github_wording, now_et, run_script, translate_doc, write)  # noqa: E402
 
 SCRIPT = "premarket_brief_v6_3.py"
 HIST = "premarket_out"
@@ -49,7 +49,8 @@ def summary(G):
     for x in G.get("T6_TL", []):
         ts, h = x["et"], x["et"].tz_convert(HK)
         day0 = day0 or h.date()
-        timeline.append({"et": f"{ts:%H:%M}", "hk": f"{h:%H:%M}", "next": h.date() > day0, "what": str(x["what"]), "kind": str(x["kind"])})
+        timeline.append({"et": f"{ts:%H:%M}", "hk": f"{h:%H:%M}", "next": h.date() > day0, "what": str(x["what"]), "kind": str(x["kind"]),
+                         "code": {"我": "me", "市場": "mkt", "數據": "data", "財報": "earn"}.get(str(x["kind"]), "other")})
     secs = []
     st = G.get("SECT_TBL")
     if st is not None and len(st):
@@ -80,6 +81,16 @@ def prune(state, keep_days):
         base = os.path.join(state, sub)
         if not os.path.isdir(base):
             continue
+        by_date = {}
+        for r in os.listdir(base):                             # several runs for one brief date: keep the newest only
+            try:
+                run_et = json.load(open(os.path.join(base, r, "summary_tc.json"), encoding="utf-8")).get("run_et", "")
+            except (OSError, ValueError):
+                continue
+            by_date.setdefault(r[:10], []).append((run_et, r))
+        for runs in by_date.values():
+            for _, r in sorted(runs)[:-1]:
+                shutil.rmtree(os.path.join(base, r), ignore_errors=True)
         for r in sorted(os.listdir(base))[:-5]:                # always keep the last 5
             try:
                 d = dt.date.fromisoformat(r[:10])
@@ -130,12 +141,12 @@ def main():
     dash = github_wording(open(os.path.join(state, G["DASH_PATH"]), encoding="utf-8").read())   # the script's paths are relative to state/
     txt = github_wording(G["BRIEF_TXT"] + "\n\n" + G["NEWS_TXT"])
     s = summary(G)
-    for lang in LANGS:
-        write(os.path.join(out, f"{lang}.html"), translate_doc(G, dash, lang))
-        write(os.path.join(out, f"brief_{lang}.txt"), txt)
-        write(os.path.join(out, f"summary_{lang}.json"), json.dumps(s, ensure_ascii=False, indent=1))
+    write(os.path.join(out, "tc.html"), translate_doc(dash, "tc"))
+    write(os.path.join(out, "brief_tc.txt"), txt)
+    write(os.path.join(out, "summary_tc.json"), json.dumps(s, ensure_ascii=False, indent=1))
+    ensure_languages(out)                                                         # Simplified Chinese and English copies
     write(os.path.join(state, "marks", "brief.txt"), f"{now_et():%Y-%m-%d} {run_id}\n")
-    prune(state, int(env_num("ARCHIVE_DAYS", 30)))
+    prune(state, int(env_num("ARCHIVE_DAYS", 365)))
     print(f"Saved site files for {run_id} in {out}")
 
 

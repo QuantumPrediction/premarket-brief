@@ -4,7 +4,8 @@ This repository runs the US pre-market brief v6.3 (the same two scripts used in 
 
 - **Daily pre-market brief** (`.github/workflows/brief.yml`): about 07:17 New York time, Monday to Friday. Runs cell 1 over the S&P 500, Nasdaq 100 and S&P 400 and rebuilds the website.
 - **Pre-open update** (`.github/workflows/preopen.yml`): about 08:47 New York time. Runs cell 2 against that morning's plan and adds it to the website.
-- Website: `https://<your-user-name>.github.io/<repository-name>/`. `latest/tc.html` always opens the newest full brief. The pages are in Traditional Chinese, as v6.3 writes them.
+- Website: `https://<your-user-name>.github.io/<repository-name>/` in Traditional Chinese, with `zh-hans/` (Simplified Chinese) and `en/` (English); a switch at the top of every page changes language. `latest/<tc|sc|en>.html` always opens the newest full brief.
+- v6.3 writes Traditional Chinese. `runner/i18n.py` makes the Simplified Chinese copy by character conversion and the English copy from a phrase table (`runner/i18n_table.json`, `runner/i18n_v63.json`). If an English page shows a Chinese phrase, add it to `i18n_v63.json`.
 
 ## Setup in short
 
@@ -26,11 +27,12 @@ The website and `settings.txt` are public. Do not put your real account size or 
 | `settings.txt` | The Colab form values, one per line (account, risk, universe, AI news, ...) |
 | `runner/common.py` | Runs a Colab script on Actions: Colab stand-ins and form values from `settings.txt` |
 | `runner/run_brief.py`, `runner/run_preopen.py` | Run cell 1 / cell 2 and save the website copies |
-| `runner/build_site.py` | Builds the dashboard pages from the saved summaries |
+| `runner/build_site.py` | Builds the dashboard pages from the saved summaries, adds missing translations and the top bar of each full brief |
+| `runner/i18n.py` | Traditional Chinese to Simplified Chinese and English |
 | `runner/time_window.py` | Lets one of the two daily schedules through (US daylight saving) |
 | `runner/state.sh` | Saves and restores history on the `data` branch (one commit, replaced each run) |
 
-History (daily log, tier history, plan file, score history, website archive) lives on the `data` branch. Delete that branch to start fresh.
+History (daily log, tier history, plan file, score history, website archive) lives on the `data` branch. The website keeps the newest run of each brief date for `ARCHIVE_DAYS` (365 by default). Delete that branch to start fresh.
 
 To update the scripts later, replace the two files in `scripts/`. If the new file names differ (for example v6.4), change `SCRIPT` near the top of `runner/run_brief.py` and the file name in `runner/run_preopen.py`.
 
