@@ -402,7 +402,7 @@ def page(lang, latest, latest_pre, hist):
 
 
 CSS = r"""
-:root{--paper:#fff8e1;--panel:#ffffff;--ink:#1d2a2e;--ink2:#574f43;--muted:#7a6f5f;--rule:#eadcb6;--brand:#0b6574;--brand-ink:#ffffff;
+:root{--paper:#ffffff;--panel:#ffffff;--ink:#1d2a2e;--ink2:#574f43;--muted:#7a6f5f;--rule:#eadcb6;--brand:#0b6574;--brand-ink:#ffffff;
 --rA:#13753f;--rB:#3f7f24;--rC:#9a6200;--rD:#b4501c;--rE:#b03030;
 --tA:#dff1e6;--tB:#e7f1dc;--tC:#f6ecd5;--tD:#f8e3d6;--tE:#f6dddd;--line:#2a78d6;--pos:#2a78d6;--neg:#e34948;--grid:#ece2c8;--focus:#0b6574}
 @media (prefers-color-scheme:dark){:root{--paper:#10191c;--panel:#162327;--ink:#e8f0f0;--ink2:#b7c7cb;--muted:#8fa3a8;--rule:#2b3b40;--brand:#5fc0cf;--brand-ink:#0b1d21;
@@ -599,9 +599,9 @@ JS = r"""
 """
 
 
-BAR_VER = "1"
+BAR_VER = "2"
 BAR_CSS = """<style>
-body{background:#fff8e1!important}
+body{background:#ffffff!important}
 .sitebar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;max-width:1200px;margin:0 auto 12px;
 font:400 15px/1.4 -apple-system,"Segoe UI",Roboto,"Noto Sans TC","Noto Sans SC","PingFang TC","Microsoft JhengHei",sans-serif}
 .sitebar a{color:#0b6574;text-decoration:none}
