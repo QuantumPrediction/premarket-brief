@@ -10,6 +10,7 @@ The full briefs themselves (briefs/<run>/<lang>.html) are written by run_brief.p
 """
 import csv
 import glob
+import hashlib
 import html
 import json
 import os
@@ -337,13 +338,13 @@ def page(lang, latest, latest_pre, hist):
             f'<title>{e(t("site", lang))}</title><meta name="description" content="{e(t("tagline", lang))}">'
             '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
             '<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600;800&display=swap" rel="stylesheet">'
-            f'<link rel="stylesheet" href="{up}assets/site.css"></head><body>'
+            f'<link rel="stylesheet" href="{up}assets/site.css?v={ASSET_VER}"></head><body>'
             f'<a class="skip" href="#plan">{e(t("skip", lang))}</a>'
             f'<header class="top"><div class="wrap"><a class="brand" href="{up}{LANG_DIR[lang]}index.html">{e(t("site", lang))}</a>'
             f'<nav aria-label="{e(t("lang", lang))}">{nav}</nav></div></header><main class="wrap">')
     foot = (f'</main><footer class="wrap"><p>{e(t("disclaimer", lang))}</p><p class="quiet">{e(t("sources", lang))}</p>'
             f'<p class="quiet">{e(t("built", lang, t=f"{now_et():%Y-%m-%d %H:%M}"))}</p></footer>'
-            f'<script src="{up}assets/site.js" defer></script></body></html>')
+            f'<script src="{up}assets/site.js?v={ASSET_VER}" defer></script></body></html>')
     if not latest:
         return head + f'<section class="empty"><h1>{e(t("site", lang))}</h1><p>{e(t("tagline", lang))}</p><p>{e(t("empty", lang))}</p></section>' + foot
     d = max(latest)
@@ -643,6 +644,9 @@ def prepare_pages(site):
                     open(path, "w", encoding="utf-8").write(decorate(doc, lang, 3))
                     fixed += 1
     return made, fixed
+
+
+ASSET_VER = hashlib.sha1((CSS + JS).encode("utf-8")).hexdigest()[:8]   # new file name whenever the style changes, so browsers don't keep an old copy
 
 
 def redirect(target):
