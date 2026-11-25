@@ -91,7 +91,9 @@ def prune(state, keep_days):
             by_date.setdefault(r[:10], []).append((run_et, r))
         for runs in by_date.values():
             keep = sorted(runs)[-1][1]
-            for _, r in sorted(runs)[:-1]:                     # an older run of the same date: its links now open the newest run
+            older = [r for _, r in sorted(runs)[:-1]]
+            older += [r for r in os.listdir(base) if r[:10] == keep[:10] and r != keep and r not in older]   # earlier forwards
+            for r in older:                                    # an older run of the same date: its links now open the newest run
                 shutil.rmtree(os.path.join(base, r), ignore_errors=True)
                 for lang in LANGS:
                     write(os.path.join(base, r, f"{lang}.html"), redirect_page(f"../{keep}/{lang}.html"))
