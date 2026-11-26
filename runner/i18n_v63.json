@@ -313,6 +313,9 @@
   "空頭閘門開，破位邊緣": "Short gate open, near breakdown",
   "每日最多": "daily maximum of",
   "QQQ 在破位邊緣，規則不追空": "QQQ is near a breakdown; the rules do not chase shorts",
-  "回補日數＝沽空股數 ÷ 日均成交量。數據以結算日計，公佈時已滯後一至兩星期。": "Days to cover = shares sold short ÷ average daily volume. The data are as of the settlement date and are one to two weeks old when published. "
+  "回補日數＝沽空股數 ÷ 日均成交量。數據以結算日計，公佈時已滯後一至兩星期。": "Days to cover = shares sold short ÷ average daily volume. The data are as of the settlement date and are one to two weeks old when published. ",
+  "閘門未開，以下全部只列作觀察。": "Gates closed: everything below is listed for observation only.",
+  "閘門已開：以下是按固定計分挑出的首選；規則要求升穿觸發價並通過五項入場確認。": "Gate open: these are the top picks by a fixed score; the rules require a break above the trigger and five entry confirmations.",
+  "多頭與試單閘門未開：以下只列作觀察。": "The long and pilot gates are closed: listed for observation only."
  }
 }

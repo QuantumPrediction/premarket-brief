@@ -4244,7 +4244,7 @@ s4 = (f'<div class="note">成交金額最高的 {len(LEAD)} 隻。高於 50 日�
       + render(LEAD_TBL, SPEC["rsd"]) + "</div></details>")
 
 # --- 5 做多 ---
-long_note = "" if long_ok else '<div class="warnbox">閘門未開，以下全部只作觀察。股數按試單注碼計算，供閘門打開時使用。</div>'
+long_note = "" if long_ok else '<div class="note">閘門未開，以下全部只列作觀察。</div>'
 s5 = (long_note
       + f"<h3>VCP 候選（{len(VCP)}）</h3><div class='note'>通過 Trend Template、收縮逐次變小、量縮、距 pivot 5% 以內。</div>" + render(VCP, SPEC["vcp"], 15)
       + f"<h3>High Tight Flag（{len(HTF)}）</h3><div class='note'>旗桿：40 個交易日內由低位升 ≥ 90%。旗形：見頂後 3–25 日，回調不超過 25%。"
@@ -4416,8 +4416,8 @@ s7 = (s7.replace("盈利驚喜取自 Yahoo", "盈利驚喜取自 " + EARN_SRC)
         .replace("（股票池內，按成交金額排序）", f"（股票池內，按成交金額排序；來源 {EARN_SRC}）"))
 
 # --- 焦點名單卡片 ---
-focus_note = ("閘門已開：以下是按固定計分挑出的首選，升穿觸發價並通過五項入場確認才落盤。" if long_ok else
-              "多頭與試單閘門未開：以下只是觀察首選，設好提示價，不落盤。")
+focus_note = ("閘門已開：以下是按固定計分挑出的首選；規則要求升穿觸發價並通過五項入場確認。" if long_ok else
+              "多頭與試單閘門未開：以下只列作觀察。")
 focus_html = ('<details open><summary>焦點名單與提示價 <span class="cnt">由各名單自動挑選，最多 5 隻做多、3 隻做空</span></summary><div class="sec">'
               + f'<div class="warnbox">{esc(focus_note)}</div>' + "<h3>做多</h3>" + render(FOCUS_L, SPEC["focus_l"], empty="沒有合資格的候選")
               + ("<h3>做空（空頭條件成立時才列出；" + esc(SHORT_TIMING.split("：")[0]) + "）</h3>" + render(FOCUS_S, SPEC["focus_s"], empty="沒有合資格的候選") if SHORT_SETUP else "")
