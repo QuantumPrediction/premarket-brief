@@ -126,6 +126,7 @@ def translate_doc(doc, lang):
     """A whole saved HTML page: text, <html lang>, and a font that suits the language."""
     out = doc if lang == "tc" else i18n.translate(doc, lang, True)
     out = re.sub(r"<html(?: lang=\"[^\"]*\")?>", f'<html lang="{HTML_LANG[lang]}">', out, count=1)
+    out = out.replace('href="brief_tc.txt"', f'href="brief_{lang}.txt"')                # the text summary in the same language
     return out if lang == "tc" else out.replace("</body>", FONT_CSS[lang] + "</body>", 1)
 
 
@@ -177,6 +178,29 @@ GITHUB_WORDING = [
     ("這次沒有存到 Google Drive，紀錄只存在 Colab 的臨時資料夾，工作階段結束就會刪除。要回看之前的簡報，請勾選 SAVE_TO_DRIVE，並在彈出的視窗允許 Colab 連接 Google Drive。",
      "每日的完整簡報都保留在網站首頁的「之前的簡報」。"),
 ]
+
+
+TRACKING = re.compile(r"^(utm_[a-z]+|yptr|guccounter|guce_referrer(_sig)?|ncid|soc_src|soc_trk)$", re.I)
+
+
+def clean_url(url):
+    """Drop tracking parameters (utm_*, yptr=yahoo and the like) from an outbound link; keep everything else."""
+    from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+    try:
+        u = urlsplit(url)
+    except ValueError:
+        return url
+    if not u.query:
+        return url
+    q = [(k, v) for k, v in parse_qsl(u.query, keep_blank_values=True) if not TRACKING.match(k) and "yahoo" not in v.lower()]
+    return urlunsplit((u.scheme, u.netloc, u.path, urlencode(q), u.fragment))
+
+
+def clean_links(text):
+    """Every href="http..." in a page, and every bare http link in plain text, without tracking parameters."""
+    import html as _h
+    text = re.sub(r'href="(https?://[^"]+)"', lambda m: 'href="' + _h.escape(clean_url(_h.unescape(m.group(1))), quote=True) + '"', text)
+    return re.sub(r"(?<![\"'=])(https?://[^\s<>\"']+)", lambda m: clean_url(m.group(1)), text)
 
 
 def github_wording(text):

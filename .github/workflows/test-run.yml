@@ -1,0 +1,94 @@
+name: Test run (no publishing)
+
+# Runs the brief and the pre-open update with the code of the chosen branch, builds the website and checks it,
+# then keeps the result as a downloadable artifact. Nothing is published and the data branch is not changed,
+# so this is safe to run on a feature branch at any time.
+on:
+  push:
+    branches: ["feat/**"]   # every push to a feature branch runs the checks
+  workflow_dispatch:
+    inputs:
+      what:
+        description: "What to run: brief, preopen or both"
+        default: both
+
+permissions:
+  contents: write           # reads the data branch (never writes it); writes only the "preview" branch
+
+concurrency:
+  group: premarket-brief-test
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      STATE_DIR: ${{ github.workspace }}/state
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+      DEMO_ACCOUNT: ${{ vars.DEMO_ACCOUNT }}
+      RISK_PCT: ${{ vars.RISK_PCT }}
+      MAX_HEAT_PCT: ${{ vars.MAX_HEAT_PCT }}
+      UNIVERSE: ${{ vars.UNIVERSE }}
+      EXTRA_TICKERS: ${{ vars.EXTRA_TICKERS }}
+      DEMO_POSITIONS: ${{ vars.DEMO_POSITIONS }}
+      HTF_WIDE_SCAN: ${{ vars.HTF_WIDE_SCAN }}
+      USE_OPENBB: ${{ vars.USE_OPENBB }}
+      AI_NEWS: ${{ vars.AI_NEWS }}
+      AI_MODEL: ${{ vars.AI_MODEL }}
+      ARCHIVE_DAYS: ${{ vars.ARCHIVE_DAYS }}
+      SHOW_DEBUG_PANEL: ${{ vars.SHOW_DEBUG_PANEL }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Restore history (data branch, read only)
+        run: bash runner/state.sh restore
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install packages
+        run: |
+          pip install -r requirements.txt
+          if [ "$(python3 runner/common.py USE_OPENBB true)" != "false" ]; then
+            pip install "openbb-core[pandas]" openbb-cboe openbb-finra || echo "OpenBB did not install; the brief runs without the extra data layer."
+          fi
+
+      - name: Run the brief (cell 1)
+        if: (inputs.what || 'both') != 'preopen'
+        run: python runner/run_brief.py
+
+      - name: Run the pre-open update (cell 2)
+        if: (inputs.what || 'both') != 'brief'
+        run: python runner/run_preopen.py
+
+      - name: Build the website
+        run: python runner/build_site.py
+
+      - name: Check the website
+        run: python runner/check_site.py "$STATE_DIR"
+
+      - name: Save a preview copy (branch "preview", replaced each run)
+        if: always()
+        run: |
+          rm -rf /tmp/preview && mkdir -p /tmp/preview
+          for d in site; do [ -d "state/$d" ] && cp -r "state/$d" /tmp/preview/; done
+          cd /tmp/preview
+          git init -q -b preview
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "preview of ${GITHUB_REF_NAME} ${GITHUB_SHA::7}"
+          git -c push.negotiate=false push -q --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" preview
+
+      - name: Keep the result
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: site-preview
+          path: state/site
+          retention-days: 7

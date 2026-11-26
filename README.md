@@ -1,9 +1,10 @@
 # US Pre-market Brief (v6.3) – automatic daily site
 
-This repository runs the US pre-market brief v6.3 (the same two scripts used in Google Colab) on GitHub Actions every US trading day and publishes a dashboard website with GitHub Pages.
+This repository runs the US pre-market brief v6.3 on GitHub Actions every US trading day and publishes rules-based market research as a website with GitHub Pages. The two scripts started as the Google Colab cells; the copies here are the web edition (impersonal research wording, position-size simulator), so they no longer match the Colab files line for line.
 
 - **Daily pre-market brief** (`.github/workflows/brief.yml`): about 07:17 New York time, Monday to Friday. Runs cell 1 over the S&P 500, Nasdaq 100 and S&P 400 and rebuilds the website.
-- **Pre-open update** (`.github/workflows/preopen.yml`): about 08:47 New York time. Runs cell 2 against that morning's plan and adds it to the website.
+- **Automated pre-market refresh** (`.github/workflows/preopen.yml`): about 08:47 New York time. Runs cell 2 against that morning's plan and adds it to the website.
+- **Test run** (`.github/workflows/test-run.yml`): runs on every push to a `feat/**` branch (or by hand). Runs both scripts with the branch's code, builds and checks the website, and keeps it as a downloadable artifact. Nothing is published and the `data` branch is not changed.
 - Website: `https://<your-user-name>.github.io/<repository-name>/` in Traditional Chinese, with `zh-hans/` (Simplified Chinese) and `en/` (English); a switch at the top of every page changes language. `latest/<tc|sc|en>.html` always opens the newest full brief.
 - v6.3 writes Traditional Chinese. `runner/i18n.py` makes the Simplified Chinese copy by character conversion and the English copy from a phrase table (`runner/i18n_table.json`, `runner/i18n_v63.json`). If an English page shows a Chinese phrase, add it to `i18n_v63.json`.
 
@@ -22,18 +23,20 @@ The website and `settings.txt` are public. Do not put your real account size or 
 
 | Path | What it is |
 | --- | --- |
-| `scripts/premarket_brief_v6_3.py` | Cell 1, unchanged from the Colab version |
-| `scripts/preopen_update_v6_3.py` | Cell 2, unchanged from the Colab version |
+| `scripts/premarket_brief_v6_3.py` | Cell 1, web edition |
+| `scripts/preopen_update_v6_3.py` | Cell 2, web edition (automated pre-market refresh) |
 | `settings.txt` | The Colab form values, one per line (account, risk, universe, AI news, ...) |
 | `runner/common.py` | Runs a Colab script on Actions: Colab stand-ins and form values from `settings.txt` |
 | `runner/run_brief.py`, `runner/run_preopen.py` | Run cell 1 / cell 2 and save the website copies |
-| `runner/build_site.py` | Builds the dashboard pages from the saved summaries, adds missing translations and the top bar of each full brief |
+| `runner/build_site.py` | Builds the home pages, adds missing translations, the top bar and the position-size simulator to each brief page |
+| `runner/sizer.js` | The position-size simulator (plain JavaScript): recalculates shares, amounts and maximum loss from the reader's account and risk %, and writes the order parameters in Generic, Futu or IBKR format; settings stay in the browser |
+| `runner/check_site.py` | Checks the built website: local links, leftover notebook wording, sizer data, JSON, script syntax, page sizes |
 | `runner/i18n.py` | Traditional Chinese to Simplified Chinese and English |
 | `runner/time_window.py` | Lets one of the two daily schedules through (US daylight saving) |
 | `runner/state.sh` | Saves and restores history on the `data` branch (one commit, replaced each run) |
 
 History (daily log, tier history, plan file, score history, website archive) lives on the `data` branch. The website keeps the newest run of each brief date for `ARCHIVE_DAYS` (365 by default). Delete that branch to start fresh.
 
-To update the scripts later, replace the two files in `scripts/`. If the new file names differ (for example v6.4), change `SCRIPT` near the top of `runner/run_brief.py` and the file name in `runner/run_preopen.py`.
+To update the scripts later, replace the two files in `scripts/` and carry over the web-edition changes. If the new file names differ (for example v6.4), change `SCRIPT` near the top of `runner/run_brief.py` and the file name in `runner/run_preopen.py`.
 
-For research and demonstration only. Not investment advice; data can be late or wrong, and nothing here guarantees a profit.
+Research disclosure: the output is calculated automatically by fixed rules and is the same for every reader. It is for research and education only, not investment advice, an offer or a solicitation. Past results, including backtests and the follow-up record, do not indicate future results. Whether a paid service built on this needs a licence depends on how it is run; get legal advice before charging for it.
