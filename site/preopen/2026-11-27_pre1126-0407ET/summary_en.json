@@ -1,0 +1,21 @@
+{
+ "stem": "2026-11-27_pre1126-0407ET",
+ "brief_date": "2026-11-27",
+ "run_et": "2026-11-26 04:07",
+ "head": [
+  "Automated Pre-Market Refresh (Gap & Level Recalculation) | Brief date 2026-11-27 | ET 04:07 · HK 17:07 | to the open 1762 min",
+  "Full brief: 2026-11-26 04:05 ET; Regime E, score 28.6, short open; Model market framework (E grade): the rules’ illustrative exposure limit is long 0 units / short 1 unit. For research reference only.",
+  "⚠ Pre-market trading has not started (from 4:00 ET); quotes are from the prior after-hours session.",
+  "Market: Nasdaq 100 futures +0.91%; S&P 500 futures +0.57%; Russell 2000 futures +0.48%; VIX 26.66 (-1.21); QQQ Latest 636.62 (+0.42%, +0.12 ATR; 19:55 ET)",
+  "Open scenario: Flat open: the condition is holding the upper half of the opening range and the prior close for the first 30 minutes.",
+  "[Position & order parameter simulator (recalculated at pre-market prices)]",
+  "  USFD | gates closed | Gate closed: observation only",
+  "  AHR | gates closed | Gate closed: observation only",
+  "  HOG | gates closed | Gate closed: observation only",
+  "  AIZ | gates closed | Gate closed: observation only",
+  "  ALLE | gates closed | Gate closed: observation only",
+  "  XYL | Parameters valid · Within limit | No pre-market quote (no pre-market trades, or a delayed quote): parameters use the prior close; whether the price is already past the trigger 93.81 cannot be confirmed",
+  "    XYL | Sell (short) | stop-limit order | trigger price 93.81 | price 93.34 | quantity 93 | time in force: day | trigger in regular hours only (not pre/post-market) | attached order: stop, stop price 97.35; child order good till cancelled | shorting needs a margin account; confirm shares are available to borrow",
+  "  HBAN | Parameters valid · Backup | No pre-market quote (no pre-market trades, or a delayed quote): parameters use the prior close; whether the price is already past the trigger 14.47 cannot be confirmed"
+ ]
+}

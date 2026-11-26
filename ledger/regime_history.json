@@ -1,0 +1,15 @@
+[
+{
+"date":"2026-11-27",
+"asof":"2026-11-25",
+"run_et":"2026-11-26 04:05",
+"score":28.636363636363637,
+"grade":"E",
+"qqq_close":633.9299926757812,
+"long_gate":false,
+"pilot_gate":false,
+"short_gate":true,
+"breakout_success_rate":53.48837209302325,
+"event_day":false
+}
+]

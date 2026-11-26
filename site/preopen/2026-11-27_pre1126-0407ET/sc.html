@@ -1,0 +1,92 @@
+<!doctype html><html lang="zh-Hans"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>开盘前快速更新 2026-11-27</title></head><body style='margin:0;background:#f3f3f3;padding:12px'><!--sitebar v4--><style>
+body{background:#ffffff!important}
+.sitebar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;max-width:1200px;margin:0 auto 12px;
+font:400 15px/1.4 -apple-system,"Segoe UI",Roboto,"Noto Sans TC","Noto Sans SC","PingFang TC","Microsoft JhengHei",sans-serif}
+.sitebar a{color:#0b6574;text-decoration:none}
+.sitebar .home{font-weight:600;padding:8px 0}
+.sitebar .home:hover{text-decoration:underline}
+.sitebar .langs{display:inline-flex;background:#fff;border:1px solid #e6d7ae;border-radius:999px;padding:3px}
+.sitebar .langs a{padding:6px 14px;border-radius:999px;color:#574f43}
+.sitebar .langs a[aria-current=page]{background:#0b6574;color:#fff;font-weight:600}
+.sitebar a:focus-visible{outline:3px solid #0b6574;outline-offset:2px}
+.sizer{font:14px/1.45 -apple-system,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;color:#1d2a2e;background:#fff;
+border-bottom:1px solid #e6d7ae;padding:10px 16px}
+.sizer .sz-row{max-width:1180px;margin:0 auto;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-end}
+.sizer label{display:flex;flex-direction:column;gap:3px;font-size:12.5px;color:#574f43}
+.sizer input[type=number],.sizer select{font:inherit;font-size:15px;padding:6px 8px;border:1px solid #cdbf98;border-radius:6px;background:#fff;color:#1d2a2e;min-width:0}
+.sizer #sz-eq{width:9.5em}.sizer #sz-risk{width:5.5em}
+.sizer input[aria-invalid=true]{border-color:#b3261e;outline:2px solid #f3c6c2}
+.sizer .sz-pre{display:flex;gap:6px;align-items:center}
+.sizer .sz-pre button{font:inherit;font-size:13px;padding:6px 10px;border:1px solid #cdbf98;border-radius:999px;background:#fff;color:#1d2a2e;cursor:pointer}
+.sizer .sz-pre button:hover{border-color:#0b6574}
+.sizer .sz-tog{flex-direction:row;align-items:center;gap:6px;font-size:13.5px;color:#1d2a2e;padding-bottom:7px}
+.sizer .sz-tog input{width:18px;height:18px;accent-color:#0b6574}
+.sizer .sz-out{max-width:1180px;margin:6px auto 0;font-size:12.5px;color:#574f43}
+.sizer .sz-out b{color:#1d2a2e}
+.sizer button:focus-visible,.sizer input:focus-visible,.sizer select:focus-visible{outline:3px solid #0b6574;outline-offset:2px}
+@media (min-width:760px){.sizer{position:sticky;top:0;z-index:20;box-shadow:0 1px 0 #e6d7ae}}
+</style><nav class="sitebar"><a class="home" href="../../zh-hans/index.html">‹ 美股盘前简报</a><span class="langs" aria-label="语言"><a href="tc.html" hreflang="zh-Hant" lang="zh-Hant">繁體</a><a href="sc.html" hreflang="zh-Hans" lang="zh-Hans" aria-current="page">简体</a><a href="en.html" hreflang="en" lang="en">English</a></span></nav><section id="sizer" class="sizer" aria-label="仓位试算" hidden><div class="sz-row"><label>账户资金（美元）<input id="sz-eq" type="number" inputmode="numeric" min="100" step="1000" value="100000"></label><span class="sz-pre"><button type="button" data-eq="25000">25k</button><button type="button" data-eq="50000">50k</button><button type="button" data-eq="100000">100k</button><button type="button" data-eq="250000">250k</button></span><label>每单位基准风险（%）<input id="sz-risk" type="number" inputmode="decimal" min="0.05" max="10" step="0.05" value="0.75"></label><label class="sz-tog"><input id="sz-scale" type="checkbox" checked>按 Regime 缩放</label><label>参数格式<select id="sz-broker"><option value="generic">通用</option><option value="futu">富途</option><option value="ibkr">IBKR</option></select></label></div><p class="sz-out"><b id="sz-eff" aria-live="polite"></b>　只按你输入的参数作数学试算，不是建议的仓位。设置只存在这台设备的浏览器。</p></section><script src="../../assets/sizer.js?v=9436c391" defer></script><!--/sitebar-->
+<style>
+.pmb{font-family:-apple-system,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;background:#fff;color:#1a1a1a;
+padding:18px 20px;max-width:1180px;border-radius:10px;line-height:1.5;font-size:13.5px}
+.pmb h1{font-size:19px;margin:0}.pmb .sub{color:#666;font-size:12px;margin:2px 0 10px}
+.pmb .hero{border:1px solid #e3e3e3;border-left-width:8px;border-radius:10px;padding:14px 16px;margin:8px 0}
+.pmb .big{font-size:22px;font-weight:700}.pmb .mid{font-size:14px;margin:4px 0 8px}
+.pmb .pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600;margin:2px 6px 2px 0}
+.pmb .on{background:#e3f4e8;color:#0a7d33}.pmb .off{background:#efefef;color:#777}
+.pmb .wrn{background:#fdf0d5;color:#9a6700}.pmb .bad{background:#fde3e1;color:#b42318}
+.pmb .kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin:10px 0}
+.pmb .kv div{background:rgba(255,255,255,.7);border:1px solid #e6e6e6;border-radius:8px;padding:6px 10px}
+.pmb .kv small{display:block;color:#666;font-size:11.5px}.pmb .kv b{font-size:14px}
+.pmb ul{margin:6px 0 4px 18px;padding:0}.pmb li{margin:3px 0}
+.pmb table{border-collapse:collapse;width:100%;font-size:12.5px;margin:6px 0}
+.pmb th{text-align:left;border-bottom:2px solid #ddd;padding:5px 8px;color:#555;font-weight:600;white-space:nowrap}
+.pmb td{border-bottom:1px solid #eee;padding:4px 8px;white-space:nowrap}
+.pmb td.num,.pmb th.num{text-align:right;font-variant-numeric:tabular-nums}
+.pmb .g{color:#0a7d33}.pmb .r{color:#c0392b}.pmb .a{color:#b7791f}.pmb .m{color:#999}
+.pmb .tw{overflow-x:auto}
+.pmb details{border:1px solid #e3e3e3;border-radius:10px;margin:8px 0;padding:0 14px;background:#fff}
+.pmb summary{cursor:pointer;font-weight:700;font-size:14.5px;padding:10px 0}
+.pmb .cnt{font-weight:400;color:#666;font-size:12.5px;margin-left:6px}
+.pmb .sec{padding-bottom:10px}.pmb h3{font-size:13.5px;margin:14px 0 2px}
+.pmb .note{color:#666;font-size:12px;margin:2px 0 6px}
+.pmb .bar{height:9px;border-radius:5px;background:#eee;overflow:hidden;min-width:120px}.pmb .bar>i{display:block;height:100%}
+.pmb .two{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:14px}
+.pmb .opp{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px;margin:8px 0}
+.pmb .opp div{border:1px solid #e6e6e6;border-radius:8px;padding:7px 10px}
+.pmb .opp b{font-size:13px}.pmb .opp span{float:right;font-weight:700}.pmb .opp small{display:block;color:#555;font-size:12px}
+.pmb .warnbox{background:#fff8e1;border:1px solid #f0d58a;border-radius:8px;padding:6px 10px;margin:6px 0;font-size:12.5px}
+.pmb pre{white-space:pre-wrap;font-size:12px;background:#f7f7f7;padding:10px;border-radius:8px}
+.pmb .dq{margin:6px 0 8px;font-size:12.5px}
+.pmb .dq.ok{display:inline-block;padding:2px 10px;border:1px solid #9bc5a6;border-radius:999px;color:#1d5a2c;background:#eef7ef}
+.pmb details.dq{border:0;padding:0;background:none;box-shadow:none}
+.pmb details.dq summary{display:inline-block;padding:2px 10px;border:1px solid #e0c27a;border-radius:999px;background:#fdf6e3;color:#7a5a12;cursor:pointer}
+.pmb details.dq ul{margin:6px 0 0;padding-left:20px;color:#444}
+.pmb .disc{margin:20px 0 4px;padding:12px 0 0;border-top:1px solid #e3e3e3;color:#666;font-size:12px;line-height:1.6}
+</style>
+
+<style>
+.pmb .q{font-size:16px;font-weight:700;margin:18px 0 6px;padding-top:12px;border-top:2px solid #e3e3e3}
+.pmb .q small{font-weight:400;color:#666;font-size:12.5px;margin-left:8px}
+.pmb .ans{font-size:14.5px;margin:2px 0 8px}
+.pmb td.ck,.pmb th.ck{text-align:center;padding:4px 4px}.pmb th.ck{font-size:11.5px}
+.pmb td.wrap{white-space:normal;min-width:190px;max-width:340px}
+.pmb .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(430px,100%),1fr));gap:12px;margin:8px 0}
+.pmb .card{border:1px solid #d9d9d9;border-radius:10px;padding:10px 12px;background:#fff;min-width:0}
+.pmb .card h4{margin:0 0 2px;font-size:16px}.pmb .card h4 small{font-weight:400;color:#666;font-size:12px;margin-left:6px}
+.pmb .card .why{font-size:12.5px;margin:6px 0}
+.pmb .card table{font-size:12.5px;margin:4px 0}.pmb .card td{white-space:normal;vertical-align:top;padding:3px 6px}
+.pmb .card td:first-child{white-space:nowrap;color:#555;width:1%}
+.pmb .card ul,.pmb .card ol{margin:2px 0 2px 18px;padding:0}.pmb .card li{margin:2px 0}
+.pmb .chip{display:inline-block;padding:1px 7px;border-radius:999px;font-size:11.5px;margin:2px 4px 2px 0;background:#f1f1f1;color:#444}
+.pmb .chip.ok{background:#e3f4e8;color:#0a7d33}.pmb .chip.no{background:#fde3e1;color:#b42318}.pmb .chip.na{background:#f1f1f1;color:#999}
+.pmb .chip.t{background:#1a1a1a;color:#fff;font-weight:600}
+.pmb .thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(235px,100%),1fr));gap:8px;margin:8px 0}
+.pmb .thumb{border:1px solid #e6e6e6;border-radius:8px;padding:6px 8px;min-width:0}
+.pmb .thumb b{font-size:13px}.pmb .thumb small{display:block;color:#555;font-size:11.5px;white-space:normal}
+.pmb .more{color:#666;font-size:12.5px;margin:18px 0 4px;padding-top:10px;border-top:2px solid #e3e3e3}
+.pmb table.cmp td,.pmb table.cmp th{padding:4px 5px}
+.pmb table.cmp .s{color:#888;font-size:11px;white-space:normal}
+.pmb table.cmp td.w{white-space:normal}
+</style>
+<div class="pmb"><div id="sizer-meta" hidden data-equity0="100000" data-risk0="0.75" data-mult-long="0.2500" data-mult-short="0.5000" data-event="0"></div><div class="hero" style="border-left-color:#1a5fb4"><div class="big">系统开盘前更新（盘前价格重算）</div><div class="mid">简报日 <b>11-27</b>｜美东 04:07・香港 17:07｜距开盘 <b>1762</b> 分钟</div><div class="sub">完整简报于 2026-11-26 04:05 ET 产生：Regime E，分数 28.6，空头开；模型市况框架（E 级）：规则示范敞口上限为多头 0 单位／空头 1 单位，仅供研究参考。</div><details class="dq"><summary>数据状态：1 项注意</summary><ul><li>现在未到盘前时段（美东 4:00 起），报价是前一日盘后的。</li></ul></details><div class="kv"><div><small>Nasdaq 100 期货</small><b>+0.91%</b></div><div><small>S&amp;P 500 期货</small><b>+0.57%</b></div><div><small>Russell 2000 期货</small><b>+0.48%</b></div><div><small>VIX</small><b>26.66（-1.21）</b></div><div><small>QQQ 最新</small><b>636.62（+0.42%，+0.12 个 ATR；19:55 ET）</b></div></div><div class="ans"><b>开盘情景：</b>大致平开：条件是首 30 分钟站在开盘区间上半和前一日收盘之上。</div></div><div class="q">二、仓位与委托参数试算（按盘前价重算）</div><div class="tw"><table class="cmp"><thead><tr><th>代码</th><th>判定</th><th>触发位</th><th>试算数量</th></tr></thead><tbody><tr data-ticker="USFD" data-direction="long" data-entry="112.0344" data-stop="104.9700" data-limit="112.5900" data-risk-mult="0.244900" data-atr="2.7595"><td style="border-bottom:0"><b>USFD</b><div class="s">买入・止损限价单</div></td><td style="border-bottom:0"><b class="m">闸门未开</b></td><td class="num" style="border-bottom:0">112.04<div class="s">限价 112.59</div></td><td class="num" style="border-bottom:0"><span data-f="shares">24</span><div class="s">失效位 104.97</div></td></tr><tr><td colspan="4" class="w" style="padding-top:0">闸门未开：只列作观察</td></tr><tr data-ticker="AHR" data-direction="long" data-entry="60.7441" data-stop="56.7900" data-limit="61.0200" data-risk-mult="0.247790" data-atr="1.3088"><td style="border-bottom:0"><b>AHR</b><div class="s">买入・止损限价单</div></td><td style="border-bottom:0"><b class="m">闸门未开</b></td><td class="num" style="border-bottom:0">60.76<div class="s">限价 61.02</div></td><td class="num" style="border-bottom:0"><span data-f="shares">43</span><div class="s">失效位 56.79</div></td></tr><tr><td colspan="4" class="w" style="padding-top:0">闸门未开：只列作观察</td></tr><tr data-ticker="HOG" data-direction="long" data-entry="34.4252" data-stop="31.9900" data-limit="34.6600" data-risk-mult="0.246767" data-atr="1.1264"><td style="border-bottom:0"><b>HOG</b><div class="s">买入・止损限价单</div></td><td style="border-bottom:0"><b class="m">闸门未开</b></td><td class="num" style="border-bottom:0">34.44<div class="s">限价 34.66</div></td><td class="num" style="border-bottom:0"><span data-f="shares">69</span><div class="s">失效位 31.99</div></td></tr><tr><td colspan="4" class="w" style="padding-top:0">闸门未开：只列作观察</td></tr><tr data-ticker="AIZ" data-direction="long" data-entry="328.0664" data-stop="312.1700" data-limit="329.2400" data-risk-mult="0.233148" data-atr="5.8629"><td style="border-bottom:0"><b>AIZ</b><div class="s">买入・止损限价单</div></td><td style="border-bottom:0"><b class="m">闸门未开</b></td><td class="num" style="border-bottom:0">328.07<div class="s">限价 329.24</div></td><td class="num" style="border-bottom:0"><span data-f="shares">10</span><div class="s">失效位 312.17</div></td></tr><tr><td colspan="4" class="w" style="padding-top:0">闸门未开：只列作观察</td></tr><tr data-ticker="ALLE" data-direction="long" data-entry="193.9901" data-stop="182.3400" data-limit="194.8700" data-risk-mult="0.248536" data-atr="4.3850"><td style="border-bottom:0"><b>ALLE</b><div class="s">买入・止损限价单</div></td><td style="border-bottom:0"><b class="m">闸门未开</b></td><td class="num" style="border-bottom:0">194.00<div class="s">限价 194.87</div></td><td class="num" style="border-bottom:0"><span data-f="shares">14</span><div class="s">失效位 182.34</div></td></tr><tr><td colspan="4" class="w" style="padding-top:0">闸门未开：只列作观察</td></tr><tr data-ticker="XYL" data-direction="short" data-entry="93.8218" data-stop="97.3500" data-limit="93.3400" data-risk-mult="0.498653" data-atr="2.3979"><td style="border-bottom:0"><b>XYL</b><div class="s">上限内　做空・止损限价单</div></td><td style="border-bottom:0"><b class="g">参数有效</b></td><td class="num" style="border-bottom:0">93.81<div class="s">限价 93.34</div></td><td class="num" style="border-bottom:0"><span data-f="shares">93</span><div class="s">失效位 97.35</div></td></tr><tr><td colspan="4" class="w" style="padding-top:0">取不到盘前报价（盘前未有成交，或报价延误）：参数按前一日收盘计；现价是否已越过触发位 93.81 未能确认</td></tr><tr data-ticker="HBAN" data-direction="short" data-entry="14.4807" data-stop="15.0500" data-limit="14.3900" data-risk-mult="0.499501" data-atr="0.4007"><td style="border-bottom:0"><b>HBAN</b><div class="s">后备　做空・止损限价单</div></td><td style="border-bottom:0"><b class="g">参数有效</b></td><td class="num" style="border-bottom:0">14.47<div class="s">限价 14.39</div></td><td class="num" style="border-bottom:0"><span data-f="shares">567</span><div class="s">失效位 15.05</div></td></tr><tr><td colspan="4" class="w" style="padding-top:0">取不到盘前报价（盘前未有成交，或报价延误）：参数按前一日收盘计；现价是否已越过触发位 14.47 未能确认</td></tr><tr data-ticker="PLD" data-direction="short" data-entry="123.5062" data-stop="128.6800" data-limit="122.9900" data-risk-mult="0.496682" data-atr="2.5500"><td style="border-bottom:0"><b>PLD</b><div class="s">后备　做空・止损限价单</div></td><td style="border-bottom:0"><b class="g">参数有效</b></td><td class="num" style="border-bottom:0">123.49<div class="s">限价 122.99</div></td><td class="num" style="border-bottom:0"><span data-f="shares">65</span><div class="s">失效位 128.68</div></td></tr><tr><td colspan="4" class="w" style="padding-top:0">取不到盘前报价（盘前未有成交，或报价延误）：参数按前一日收盘计；现价是否已越过触发位 123.49 未能确认</td></tr></tbody></table></div><h3>模拟参数摘要（仅供参考，非交易指令）</h3><div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px"><div style="margin:3px 0" data-order data-ticker="XYL" data-direction="short" data-entry="93.8218" data-stop="97.3500" data-limit="93.3400" data-risk-mult="0.498653" data-atr="2.3979" data-mode="stop" data-trigger="93.81" data-pivot="93.91" data-sym="XYL">XYL｜卖出（做空）｜止损限价单｜触发价 93.81｜价格 93.34｜数量 93｜期限 当日有效｜只在常规时段触发（不选盘前盘后）｜附加订单：止损单，止损价 97.35，子单期限 撤单前有效｜做空要融资账户，并确认有券可借</div></div><div class="note">规则示范上限：多头 0 单位、空头 1 单位，按完整简报的排序分配给“参数有效”和“开盘后判定”的参数；排前的不适用时由后备递补。“开盘后判定”的参数不作预设。数量按页顶设定的账户和风险 % 试算。</div><h3>B 级提示</h3><ul><li>MAS：盘前 86.93，距触发价 87.55 只有 0.2 个 ATR</li><li>DIS：盘前 125.94 已越过触发价 123.49（B 级只作观察）</li><li>MAR：盘前 415.85，距触发价 419.04 只有 0.3 个 ATR</li><li>CNO：盘前 56.11，距触发价 56.52 只有 0.3 个 ATR</li><li>EXR：盘前 161.39，距触发价 161.93 只有 0.2 个 ATR</li><li>FICO：盘前 699.81，距触发价 685.72 只有 0.5 个 ATR</li></ul><div class="q">三、今晚时间表（香港时间）</div><div class="tw"><table class="cmp"><thead><tr><th>香港</th><th>美东</th><th>事项</th></tr></thead><tbody><tr><td>21:47</td><td class="m">08:47</td><td class="w">系统开盘前更新（盘前价格重算）</td></tr><tr><td>22:30</td><td class="m">09:30</td><td class="w">美股开盘</td></tr><tr><td>23:00</td><td class="m">10:00</td><td class="w">开盘首 30 分钟完结（开盘情景判定）</td></tr><tr><td>02:00（翌日）</td><td class="m">13:00</td><td class="w">美股收盘（提早收盘）</td></tr></tbody></table></div><div class="note">盘前报价为延迟数据（5 分钟线），可能有延误。</div><div class="disc">研究声明：本报告是自动产生的市况、市场宽度与技术筛选工具，全部内容由固定规则计算，所有读者看到的内容相同，并不考虑任何人的财务状况、投资目标或风险承受能力。页内的仓位试算只按读者自行输入的参数计算。内容只供研究和教育用途，不构成投资建议、要约或招揽，亦不保证准确、完整或及时。过往表现（包括跟进纪录）不代表将来表现。</div></div><style>.pmb{font-family:-apple-system,"Segoe UI","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif}</style></body></html>

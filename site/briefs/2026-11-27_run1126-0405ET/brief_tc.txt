@@ -1,0 +1,126 @@
+盤前簡報 2026-11-27（數據截至 2026-11-25 收市，執行 11-26 04:05 ET）
+Regime E 空頭｜空頭閘門開，中間位置｜分數 29（昨 24，5 日前 27）｜調整中，反彈嘗試第 3 日
+【結論】模型市況框架（E 級）：規則示範敞口上限為多頭 0 單位／空頭 1 單位，僅供研究參考。
+【一、模型市況框架】Regime E 空頭｜空頭閘門開，中間位置｜規則示範新倉上限：多頭 0 單位（多頭與試單閘門都未開）、空頭 1 單位（Regime E 每日最多 1 單位）｜示範每單位風險 多頭 $188、空頭 $375｜未平倉風險 0.00%／上限 1%｜多倉市值 0%／上限 10%
+【二、符合規則的技術形態】股票池 918 隻 → 做多候選 75 隻 → 預備 5、B 級 10、觀察 58、剔除 2（未有形態 32、距離太遠 12、清單太弱 10、失效位太遠 4、疑似收購鎖價 2）
+  做多預備：USFD（收窄＋抗跌強勢，清單 8/8）｜AHR（收窄＋抗跌強勢，清單 8/8）｜HOG（收窄＋抗跌強勢，清單 7/8，不通過：板塊）｜AIZ（收窄，清單 7/8，不通過：板塊）｜ALLE（收窄＋抗跌強勢，清單 7/8，不通過：板塊）
+  做多 B 級：MAS（收窄＋抗跌強勢；尚欠：預備名額已滿（5 隻），排序在後）｜THG（收窄＋回調；尚欠：預備名額已滿（5 隻），排序在後）｜ALL（收窄；尚欠：預備名額已滿（5 隻），排序在後）｜FCN（新高突破；尚欠：預備名額已滿（5 隻），排序在後）｜DIS（新高突破＋抗跌強勢；尚欠：預備名額已滿（5 隻），排序在後）｜ADP（新高突破＋抗跌強勢；尚欠：預備名額已滿（5 隻），排序在後）｜DRI（新高突破＋抗跌強勢；尚欠：預備名額已滿（5 隻），排序在後）｜MAR（回調；尚欠：預備名額已滿（5 隻），排序在後）｜CNO（回調＋抗跌強勢；尚欠：預備名額已滿（5 隻），排序在後）｜EXR（抗跌強勢；尚欠：只在抗跌強勢名單，未有收縮或突破形態）
+  做空 A 級：XYL（清單 7/8，不通過：資金）｜HBAN（清單 7/8，不通過：板塊）｜PLD（清單 7/8，不通過：板塊）｜B 級：FHN（尚欠：A名額已滿（3 隻），排序在後）｜GGG（尚欠：A名額已滿（3 隻），排序在後）｜SBAC（尚欠：A名額已滿（3 隻），排序在後）｜FICO（尚欠：3 日高位距觸發價 10.7%，超過 8%）｜BA（尚欠：現價高於觸發價 3.5%，未到位）
+  分散：預備和持倉合共 5 隻，分佈在 5 個板塊：必需消費 1 隻（USFD）；房地產 1 隻（AHR）；非必需消費 1 隻（HOG）；金融 1 隻（AIZ）；工業 1 隻（ALLE）。
+  分散：名單和持倉之間沒有相關係數高於 0.75 的組合。
+  與上一份名單（11-24）比較：新入選 AHR、HOG；留在名單 USFD、AIZ、ALLE；跌出 LH（已不在任何做多名單）、MRSH（現在是觀察：清單有 3 項不通過（板塊、收縮、成交）；B 級名額已滿）
+  跟進：USFD（11-24 列出，做多預備，觸發位 110.79，失效位 104.97）11-25 觸發，持有第 1 日，+0.1R
+  跟進：SBAC（11-24 列出，做空 A 級，觸發位 169.83，失效位 176.26）未觸發，11-25 先穿形態失效位，計劃作廢
+  跟進：MRSH（11-24 列出，做多預備，觸發位 213.73，失效位 201.13）11-25 觸發，持有第 1 日，+0.2R
+  跟進：LH（11-24 列出，做多預備，觸發位 379.26，失效位 361.19）未觸發，現價距觸發價 -2.7%
+  跟進：ALLE（11-24 列出，做多預備，觸發位 193.99，失效位 182.34）未觸發，現價距觸發價 -0.9%
+  跟進：AIZ（11-24 列出，做多預備，觸發位 327.32，失效位 312.17）11-25 觸發，持有第 1 日，-0.1R
+  成績（1 個名單日）：做多首選（A 級或預備） 5 個，已觸發 3 個，其中失效 0 個，平均 +0.09R
+  成績（1 個名單日）：做多 B 級 10 個，已觸發 7 個，其中失效 0 個，平均 +0.42R
+  成績（1 個名單日）：做多全部候選（對照） 63 個，已觸發 36 個，其中失效 2 個，平均 +0.12R
+  成績（1 個名單日）：做空首選 1 個，已觸發 0 個，其中失效 0 個，平均 —
+  成績（1 個名單日）：做空全部候選（對照） 36 個，已觸發 0 個，其中失效 0 個，平均 —
+【三、每隻怎樣做】
+  USFD｜觸發位 112.04｜規則追價上限 117.52｜失效位 104.97（6.3%，10 日低位）｜26 股（倉位 2.9%）｜2R 126.17｜3R 133.23｜財報 —
+  AHR｜觸發位 60.75｜規則追價上限 63.72｜失效位 56.80（6.5%，10 日低位）｜47 股（倉位 2.9%）｜2R 68.66｜3R 72.61｜財報 —
+  HOG｜觸發位 34.43｜規則追價上限 36.12｜失效位 32.00（7.1%，10 日低位）｜76 股（倉位 2.6%）｜2R 39.30｜3R 41.74｜財報 02-10
+  AIZ｜觸發位 328.07｜規則追價上限 344.13｜失效位 312.17（4.8%，10 日低位）｜11 股（倉位 3.6%）｜2R 359.86｜3R 375.76｜財報 02-09
+  ALLE｜觸發位 193.99｜規則追價上限 203.49｜失效位 182.34（6.0%，10 日低位）｜16 股（倉位 3.1%）｜2R 217.29｜3R 228.94｜財報 02-16
+  做空 XYL｜跌穿 93.82｜規則追空下限 91.00｜失效位 97.34（3.8%）｜106 股｜2R 86.76｜3R 83.23｜回補日數 2.9｜財報 —
+  做空 HBAN｜跌穿 14.48｜規則追空下限 14.04｜失效位 15.04（3.9%）｜658 股｜2R 13.34｜3R 12.77｜回補日數 3.1｜財報 —
+  做空 PLD｜跌穿 123.50｜規則追空下限 119.79｜失效位 128.67（4.2%）｜72 股｜2R 113.15｜3R 107.98｜回補日數 4.6｜財報 —
+【近 10 日回顧】新到舊；同一日跑了幾次只列最後一次
+  11-27（五）｜分數 29｜Regime E｜閘門 空頭開｜預備：USFD、AHR、HOG、AIZ、ALLE｜新入選 AHR、HOG｜跌出 LH、MRSH｜當日跑了 3 次（今次）
+  11-25（三）｜分數 24｜Regime E｜閘門 空頭開｜預備：LH、USFD、AIZ、ALLE、MRSH｜當日跑了 8 次
+  11-24（二）｜分數 18｜Regime E｜沒有執行紀錄（分數按今日數據回算）
+  11-23（一）｜分數 20｜Regime E｜沒有執行紀錄（分數按今日數據回算）
+  11-20（五）｜分數 18｜Regime E｜沒有執行紀錄（分數按今日數據回算）
+  11-19（四）｜分數 27｜Regime D｜沒有執行紀錄（分數按今日數據回算）
+  11-18（三）｜分數 26｜Regime D｜沒有執行紀錄（分數按今日數據回算）
+  11-17（二）｜分數 32｜Regime D｜沒有執行紀錄（分數按今日數據回算）
+  11-16（一）｜分數 45｜Regime C｜沒有執行紀錄（分數按今日數據回算）
+  11-13（五）｜分數 46｜Regime C｜沒有執行紀錄（分數按今日數據回算）
+【模擬參數摘要（僅供參考，非交易指令）】簡報日 2026-11-27；規則示範上限：多頭 0 單位、空頭 1 單位；系統開市前更新（盤前價格重算）會按盤前價重新判斷每組參數
+  多頭閘門未開：以下多頭參數只作試算，規則上不適用
+  後備　｜USFD｜買入｜止損限價單｜觸發價 112.04｜價格 112.59｜數量 24｜期限 當日有效｜只在常規時段觸發（不選盤前盤後）｜附加訂單：止損單，止損價 104.97，子單期限 撤單前有效
+  後備　｜AHR｜買入｜止損限價單｜觸發價 60.76｜價格 61.02｜數量 43｜期限 當日有效｜只在常規時段觸發（不選盤前盤後）｜附加訂單：止損單，止損價 56.79，子單期限 撤單前有效
+  後備　｜HOG｜買入｜止損限價單｜觸發價 34.44｜價格 34.66｜數量 69｜期限 當日有效｜只在常規時段觸發（不選盤前盤後）｜附加訂單：止損單，止損價 31.99，子單期限 撤單前有效
+  後備　｜AIZ｜買入｜止損限價單｜觸發價 328.07｜價格 329.24｜數量 10｜期限 當日有效｜只在常規時段觸發（不選盤前盤後）｜附加訂單：止損單，止損價 312.17，子單期限 撤單前有效
+  後備　｜ALLE｜買入｜止損限價單｜觸發價 194.00｜價格 194.87｜數量 14｜期限 當日有效｜只在常規時段觸發（不選盤前盤後）｜附加訂單：止損單，止損價 182.34，子單期限 撤單前有效
+  上限內｜XYL｜賣出（沽空）｜止損限價單｜觸發價 93.81｜價格 93.34｜數量 93｜期限 當日有效｜只在常規時段觸發（不選盤前盤後）｜附加訂單：止損單，止損價 97.35，子單期限 撤單前有效｜沽空要融資戶口，並確認有貨可借
+  後備　｜HBAN｜賣出（沽空）｜止損限價單｜觸發價 14.47｜價格 14.39｜數量 567｜期限 當日有效｜只在常規時段觸發（不選盤前盤後）｜附加訂單：止損單，止損價 15.05，子單期限 撤單前有效｜沽空要融資戶口，並確認有貨可借
+  後備　｜PLD｜賣出（沽空）｜止損限價單｜觸發價 123.49｜價格 122.99｜數量 65｜期限 當日有效｜只在常規時段觸發（不選盤前盤後）｜附加訂單：止損單，止損價 128.68，子單期限 撤單前有效｜沽空要融資戶口，並確認有貨可借
+【今晚時間表】香港時間（美東）；美股開市是香港時間 22:30
+  21:47（08:47）系統開市前更新（盤前價格重算）
+  22:30（09:30）美股開市
+  23:00（10:00）開市首 30 分鐘完結（開市情景判定）
+  02:00（翌日）（13:00）美股收市（提早收市）
+閘門：多頭 關，試單 關，空頭 開，超賣 否；空頭時機：中間位置：規則要求反彈到阻力才有新空頭形態
+支柱：趨勢 17（5 日 +0），寬度 55（5 日 +9），風險偏好 25（5 日 +0），波動率 0（5 日 -12），利率與信貸 50（5 日 +17）
+QQQ 633.93；21EMA 666.84；50 日線 707.05；200 日線 683.50；上日高低 634.89/607.74；20 日低 606.23；52 週高 762.86（-16.9%）；ATR 23.32；派發日 8
+調整低位 606.23（11-20，距之前高位 -20.5%）；數據日是反彈第 3 日，未有 FTD。
+開市參考：參考價 640.83（按 Nasdaq 100 期貨自收市以來的變動推算），缺口 +1.09%，相當於 +0.30 ATR。
+寬度：>50 日線 56%，>200 日線 51%，>20 日線 45%（5 日前 40%）；新高 30 / 新低 36；突破成功率 53%（129 個）
+波動與利率：VIX 28.3；VXN 38.5；VIX/VIX3M 1.08；10 年期 4.85%；
+自收市以來：Nasdaq 100 期貨 +1.09%；S&P 500 期貨 +0.71%；Russell 2000 期貨 +0.59%；VIX -5.33%；10 年期孳息 —；美元指數 +0.11%；原油 +0.34%；黃金 +0.49%；Bitcoin +1.03%
+板塊 1 個月：XLP +5.9%，XLRE +3.3%，XLV +2.5%，XLU +1.8%，XLY +1.8%，XLC +1.7%，XLF +1.1%，XLB -1.1%，XLI -3.0%，XLE -10.7%，XLK -17.8%
+最強行業組別：Apparel, Accessories & Luxury Goods；Health Care Distributors；Insurance Brokers；Industrial Conglomerates；Data Processing & Outsourced Services｜最弱：Semiconductor Materials & Equipment；Electronic Manufacturing Services；Communications Equipment；Semiconductors；Agricultural Products & Services
+龍頭：NVDA(S3,RS5)，MU(S3,RS25)，AMD(S3,RS34)，SPCX(S—,RS16)，AAPL(S2,RS86)，META(S3,RS47)，TSLA(S1,RS37)，MSFT(S3,RS53)，AMZN(S3,RS41)，INTC(S3,RS18)，GOOGL(S4,RS10)，AVGO(S4,RS11)，MRVL(S3,RS23)，ORCL(S4,RS3)，LITE(S4,RS10)，PLTR(S3,RS37)，NBIS(S4,RS3)，BE(S3,RS14)，CRWV(S4,RS1)，DELL(S3,RS31)
+做多觀察｜VCP: GKOS, CART, AVNT｜High Tight Flag: 無｜收窄: HOG, MAS, AIZ, MANH, CDW, HAE, ALLE, PCTY｜新高突破: DIS, WTW, FCN, EXLS, RGA, ADP, MRSH, DRI｜抗跌強勢: CROX, HOG, SN, REGN, LIVN, ANF, BDX, ROIV, MAS, MANH, CAH, CPAY｜回調: VTRS, SWK, HAE, OKTA, THG, CART, MORN, MAR｜向上缺口: HPQ
+做空與迴避｜回抽阻力: ALNY, SFM, BROS, STWD, FICO, WHR, ARWR, NRG｜新跌破: 無｜墮落龍頭: MU, DELL, HPE, P, PBF, AMD, ILMN, DINO, FTNT, NTAP, VLO, MPC｜向下缺口: 無
+昨日回顧：指數：Nasdaq 100 -0.7%，S&P 500 -0.3%，道指 +0.3%，Russell 2000 +0.6%，S&P 500 等權 +0.8%，半導體 -1.0%。 板塊：最強 原材料 +2.1%、房地產 +0.9%、通訊 +0.9%；最弱 科技 -0.8%、醫療 -0.6%、非必需消費 -0.2%。 寬度：上升 713 隻，下跌 201 隻；52 週新高 30，新低 36；Stage 2 股票佔 29%（5 日前 29%，20 日前 31%）。 龍頭：升幅最大 META +3.4%、PLTR +1.5%、SPCX +1.3%；跌幅最大 ORCL -5.1%、MU -4.5%（成交 1.7 倍）、NVDA -3.9%（成交 1.8 倍）。
+財報反應：DELL +0.6%（反應平淡）；DE +4.4%（遜預期但升：強）；ADSK -3.5%（勝預期但跌：弱）；WDAY +0.7%（反應平淡）；HPQ +11.5%（勝預期，升）；NTNX -15.2%（勝預期但跌：弱）
+11-27 財報：無
+重點數據：這兩日沒有列出重點數據。
+日曆因素：11-27 是感恩節翌日，美東 13:00 提早收市，成交偏低。
+財報風險（3 日內）：OKTA（回調，12-01 ⚠2日）
+標題：The Nasdaq Fell Below Correction Territory: 2 Beaten-Down Nasdaq Stocks to Buy and Hold / HP (HPQ) Brings Marketplace Intelligence Into Multi Jet Fusion Software / Our Citizens Financial Pick Hasn’t Paid Off Yet—Here’s Why We’re Staying With the Stock / Micron Technology (MU) Products Are Exempt From New US Tariffs / MU, SNDK, SKHY Jump As Nvidia Tests Kioxia Memory Fix — Analyst Presses Memory Giants For ‘Massive’ Buybacks / HP Inc. (HPQ) Explodes After Delivering This Double Dose of Good News / Micron faces Taiwan uncertainty as labor dispute threatens expansion, report warns / Asian stocks rally as Taiwan, South Korea rebound; Nvidia risks linger
+今日劇本：做多：多頭與試單閘門均關閉，做多形態只列作觀察；「抗跌強勢」名單通常是下一輪的領先股。 / 做空：中間位置：規則要求反彈到阻力才有新空頭形態。規則只容許「回抽阻力」名單內的弱股，標示「已超跌」的除外。 / 日曆：11-27 是感恩節翌日，美東 13:00 提早收市，成交偏低。 / 財報風險：OKTA（回調，12-01 ⚠2日）。規則不對 3 個交易日內有財報的股票列出新形態。 / 反彈嘗試：下一個交易日是第 4 日，FTD 窗口已開，留意升幅 ≥ 1.25% 且成交放大的日子。 / 突破成功率 53%，未達 60%：即使閘門打開，突破形態只按試單規模。 / 近 25 日有 8 個派發日，機構仍在賣。 / 有 14 隻「墮落龍頭」（過去一年升幅仍大，但已跌離高位 25% 以上、失守 50 日線）：舊強勢不構成入選理由。 / 開市：小幅高開：規則不追開市第一口價；條件是首 30 分鐘企在開市區間上半，而且沒有跌回上日收市之下。
+補充數據層（只供參考，不計入分數）：波動結構：VIX 28.3，VIX3M 26.3，比率 1.08（逆價差）；VIX9D 29.6，高於 VIX。短期恐慌明顯高於中期，急跌多數仍在進行。 QQQ 引伸波幅：到 11-27（2 日）的平價跨式成本 2.1%，打和位 620.67 至 647.33。 財報引伸波幅：OKTA ±16.2%（財報 12-01 收市後，期權 12-04 到期）。 做空候選中回補日數 5 日以上的：FFIN（11.2 日）、CDP（9.8 日），軋空風險高。
+
+===== 消息面（文字版）2026-11-27 =====
+【昨日市場回顧】
+  指數：Nasdaq 100 -0.7%，S&P 500 -0.3%，道指 +0.3%，Russell 2000 +0.6%，S&P 500 等權 +0.8%，半導體 -1.0%。
+  板塊：最強 原材料 +2.1%、房地產 +0.9%、通訊 +0.9%；最弱 科技 -0.8%、醫療 -0.6%、非必需消費 -0.2%。
+  寬度：上升 713 隻，下跌 201 隻；52 週新高 30，新低 36；Stage 2 股票佔 29%（5 日前 29%，20 日前 31%）。
+  龍頭：升幅最大 META +3.4%、PLTR +1.5%、SPCX +1.3%；跌幅最大 ORCL -5.1%、MU -4.5%（成交 1.7 倍）、NVDA -3.9%（成交 1.8 倍）。
+【日曆因素】
+  11-27 是感恩節翌日，美東 13:00 提早收市，成交偏低。
+【財報反應】
+  DELL  11-24 收市後｜盈利驚喜 +43.5%｜股價 +0.6%（數據日全日）｜反應平淡
+  DE    11-25 開市前｜盈利驚喜 -4.0%｜股價 +4.4%（數據日全日）｜遜預期但升：強
+  ADSK  11-24 收市後｜盈利驚喜 +4.3%｜股價 -3.5%（數據日全日）｜勝預期但跌：弱
+  WDAY  11-24 收市後｜盈利驚喜 +2.8%｜股價 +0.7%（數據日全日）｜反應平淡
+  HPQ   11-24 收市後｜盈利驚喜 +12.0%｜股價 +11.5%（數據日全日）｜勝預期，升
+  NTNX  11-24 收市後｜盈利驚喜 +20.6%｜股價 -15.2%（數據日全日）｜勝預期但跌：弱
+【11-27 及下一個交易日的財報】
+  沒有列出。
+【重點經濟數據（美東時間）】
+  這兩日沒有列出重點數據。
+【名單與持倉的財報風險（3 個交易日內）】
+  OKTA（回調，12-01 ⚠2日）
+【市場要聞（美東時間）】
+  11-26 03:50 [SPX] The Nasdaq Fell Below Correction Territory: 2 Beaten-Down Nasdaq Stocks to Buy and Hold（Motley Fool）
+  11-26 02:16 [HPQ] HP (HPQ) Brings Marketplace Intelligence Into Multi Jet Fusion Software（Simply Wall St.）
+  11-26 02:14 [SPX] Our Citizens Financial Pick Hasn’t Paid Off Yet—Here’s Why We’re Staying With the Stock（Barrons.com）
+  11-26 02:12 [MU] Micron Technology (MU) Products Are Exempt From New US Tariffs（Simply Wall St.）
+  11-26 01:30 [MU] MU, SNDK, SKHY Jump As Nvidia Tests Kioxia Memory Fix — Analyst Presses Memory Giants For ‘Massive’ Buybacks（Stocktwits）
+  11-26 01:18 [HPQ] HP Inc. (HPQ) Explodes After Delivering This Double Dose of Good News（Insider Monkey）
+  11-26 00:55 [MU] Micron faces Taiwan uncertainty as labor dispute threatens expansion, report warns（Investing.com）
+  11-26 00:31 [SPX] Asian stocks rally as Taiwan, South Korea rebound; Nvidia risks linger（Investing.com）
+  11-26 00:21 [SPX] World shares push higher, while markets in US will be closed for Thanksgiving（Associated Press）
+  11-26 00:16 [DE] CNH Industrial Stock Gains Attention As Deere Lifts Farm Equipment Outlook（Simply Wall St.）
+  11-26 00:15 [IXIC] GoodRx Holdings (GDRX) Faces A Fresh Test As Its Narrative Shifts Toward Fair Value（Simply Wall St.）
+  11-26 00:02 [SPX] Stocks rally in Asia, US tariffs not as dire as feared（Reuters）
+  11-25 23:06 [SPX] Dow Jones Futures Rise After Nasdaq Slashes Losses In Wild Market Ride（Investor's Business Daily）
+  11-25 21:58 [QQQ] Michael Burry Says His Portfolio Was Discussed 'About the Time the Market Reversed Off Its Lows': He Is 'Temporarily Almost Entirely Long'（Benzinga）
+  11-25 21:15 [ORCL] Is Oracle the First AI Casualty as It Sheds 70% of Its Value?（BeInCrypto）
+  11-25 21:11 [DE] DE Stock Ticks Higher Overnight: Deere CEO Sees Agriculture Recovery In 2027 — Brazil And Data Centers Could Add To The Upside（Stocktwits）
+  11-25 20:19 [ORCL] Tech Stocks Stall Into Thanksgiving: Will the AI Rebound Return?（BeInCrypto）
+  11-25 20:00 [CART] The Race to Make Dinner Delivery More Affordable（The Wall Street Journal）
+  11-25 19:09 [QQQ] S&P 500, Nasdaq End Lower But Dow Rebounds As Traders Rotate Out Of AI — NVDA, SPCX, PANW  In Focus（Stocktwits）
+  11-25 17:58 [DE] Deere: 3 Key Takeaways for Long-Term Investors（Motley Fool）
+  11-25 17:18 [QQQ] The Average Stock Shrugged Off the Tech Slide. History Is Split（Trefis）
+  11-25 16:48 [ORCL] Wall Street Can’t Seem to Find Its Footing in the Chaos of the New AI Trade（The Wall Street Journal）
+  11-25 16:47 [ORCL] Stocks to Watch Recap: Nvidia, Anthropic, Dell（The Wall Street Journal）
+  11-25 16:46 [ORCL] Oracle Bonds Yield a Towering 9% on Debt and Data-Center Concerns. Are They a Buy?（Barrons.com）
