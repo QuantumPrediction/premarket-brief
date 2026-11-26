@@ -13,8 +13,8 @@ import shutil
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import (HK, LANGS, ROOT, ensure_languages, env, env_bool, env_num, github_wording, now_et, redirect_page, run_script,
-                    translate_doc, write)  # noqa: E402
+from common import (HK, LANGS, ROOT, clean_links, ensure_languages, env, env_bool, env_num, github_wording, now_et, redirect_page,
+                    run_script, translate_doc, write)  # noqa: E402
 
 SCRIPT = "premarket_brief_v6_3.py"
 HIST = "premarket_out"
@@ -53,7 +53,7 @@ def summary(G):
         ts, h = x["et"], x["et"].tz_convert(HK)
         day0 = day0 or h.date()
         timeline.append({"et": f"{ts:%H:%M}", "hk": f"{h:%H:%M}", "next": h.date() > day0, "what": str(x["what"]), "kind": str(x["kind"]),
-                         "code": {"我": "me", "市場": "mkt", "數據": "data", "財報": "earn"}.get(str(x["kind"]), "other")})
+                         "code": {"我": "me", "系統": "me", "市場": "mkt", "數據": "data", "財報": "earn"}.get(str(x["kind"]), "other")})
     secs = []
     st = G.get("SECT_TBL")
     if st is not None and len(st):
@@ -139,15 +139,15 @@ def main():
         UNIVERSE=env("UNIVERSE", "sp500+ndx100+sp400"), EXTRA_TICKERS_TEXT=env("EXTRA_TICKERS", ""), SAVE_TO_DRIVE=False,
         FETCH_EVENTS=True, SCAN_PREMARKET=True, HTF_WIDE_SCAN=env_bool("HTF_WIDE_SCAN", False), USE_OPENBB=env_bool("USE_OPENBB", True),
         PRINT_NEWS_TEXT=False, AI_NEWS=env_bool("AI_NEWS", False) and bool(os.environ.get("ANTHROPIC_API_KEY")),
-        AI_MODEL=env("AI_MODEL", "claude-sonnet-5-5"))
+        AI_MODEL=env("AI_MODEL", "claude-sonnet-5-5"), SHOW_DEBUG_PANEL=env_bool("SHOW_DEBUG_PANEL", False))
     print(f"Running cell 1 (v6.3) · universe {values['UNIVERSE']} · account {values['ACCOUNT_EQUITY']:,} · risk {values['BASE_RISK_PCT']}% "
           f"· AI news {'on' if values['AI_NEWS'] else 'off'}", flush=True)
     G = run_script(os.path.join(ROOT, "scripts", SCRIPT), values, state)
 
     run_id = G["RUN_ID"]
     out = os.path.join(state, "site", "briefs", run_id)
-    dash = github_wording(open(os.path.join(state, G["DASH_PATH"]), encoding="utf-8").read())   # the script's paths are relative to state/
-    txt = github_wording(G["BRIEF_TXT"] + "\n\n" + G["NEWS_TXT"])
+    dash = clean_links(github_wording(open(os.path.join(state, G["DASH_PATH"]), encoding="utf-8").read()))   # paths are relative to state/
+    txt = clean_links(github_wording(G["BRIEF_TXT"] + "\n\n" + G["NEWS_TXT"]))
     s = summary(G)
     write(os.path.join(out, "tc.html"), translate_doc(dash, "tc"))
     write(os.path.join(out, "brief_tc.txt"), txt)
