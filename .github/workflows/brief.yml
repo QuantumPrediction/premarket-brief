@@ -59,6 +59,17 @@ jobs:
       ARCHIVE_DAYS: ${{ vars.ARCHIVE_DAYS }}
       SHOW_DEBUG_PANEL: ${{ vars.SHOW_DEBUG_PANEL }}
       BUILD_MODE: ${{ vars.BUILD_MODE }}
+      TELEGRAM_PUBLIC_URL: ${{ vars.TELEGRAM_PUBLIC_URL }}   # landing-page banner (left out when empty)
+      CF_ANALYTICS_TOKEN: ${{ vars.CF_ANALYTICS_TOKEN }}     # optional Cloudflare Web Analytics
+      SITE_BASE_URL: ${{ vars.SITE_BASE_URL }}
+      BRAND_NAME_TC: ${{ vars.BRAND_NAME_TC }}
+      BRAND_NAME_SC: ${{ vars.BRAND_NAME_SC }}
+      BRAND_NAME_EN: ${{ vars.BRAND_NAME_EN }}
+      BRAND_WATERMARK: ${{ vars.BRAND_WATERMARK }}
+      ENABLE_TELEGRAM_PUBLIC: ${{ vars.ENABLE_TELEGRAM_PUBLIC }}
+      ENABLE_TELEGRAM_DRAFTS: ${{ vars.ENABLE_TELEGRAM_DRAFTS }}
+      ENABLE_THREADS: ${{ vars.ENABLE_THREADS }}
+      ENABLE_X: ${{ vars.ENABLE_X }}
     steps:
       - uses: actions/checkout@v7
 
@@ -82,6 +93,33 @@ jobs:
 
       - name: Build the website
         run: python runner/build_site.py
+
+      # Social cards (PNG) go into state/site/social/<brief date>/ so the website serves them. Skipped while every
+      # ENABLE_* variable is off; never allowed to fail the brief.
+      - name: Social cards - cache Chromium
+        if: ${{ vars.ENABLE_TELEGRAM_PUBLIC == 'true' || vars.ENABLE_TELEGRAM_DRAFTS == 'true' || vars.ENABLE_THREADS == 'true' || vars.ENABLE_X == 'true' }}
+        continue-on-error: true
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('social_engine/requirements.txt') }}
+
+      - name: Social cards - install Chromium and CJK fonts
+        if: ${{ vars.ENABLE_TELEGRAM_PUBLIC == 'true' || vars.ENABLE_TELEGRAM_DRAFTS == 'true' || vars.ENABLE_THREADS == 'true' || vars.ENABLE_X == 'true' }}
+        continue-on-error: true
+        run: |
+          pip install -r social_engine/requirements.txt
+          sudo apt-get update -q
+          sudo apt-get install -y -q fonts-noto-cjk
+          sudo apt-get install -y -q fonts-inter || true
+          python -m playwright install --with-deps chromium
+
+      - name: Social cards - render
+        if: ${{ vars.ENABLE_TELEGRAM_PUBLIC == 'true' || vars.ENABLE_TELEGRAM_DRAFTS == 'true' || vars.ENABLE_THREADS == 'true' || vars.ENABLE_X == 'true' }}
+        continue-on-error: true
+        run: |
+          python -m social_engine.run_social --render-only --mode daily
+          python -m social_engine.run_social --render-only --mode ledger
 
       - name: Save history (data branch)
         run: bash runner/state.sh save "brief"
@@ -118,3 +156,82 @@ jobs:
         id: deploy2
         if: steps.deploy.outcome == 'failure'
         uses: actions/deploy-pages@v5
+
+  social:                   # after the website is live: write the posts, check them, post them. Never fails the workflow.
+    needs: [brief, publish]
+    if: ${{ vars.ENABLE_TELEGRAM_PUBLIC == 'true' || vars.ENABLE_TELEGRAM_DRAFTS == 'true' || vars.ENABLE_THREADS == 'true' || vars.ENABLE_X == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      STATE_DIR: ${{ github.workspace }}/state
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      ANTHROPIC_MODEL_WRITER: ${{ vars.ANTHROPIC_MODEL_WRITER }}
+      ANTHROPIC_MODEL_QA: ${{ vars.ANTHROPIC_MODEL_QA }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_PUBLIC_CHAT_ID: ${{ secrets.TELEGRAM_PUBLIC_CHAT_ID }}
+      TELEGRAM_DRAFTS_CHAT_ID: ${{ secrets.TELEGRAM_DRAFTS_CHAT_ID }}
+      THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+      THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+      X_API_KEY: ${{ secrets.X_API_KEY }}
+      X_API_SECRET: ${{ secrets.X_API_SECRET }}
+      X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+      X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+      ENABLE_TELEGRAM_PUBLIC: ${{ vars.ENABLE_TELEGRAM_PUBLIC }}
+      ENABLE_TELEGRAM_DRAFTS: ${{ vars.ENABLE_TELEGRAM_DRAFTS }}
+      ENABLE_THREADS: ${{ vars.ENABLE_THREADS }}
+      ENABLE_X: ${{ vars.ENABLE_X }}
+      TELEGRAM_PUBLIC_URL: ${{ vars.TELEGRAM_PUBLIC_URL }}
+      SITE_BASE_URL: ${{ vars.SITE_BASE_URL }}
+      BRAND_NAME_TC: ${{ vars.BRAND_NAME_TC }}
+      BRAND_NAME_SC: ${{ vars.BRAND_NAME_SC }}
+      BRAND_NAME_EN: ${{ vars.BRAND_NAME_EN }}
+      BRAND_WATERMARK: ${{ vars.BRAND_WATERMARK }}
+      BUILD_MODE: ${{ vars.BUILD_MODE }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Restore history (data branch)
+        run: bash runner/state.sh restore
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: social_engine/requirements.txt
+
+      - name: Install packages
+        run: pip install -r social_engine/requirements.txt
+      # One step per platform, each allowed to fail on its own. The first step writes and checks the copy;
+      # the others reuse that draft. social_post_log.json stops a re-run from posting twice.
+      - name: "daily: Telegram channel"
+        continue-on-error: true
+        run: python -m social_engine.run_social --publish-only --mode daily --platform telegram_public
+
+      - name: "daily: Xiaohongshu pack (private Telegram chat)"
+        continue-on-error: true
+        run: python -m social_engine.run_social --publish-only --mode daily --platform xhs_drafts
+
+      - name: "daily: Threads"
+        continue-on-error: true
+        run: python -m social_engine.run_social --publish-only --mode daily --platform threads
+
+      - name: "daily: X"
+        continue-on-error: true
+        run: python -m social_engine.run_social --publish-only --mode daily --platform x
+
+      - name: "ledger: Telegram channel"
+        continue-on-error: true
+        run: python -m social_engine.run_social --publish-only --mode ledger --platform telegram_public
+
+      - name: "ledger: Threads"
+        continue-on-error: true
+        run: python -m social_engine.run_social --publish-only --mode ledger --platform threads
+
+      - name: "ledger: X"
+        continue-on-error: true
+        run: python -m social_engine.run_social --publish-only --mode ledger --platform x
+
+      - name: Save the post log (data branch)
+        if: always()
+        run: bash runner/state.sh save "social"

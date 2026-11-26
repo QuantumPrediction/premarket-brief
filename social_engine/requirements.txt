@@ -1,0 +1,6 @@
+# Packages of the social engine only (the brief itself does not need them).
+anthropic>=1.0
+playwright>=1.48
+requests
+requests-oauthlib
+pynacl

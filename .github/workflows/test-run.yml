@@ -76,6 +76,26 @@ jobs:
       - name: Check the website
         run: python runner/check_site.py "$STATE_DIR"
 
+      # Social engine: unit tests, then a full dry run on the brief just built (cards, copy, compliance report). Posts nothing.
+      - name: Social engine - install
+        run: |
+          pip install -r social_engine/requirements.txt pytest
+          sudo apt-get update -q
+          sudo apt-get install -y -q fonts-noto-cjk
+          sudo apt-get install -y -q fonts-inter || true
+          python -m playwright install --with-deps chromium
+
+      - name: Social engine - tests
+        run: python -m pytest tests/test_social_engine.py -q
+
+      - name: Social engine - dry run
+        if: (inputs.what || 'both') != 'preopen'
+        run: |
+          python -m social_engine.run_social --mode daily --dry-run --strict
+          python -m social_engine.run_social --mode premarket --dry-run --strict
+          python -m social_engine.run_social --mode weekly --dry-run --strict
+          python -m social_engine.run_social --mode ledger --dry-run --strict
+
       - name: Save a preview copy (branch "preview", replaced each run)
         if: always()
         run: |
@@ -98,4 +118,5 @@ jobs:
             state/site
             state/site_free
             state/ledger
+            social_preview
           retention-days: 7

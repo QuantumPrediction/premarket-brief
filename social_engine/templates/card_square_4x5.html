@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="{{html_lang}}">
+<head>
+<meta charset="utf-8">
+<style>
+:root{--bg:#faf8f2;--panel:#ffffff;--ink:#1d2a2e;--ink2:#56636a;--rule:#e6dcc0;--teal:#0b6574;--green:#0a7d33;--red:#c0392b;--amber:#b7791f;
+--gA:#13753f;--gB:#3f7f24;--gC:#9a6200;--gD:#b4501c;--gE:#b03030;--mute:#8b949a;--track:#efe9d8}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1080px;height:1350px;overflow:hidden}
+body{background:var(--bg);color:var(--ink);font:500 34px/1.35 "Inter","Segoe UI","PingFang TC","Noto Sans CJK TC","Noto Sans TC",sans-serif;
+display:flex;flex-direction:column;padding:56px 60px 40px;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+body.sc{font-family:"Inter","Segoe UI","PingFang SC","Noto Sans CJK SC","Noto Sans SC",sans-serif}
+body.en{font-family:"Inter","Segoe UI","Helvetica Neue",Arial,sans-serif}
+header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:4px solid var(--ink);padding-bottom:20px;flex:none}
+.brand{font-size:40px;font-weight:800;letter-spacing:.01em}
+.brand small{display:block;font-size:26px;font-weight:600;color:var(--teal);margin-top:4px}
+.when{text-align:right;font-size:26px;color:var(--ink2);font-weight:600;line-height:1.3}
+.when b{display:block;font-size:34px;color:var(--ink);font-weight:800}
+main{flex:1;display:flex;flex-direction:column;justify-content:space-between;gap:26px;padding:30px 0 22px;min-height:0}
+h1{font-size:50px;font-weight:800;line-height:1.15;letter-spacing:-.005em}
+h2{font-size:30px;font-weight:700;color:var(--teal);letter-spacing:.02em}
+.panel{background:var(--panel);border:2px solid var(--rule);border-radius:24px;padding:28px 32px}
+footer{flex:none;border-top:2px solid var(--rule);padding-top:16px;display:flex;justify-content:space-between;gap:20px;font-size:20px;color:var(--ink2);font-weight:600;white-space:nowrap}
+footer .n{color:var(--mute);white-space:nowrap}
+body.en footer{font-size:17px}
+.g{color:var(--green)}.r{color:var(--red)}.a{color:var(--amber)}.m{color:var(--mute)}.t{color:var(--teal)}
+
+/* slide 1 */
+.hero{display:grid;grid-template-columns:1fr 330px;gap:26px;align-items:stretch}
+.scorebox .lbl{font-size:32px;font-weight:700;color:var(--ink2)}
+.score{font-size:250px;font-weight:800;line-height:.95;letter-spacing:-.03em;margin-top:6px}
+.score span{font-size:56px;font-weight:700;color:var(--mute);letter-spacing:0;margin-left:10px}
+.delta{font-size:28px;color:var(--ink2);font-weight:600;margin-top:8px}
+.grade{border-radius:28px;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px 12px;text-align:center}
+.grade .cap{font-size:26px;font-weight:700;opacity:.9}
+.grade .letter{font-size:200px;font-weight:800;line-height:1}
+.grade .gname{font-size:40px;font-weight:800;line-height:1.2}
+.gA{background:var(--gA)}.gB{background:var(--gB)}.gC{background:var(--gC)}.gD{background:var(--gD)}.gE{background:var(--gE)}
+.band{position:relative;height:74px}
+.band .bar{position:absolute;left:0;right:0;top:22px;height:30px;border-radius:15px;display:flex;overflow:hidden}
+.band .bar i{display:block;height:100%}
+.band .lab{position:absolute;top:56px;font-size:20px;font-weight:700;color:var(--ink2);transform:translateX(-50%)}
+.band .mark{position:absolute;top:10px;width:10px;height:54px;border-radius:5px;background:var(--ink);transform:translateX(-50%);box-shadow:0 0 0 4px var(--bg)}
+.hold{font-size:28px;font-weight:700;color:var(--amber);border:3px solid var(--amber);border-radius:18px;padding:12px 22px;line-height:1.35}
+.pills{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.pill{border-radius:20px;padding:16px 10px;text-align:center;border:3px solid var(--rule);background:var(--panel)}
+.pill .k{font-size:26px;font-weight:700;color:var(--ink2)}
+.pill .v{font-size:38px;font-weight:800;line-height:1.25}
+.pill.on-g{border-color:var(--green);background:#e9f5ec}.pill.on-g .v{color:var(--green)}
+.pill.on-r{border-color:var(--red);background:#fbeceA}.pill.on-r .v{color:var(--red)}
+.pill.off .v{color:var(--mute)}
+.levels{display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+.levels>div{padding:4px 0 4px 22px;border-left:2px solid var(--rule)}
+.levels>div:first-child{border-left:0;padding-left:0}
+.levels .k{font-size:24px;font-weight:700;color:var(--ink2);white-space:nowrap}
+.levels .v{font-size:38px;font-weight:800;line-height:1.3;white-space:nowrap}
+.levels .s{font-size:22px;font-weight:700;white-space:nowrap}
+
+/* slide 2 */
+.bars{display:flex;flex-direction:column;gap:22px}
+.brow{display:grid;grid-template-columns:330px 1fr 96px;gap:20px;align-items:center}
+.brow .k{font-size:32px;font-weight:700;line-height:1.2}
+.brow .k small{font-size:24px;color:var(--ink2);font-weight:600;margin-left:8px}
+.brow .trk{height:38px;background:var(--track);border-radius:19px;overflow:hidden}
+.brow .trk i{display:block;height:100%;border-radius:19px}
+.brow .v{font-size:40px;font-weight:800;text-align:right}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.tile{background:var(--panel);border:2px solid var(--rule);border-radius:22px;padding:22px 26px}
+.tile .k{font-size:26px;font-weight:700;color:var(--ink2);line-height:1.25}
+.tile .v{font-size:76px;font-weight:800;line-height:1.1;letter-spacing:-.01em}
+.tile .v small{font-size:34px;font-weight:700;color:var(--mute);margin-left:4px}
+.tile .s{font-size:23px;font-weight:600;color:var(--ink2)}
+
+/* slide 3 */
+.sgroup{display:flex;flex-direction:column;gap:14px}
+.shead,.srow{display:grid;grid-template-columns:1fr 170px 170px 190px;gap:14px;align-items:center}
+.shead{font-size:22px;font-weight:700;color:var(--ink2);padding:0 28px}
+.shead span:not(:first-child){text-align:right}
+.srow{background:var(--panel);border:2px solid var(--rule);border-left-width:12px;border-radius:18px;padding:16px 26px 16px 18px}
+.srow.up{border-left-color:var(--green)}.srow.dn{border-left-color:var(--red)}
+.srow .n b{font-size:40px;font-weight:800;margin-right:14px}
+.srow .n span{font-size:28px;font-weight:600;color:var(--ink2)}
+.srow .x{font-size:36px;font-weight:800;text-align:right;white-space:nowrap}
+.srow .p{font-size:36px;font-weight:800;text-align:right;color:var(--ink)}
+
+/* slide 4 */
+.events{display:flex;flex-direction:column;gap:12px}
+.ev{display:grid;grid-template-columns:230px 1fr;gap:20px;align-items:baseline;background:var(--panel);border:2px solid var(--rule);border-radius:18px;padding:16px 24px}
+.ev .tm{font-size:38px;font-weight:800;color:var(--teal);white-space:nowrap}
+.ev .tm small{display:block;font-size:20px;color:var(--mute);font-weight:700}
+.ev .w{font-size:30px;font-weight:700;line-height:1.3}
+.ev .w small{display:inline-block;font-size:21px;font-weight:800;border-radius:8px;padding:1px 10px;margin-right:10px;color:#fff;background:var(--mute);vertical-align:3px}
+.ev.macro .w small{background:var(--amber)}.ev.earnings .w small{background:var(--teal)}
+.none{font-size:30px;font-weight:700;color:var(--ink2);padding:6px 4px}
+.cta{background:var(--teal);color:#fff;border-radius:24px;padding:26px 32px}
+.cta .big{font-size:38px;font-weight:800;line-height:1.25}
+.cta .sm{font-size:26px;font-weight:600;opacity:.92;margin-top:6px;line-height:1.35}
+
+/* ledger */
+.lgrid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.lcol h3{font-size:30px;font-weight:800}
+.lcol .sub{font-size:22px;font-weight:600;color:var(--ink2);margin-bottom:10px}
+.kv{display:grid;grid-template-columns:1fr auto;gap:6px 14px;font-size:28px;font-weight:600}
+.kv b{font-weight:800;text-align:right}
+.lrows{display:flex;flex-direction:column;gap:10px}
+.lrow{display:grid;grid-template-columns:150px 1fr 220px 130px;gap:14px;align-items:center;background:var(--panel);border:2px solid var(--rule);border-radius:16px;padding:12px 22px;font-size:28px;font-weight:700}
+.lrow b{font-size:34px;font-weight:800}
+.lrow .st{font-weight:800}
+.lrow .rr{text-align:right;font-weight:800}
+</style>
+</head>
+<body class="{{lang}} {{kind}}">
+<header><div class="brand">{{brand}}<small>{{slide_title}}</small></div><div class="when"><b>{{date}}</b>{{sub_date}}</div></header>
+<main>{{content}}</main>
+<footer><span>{{footer}}</span><span class="n">{{page}}</span></footer>
+</body>
+</html>

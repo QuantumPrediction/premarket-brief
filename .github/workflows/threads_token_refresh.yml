@@ -1,0 +1,56 @@
+name: Threads token refresh
+
+# The Threads long-lived token lasts 60 days. With the GH_SECRETS_PAT secret (fine-grained token, "Secrets: read and
+# write" on this repository) the token is refreshed and written back to THREADS_ACCESS_TOKEN on the 1st of each month.
+# Without it nothing can be stored, so the weekly run only checks the noted expiry date and sends a Telegram alert
+# to the private chat when 10 days or less are left.
+on:
+  schedule:
+    - cron: "20 4 1 * *"      # monthly refresh
+    - cron: "20 4 * * 1"      # weekly expiry check (does nothing when a refresh is not due)
+  workflow_dispatch:
+    inputs:
+      token_renewed:
+        description: "I just replaced THREADS_ACCESS_TOKEN by hand: restart the 60-day clock"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write           # the expiry date is kept on the data branch
+
+concurrency:
+  group: premarket-brief-site
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    if: ${{ vars.ENABLE_THREADS == 'true' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      STATE_DIR: ${{ github.workspace }}/state
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_DRAFTS_CHAT_ID: ${{ secrets.TELEGRAM_DRAFTS_CHAT_ID }}
+      # Used only on the monthly run (or a manual one), so the weekly check never refreshes more often than needed.
+      GH_SECRETS_PAT: ${{ (github.event.schedule == '20 4 1 * *' || github.event_name == 'workflow_dispatch') && secrets.GH_SECRETS_PAT || '' }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Restore history (data branch)
+        run: bash runner/state.sh restore
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install packages
+        run: pip install requests pynacl
+
+      - name: Refresh or check the token
+        run: python -m social_engine.refresh_threads_token ${{ inputs.token_renewed && '--reset' || '' }}
+
+      - name: Save the expiry date (data branch)
+        if: always()
+        run: bash runner/state.sh save "threads token"

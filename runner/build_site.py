@@ -54,6 +54,9 @@ L = {
     "hist_held": ("* The score had entered a higher band but not yet for two consecutive sessions, so the grade stayed the same.",
                   "＊ 分數已進入較高區間，但未連續兩個交易日，級別暫時維持。",
                   "＊ 分数已进入较高区间，但未连续两个交易日，级别暂时维持。"),
+    "tg_text": ("Free Telegram Alerts: Daily {a} HKT Regime Brief + {b} HKT Pre-Market Gap Refresh", "免費訂閱 Telegram 頻道：每日 {a} 市場健檢 ＋ {b} 開市前缺口更新",
+                "免费订阅 Telegram 频道：每日 {a} 市场健检 ＋ {b} 开盘前缺口更新"),
+    "tg_cta": ("Join Free", "立即加入", "立即加入"),
     "gate_long": ("Long gate", "多頭閘門", "多头闸门"), "gate_pilot": ("Pilot gate", "試單閘門", "试单闸门"),
     "gate_short": ("Short gate", "空頭閘門", "空头闸门"), "oversold": ("Oversold", "超賣", "超卖"),
     "open": ("open", "開", "开"), "closed": ("closed", "關", "关"), "yes": ("yes", "是", "是"), "no": ("no", "否", "否"),
@@ -416,6 +419,23 @@ def archive_table(latest, latest_pre, lang, up):
     return out
 
 
+def telegram_banner(lang):
+    """A slim banner below the hero card that leads to the free Telegram channel; nothing when TELEGRAM_PUBLIC_URL is not set."""
+    url = env("TELEGRAM_PUBLIC_URL", "")
+    if not re.fullmatch(r"https://(t\.me|telegram\.me)/[A-Za-z0-9_+/\-]+", url):
+        return ""
+    text = t("tg_text", lang, a=env("SOCIAL_DAILY_HKT", "15:15"), b=env("SOCIAL_PREMARKET_HKT", "21:47"))
+    return (f'<aside class="tgbar"><span>{e(text)}</span><a class="tgbtn" href="{e(url)}" rel="noopener">{e(t("tg_cta", lang))} →</a></aside>')
+
+
+def analytics_tag():
+    """Cloudflare Web Analytics (cookie-free), only when CF_ANALYTICS_TOKEN is set."""
+    token = env("CF_ANALYTICS_TOKEN", "")
+    if not re.fullmatch(r"[A-Za-z0-9]{16,64}", token):
+        return ""
+    return ('<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon=\'{"token":"' + token + '"}\'></script>')
+
+
 def page(lang, latest, latest_pre, hist, mode="full"):
     """mode "full": the whole home page. mode "free": the public teaser of BUILD_MODE=freemium_split
     (score, grade, score chart, sectors, calendar and a box describing the full report; no setups, no links to full briefs)."""
@@ -433,7 +453,7 @@ def page(lang, latest, latest_pre, hist, mode="full"):
             f'<nav aria-label="{e(t("lang", lang))}">{nav}</nav></div></header><main class="wrap">')
     foot = (f'</main><footer class="wrap"><p>{e(t("tagline", lang))}</p><p class="disc">{e(t("disclaimer", lang))}</p><p class="quiet">{e(t("sources", lang))}</p>'
             f'<p class="quiet">{e(t("built", lang, t=f"{now_et():%Y-%m-%d %H:%M}"))}</p></footer>'
-            f'<script src="{up}assets/site.js?v={ASSET_VER}" defer></script></body></html>')
+            f'<script src="{up}assets/site.js?v={ASSET_VER}" defer></script>{analytics_tag()}</body></html>')
     if not latest:
         return head + f'<section class="empty"><h1>{e(t("site", lang))}</h1><p>{e(t("tagline", lang))}</p><p>{e(t("empty", lang))}</p></section>' + foot
     d = max(latest)
@@ -477,7 +497,7 @@ def page(lang, latest, latest_pre, hist, mode="full"):
         + (f'<p class="event">{e(t("event_day", lang))}</p>' if s.get("event_day") else "")
         + ("" if free else f'<div class="actions"><a class="btn" href="{up}briefs/{e(run)}/{lang}.html">{e(t("open_brief", lang))}</a>{pre_btn}</div>')
         + f'</div></section>'
-        f'<dl class="stats">{stat_html}</dl>'
+        f'{telegram_banner(lang)}<dl class="stats">{stat_html}</dl>'
         + (f'<section id="plan" class="pro"><h2>{e(t("pro_h", lang))}</h2><p>{e(t("pro_body", lang))}</p>'
            f'<p><span class="btn ghost" aria-disabled="true">{e(t("pro_cta", lang))}</span></p></section>' if free else
         f'<section id="plan" class="grid2"><div><h2>{e(t("plan_h", lang))}</h2>{side_plan(s, S["tc"], watch_tc, lang)}'
@@ -521,6 +541,8 @@ html[lang=zh-Hans] body{font-family:"Atkinson Hyperlegible Next",system-ui,-appl
 a{color:var(--brand)}
 a:focus-visible,summary:focus-visible,[tabindex]:focus-visible,.btn:focus-visible{outline:3px solid var(--focus);outline-offset:3px;border-radius:4px}
 .wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+.tgbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 16px;margin-top:14px;padding:10px 16px;border:1px solid var(--rule);border-left:4px solid var(--brand);border-radius:10px;background:var(--panel);font-size:15px;line-height:1.4}
+.tgbtn{font-weight:700;text-decoration:none;white-space:nowrap;color:var(--brand)}.tgbtn:hover{text-decoration:underline}
 .holdp{margin:-4px 0 10px}
 .hold{display:inline-block;margin:0;padding:1px 9px;border:1px solid currentColor;border-radius:999px;font-size:.82em;font-weight:600;line-height:1.5}
 .skip{position:absolute;left:-999px;top:8px}.skip:focus{left:12px;background:var(--panel);padding:6px 10px;z-index:9}

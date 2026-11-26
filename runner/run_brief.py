@@ -123,12 +123,28 @@ def data_json(G, s, recs):
     Q = G.get("Q")
     qqq = {k: series(Q[k]) for k in ("c", "ema21", "s50", "s200")} if Q is not None else {}
     cands = {side: [{k: plain(c.get(k)) for k in CAND_KEYS} for c in G.get(name, [])] for side, name in (("long", "T6_L"), ("short", "T6_S"))}
+    def last(name, back=1):                                          # newest value of one of the script's daily series
+        try:
+            return float(G[name].dropna().iloc[-back])
+        except Exception:                                            # noqa: BLE001
+            return None
+    pillars = []                                                     # the five weighted pillars of the score (social cards read these)
+    try:
+        for p in G.get("PILLARS", []):
+            col = G["PS"][p.key]
+            pillars.append({"key": p.key, "name": p.name, "weight": G["TH"]["weights"][p.key], "score": float(col.iloc[-1]), "score_5": float(col.iloc[-6])})
+    except Exception:                                                # noqa: BLE001
+        pillars = []
+    q = G.get("q")
+    levels = {k: getattr(q, a, None) for k, a in (("close", "c"), ("ema21", "ema21"), ("dma50", "s50"), ("dma200", "s200"))} if q is not None else {}
     return plain({
         "schema": 1, "generated_utc": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), "summary": s,
         "market": {"score": G.get("score_now"), "regime": G.get("REG_L"), "regime_name": G.get("REG_T"), "rule_state": G.get("SIDE"),
                    "cycle": G.get("CYCLE"), "short_timing": G.get("SHORT_TIMING"), "event_day": G.get("EVENT_DAY"),
                    "gates": s.get("gates"), "budget": G.get("T6_BUD"), "breakout_success_rate": G.get("BO_FOLLOW"),
-                   "pct_above_50": G.get("pct50_now"), "vix": G.get("vix_now")},
+                   "pct_above_50": G.get("pct50_now"), "vix": G.get("vix_now"),
+                   "pct_above_200": last("PCT200"), "pct_above_20": last("PCT20"), "distribution_days": G.get("DIST_N"),
+                   "vix3m": last("VIX3M"), "vix_term": last("TERM"), "vxn": last("VXN"), "pillars": pillars, "anchor_levels": levels},
         "demo_account": {"equity": G.get("ACCOUNT_EQUITY"), "base_risk_pct": G.get("BASE_RISK_PCT")},
         "candidates": cands, "orders": G.get("T6_ORD", []), "playbook": list(G.get("PLAY", [])), "quality": list(G.get("quality", [])),
         "series": {"score": series(G.get("SCORE")) if G.get("SCORE") is not None else [], "qqq": qqq},

@@ -5,6 +5,7 @@ This repository runs the US pre-market brief v6.3 on GitHub Actions every US tra
 - **Daily pre-market brief** (`.github/workflows/brief.yml`): about 07:17 New York time, Monday to Friday. Runs cell 1 over the S&P 500, Nasdaq 100 and S&P 400 and rebuilds the website.
 - **Automated pre-market refresh** (`.github/workflows/preopen.yml`): about 08:47 New York time. Runs cell 2 against that morning's plan and adds it to the website.
 - **Test run** (`.github/workflows/test-run.yml`): runs on every push to a `feat/**` branch (or by hand). Runs both scripts with the branch's code, builds and checks the website, and keeps it as a downloadable artifact. Nothing is published and the `data` branch is not changed.
+- **Social posts** (`social_engine/`, off by default): after each brief and pre-open update is published, PNG scorecards and checked posts go to Telegram, Threads and X, with a Xiaohongshu draft pack in a private chat; a weekly recap runs on Saturday (`.github/workflows/social_weekly.yml`). Setup and secrets: [`social_engine/README.md`](social_engine/README.md).
 - Website: `https://<your-user-name>.github.io/<repository-name>/` in Traditional Chinese, with `zh-hans/` (Simplified Chinese) and `en/` (English); a switch at the top of every page changes language. `latest/<tc|sc|en>.html` always opens the newest full brief.
 - v6.3 writes Traditional Chinese. `runner/i18n.py` makes the Simplified Chinese copy by character conversion and the English copy from a phrase table (`runner/i18n_table.json`, `runner/i18n_v63.json`). If an English page shows a Chinese phrase, add it to `i18n_v63.json`.
 
@@ -31,6 +32,7 @@ The website and `settings.txt` are public. Do not put your real account size or 
 | `runner/build_site.py` | Builds the home pages, adds missing translations, the top bar and the position-size simulator to each brief page, copies the ledger files to `site/data/`; `BUILD_MODE=freemium_split` also writes a public teaser to `state/site_free` |
 | `runner/sizer.js` | The position-size simulator (plain JavaScript): recalculates shares, amounts and maximum loss from the reader's account and risk %, and writes the order parameters in Generic, Futu or IBKR format; settings stay in the browser |
 | `runner/ledger.py` | Signal ledger (`signal_ledger.json`) and regime history (`regime_history.json`): grades every top setup and, as a control group, the other candidates by fixed rules (see the file's header) |
+| `social_engine/` | Social cards, post copy, compliance gate and publishers (see its README); `tests/test_social_engine.py` tests it |
 | `runner/check_site.py` | Checks the built website: local links, leftover notebook wording, sizer data, JSON, script syntax, page sizes |
 | `runner/i18n.py` | Traditional Chinese to Simplified Chinese and English |
 | `runner/time_window.py` | Lets one of the two daily schedules through (US daylight saving) |
