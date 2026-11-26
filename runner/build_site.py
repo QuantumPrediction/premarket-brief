@@ -661,7 +661,7 @@ JS = r"""
 """
 
 
-BAR_VER = "2"
+BAR_VER = "3"
 BAR_CSS = """<style>
 body{background:#ffffff!important}
 .sitebar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;max-width:1200px;margin:0 auto 12px;
@@ -702,7 +702,7 @@ def prepare_pages(site):
                     continue
                 doc = open(path, encoding="utf-8").read()
                 if f"<!--sitebar v{BAR_VER}-->" not in doc and 'http-equiv="refresh"' not in doc:
-                    open(path, "w", encoding="utf-8").write(decorate(doc, lang, 3))
+                    open(path, "w", encoding="utf-8").write(decorate(doc, lang, 2))   # site/<kind>/<run>/<lang>.html: two levels below the site root
                     fixed += 1
     return made, fixed
 
