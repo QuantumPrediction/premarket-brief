@@ -468,9 +468,9 @@ def page(lang, latest, latest_pre, hist, mode="full"):
         f'{e(t("updated", lang))} {e(s["run_et"][11:])} ET{p["o"]}{e(t("hk", lang))} {e(s["run_hk"][11:])}{p["x"]}{p["p"].strip()}</p>'
         f'<h1 id="verdict">{e(s["verdict"] or s["side"])}</h1>'
         f'<p class="sub">{e(t("regime", lang))} {e(s["regime"])} {e(s["regime_name"])}'
-        + (f' <span class="hold">{e(t("held", lang, s=s.get("score_txt") or fmt(s["score"], 0), r=s.get("regime_raw", ""), g=s["regime"]))}</span>'
+        f'{p["k"]}{e(s["side"])}{p["p"]}{e(t("cycle", lang))}{p["k"]}{e(s["cycle"])}{p["p"].strip()}</p>'
+        + (f'<p class="holdp"><span class="hold">{e(t("held", lang, s=s.get("score_txt") or fmt(s["score"], 0), r=s.get("regime_raw", ""), g=s["regime"]))}</span></p>'
            if s.get("regime_held") else "")
-        + f'{p["k"]}{e(s["side"])}{p["p"]}{e(t("cycle", lang))}{p["k"]}{e(s["cycle"])}{p["p"].strip()}</p>'
         + range_bar(s, lang) + f'<p class="small quiet">{e(t("range_note", lang))}</p>'
         f'<ul class="gates">{gate(t("gate_long", lang), g["long"], lang)}{gate(t("gate_pilot", lang), g["pilot"], lang)}'
         f'{gate(t("gate_short", lang), g["short"], lang, bad=True)}{gate(t("oversold", lang), g["oversold"], lang, "yes", "no", bad=True)}</ul>'
@@ -521,7 +521,8 @@ html[lang=zh-Hans] body{font-family:"Atkinson Hyperlegible Next",system-ui,-appl
 a{color:var(--brand)}
 a:focus-visible,summary:focus-visible,[tabindex]:focus-visible,.btn:focus-visible{outline:3px solid var(--focus);outline-offset:3px;border-radius:4px}
 .wrap{max-width:1120px;margin:0 auto;padding:0 20px}
-.hold{display:inline-block;margin:2px 0 2px 6px;padding:1px 9px;border:1px solid currentColor;border-radius:999px;font-size:.82em;font-weight:600;line-height:1.5}
+.holdp{margin:-4px 0 10px}
+.hold{display:inline-block;margin:0;padding:1px 9px;border:1px solid currentColor;border-radius:999px;font-size:.82em;font-weight:600;line-height:1.5}
 .skip{position:absolute;left:-999px;top:8px}.skip:focus{left:12px;background:var(--panel);padding:6px 10px;z-index:9}
 .top{border-bottom:1px solid var(--rule);background:var(--panel)}
 .top .wrap{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 16px;min-height:56px;padding-top:6px;padding-bottom:6px}
