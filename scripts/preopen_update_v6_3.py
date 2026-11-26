@@ -141,7 +141,7 @@ def parse_positions(text):
                 p_["entry_d"] = parse_entry_date(parts[4])
             pos[parts[0].upper()] = p_
         except Exception:
-            print(f"  ⚠ 持倉格式看不懂，已略過：{item.strip()}（格式：代號:股數:止蝕價:入場價:入場日）")
+            print(f"  ⚠ 持倉格式看不懂，已略過：{item.strip()}（格式：代號:股數:失效位:入場價:入場日）")
     return pos
 
 def scen_of(g):
@@ -291,9 +291,9 @@ def pm_volume(Vb, sym, day, now):
     x = x[(x.index >= a) & (x.index < b)]
     return float(x.sum()) if len(x) else np.nan
 
-DISCLOSURE = ("研究聲明：本報告的全部內容由固定規則自動計算，所有讀者看到的內容相同，並不考慮任何人的財務狀況、投資目標或風險承受能力。"
+DISCLOSURE = ("研究聲明：本報告是自動產生的市況、市場寬度與技術篩選工具，全部內容由固定規則計算，所有讀者看到的內容相同，並不考慮任何人的財務狀況、投資目標或風險承受能力。"
               "頁內的倉位試算只按讀者自行輸入的參數計算。內容只供研究和教育用途，不構成投資建議、要約或招攬，亦不保證準確、完整或及時。"
-              "過往表現（包括回測和跟進紀錄）不代表將來表現。")
+              "過往表現（包括跟進紀錄）不代表將來表現。")
 
 def size_attrs(o):
     """倉位試算用的屬性（與完整簡報相同）：入場價由計劃卡的股數和風險反推，風險倍數按計劃檔的戶口和風險 %。"""
@@ -450,7 +450,7 @@ def main():
         stop, atr = p_.get("Stop"), p_.get("ATR$")
         live = []
         if px is not None and stop is not None and not np.isnan(px) and px <= stop:
-            live.append(f"盤前 {px:,.2f} 已低於止蝕 {stop:,.2f}：已觸及形態失效位（附加的止損市價單只在常規時段觸發）")
+            live.append(f"盤前 {px:,.2f} 已低於失效位 {stop:,.2f}：已觸及形態失效位（附加的止損市價單只在常規時段觸發）")
         if lp and close and atr and not np.isnan(close) and atr > 0:
             g = (lp[0] - close) / atr
             if g <= -P["gapdown_atr"]:
@@ -520,7 +520,7 @@ def main():
         T.append("【持倉】")
         for r in prow:
             todo = "；".join(r["live"] + ([r["act"]] if r["act"] else [])) or "沒有需要注意的事項"
-            T.append(f"  {r['t']}：{'盤前 ' + format(r['lp'][0], ',.2f') if r['lp'] else '未有盤前價'}｜止蝕 {fnum(r['stop'])}｜{todo}")
+            T.append(f"  {r['t']}：{'盤前 ' + format(r['lp'][0], ',.2f') if r['lp'] else '未有盤前價'}｜失效位 {fnum(r['stop'])}｜{todo}")
     if res:
         T.append("【倉位與委託參數試算（按盤前價重算）】")
         for r in res:

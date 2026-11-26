@@ -31,9 +31,10 @@ REG_BANDS = {"E": (0, 25), "D": (25, 40), "C": (40, 55), "B": (55, 70), "A": (70
 # label: (English, Traditional Chinese, Simplified Chinese)
 L = {
     "site": ("US Pre-market Brief", "美股盤前簡報", "美股盘前简报"),
-    "tagline": ("Rules-based market research on S&P 500, Nasdaq 100 and S&P 400 stocks, recalculated every US trading day before the open.",
-                "每個美股交易日開市前，按固定規則為標普 500、納指 100 和標普 400 股票重新計算的規則化市場研究。",
-                "每个美股交易日开盘前，按固定规则为标普 500、纳指 100 和标普 400 股票重新计算的规则化市场研究。"),
+    "tagline": ("An automated morning workflow for US stocks: market regime, breadth and technical screening across the S&P 500, "
+                "Nasdaq 100 and S&P 400, recalculated by fixed rules every trading day before the open.",
+                "自動化的美股晨間工作流程：每個交易日開市前，按固定規則為標普 500、納指 100 和標普 400 股票整理市況級別、市場寬度和技術形態篩選。",
+                "自动化的美股晨间工作流程：每个交易日开盘前，按固定规则为标普 500、纳指 100 和标普 400 股票整理市况级别、市场宽度和技术形态筛选。"),
     "brief_for": ("Brief for", "簡報日", "简报日"),
     "data_to": ("data to the close of", "數據截至", "数据截至"),
     "updated": ("Updated", "更新於", "更新于"),
@@ -41,9 +42,18 @@ L = {
     "regime": ("Regime", "市況級別", "市况级别"),
     "score": ("Market health score", "市場健康分數", "市场健康分数"),
     "score_vs": ("yesterday {a}, 5 days ago {b}", "昨日 {a}，5 日前 {b}", "昨日 {a}，5 日前 {b}"),
-    "range_note": ("Score bands: E below 25, D 25–39, C 40–54, B 55–69, A 70 and above.",
-                   "分數區間：E 低於 25，D 25–39，C 40–54，B 55–69，A 70 或以上。",
-                   "分数区间：E 低于 25，D 25–39，C 40–54，B 55–69，A 70 或以上。"),
+    "range_note": ("Score bands: E below 25, D 25–39, C 40–54, B 55–69, A 70 and above. A downgrade applies the same day; an upgrade "
+                   "needs two consecutive sessions in the higher band, so the score can sit above its grade’s band.",
+                   "分數區間：E 低於 25，D 25–39，C 40–54，B 55–69，A 70 或以上。降級即日生效；升級要連續兩個交易日留在較高區間，"
+                   "所以分數有時會高於級別所屬的區間。",
+                   "分数区间：E 低于 25，D 25–39，C 40–54，B 55–69，A 70 或以上。降级即日生效；升级要连续两个交易日留在较高区间，"
+                   "所以分数有时会高于级别所属的区间。"),
+    "held": ("Score {s} is in the {r} band; an upgrade needs two consecutive sessions there, so the grade stays {g}",
+             "分數 {s} 屬 {r} 區；升級要連續兩個交易日留在較高區間，暫維持 {g} 級",
+             "分数 {s} 属 {r} 区；升级要连续两个交易日留在较高区间，暂维持 {g} 级"),
+    "hist_held": ("* The score had entered a higher band but not yet for two consecutive sessions, so the grade stayed the same.",
+                  "＊ 分數已進入較高區間，但未連續兩個交易日，級別暫時維持。",
+                  "＊ 分数已进入较高区间，但未连续两个交易日，级别暂时维持。"),
     "gate_long": ("Long gate", "多頭閘門", "多头闸门"), "gate_pilot": ("Pilot gate", "試單閘門", "试单闸门"),
     "gate_short": ("Short gate", "空頭閘門", "空头闸门"), "oversold": ("Oversold", "超賣", "超卖"),
     "open": ("open", "開", "开"), "closed": ("closed", "關", "关"), "yes": ("yes", "是", "是"), "no": ("no", "否", "否"),
@@ -81,7 +91,7 @@ L = {
     "sp_watch": ("{k} on the watch list", "{k} 隻只作觀察", "{k} 只仅作观察"),
     "play_h": ("Rule summary", "規則摘要", "规则摘要"),
     "c_ticker": ("Stock", "股票", "股票"), "c_setup": ("Setup", "形態", "形态"), "c_trigger": ("Pivot", "技術觸發位", "技术触发位"),
-    "c_stop": ("Invalidation", "形態失效位", "形态失效位"), "c_risk": ("Risk", "風險", "风险"), "c_dist": ("To trigger", "距觸發價", "距触发价"),
+    "c_stop": ("Invalidation", "形態失效位", "形态失效位"), "c_risk": ("Risk", "風險", "风险"), "c_dist": ("Price vs pivot", "現價距觸發位", "现价距触发位"),
     "c_cat": ("Earnings", "財報", "财报"), "c_why": ("Why", "理由", "理由"), "c_missing": ("Still missing", "尚欠", "尚欠"), "c_side": ("Side", "方向", "方向"),
     "c_date": ("Date", "日期", "日期"),
     "hist_h": ("Market health score, last {n} sessions", "市場健康分數（最近 {n} 個交易日）", "市场健康分数（最近 {n} 个交易日）"),
@@ -124,19 +134,26 @@ L = {
         "用八项清单把每个形态分成 A 级或 B 级，按固定每单位风险试算仓位。",
         "财报前不列出新形态；开盘前系统再用盘前价重算每组参数。",
     )),
+    "dist_note": ("Price vs pivot = (close − pivot) ÷ pivot, the same figure as in the full brief. For longs a negative number means the price "
+                  "has not crossed above the pivot; for shorts a positive number means it has not broken below it. The pre-market refresh uses "
+                  "pre-market prices.",
+                  "現價距觸發位 =（收市價 − 技術觸發位）÷ 技術觸發位，與完整簡報的數字相同。做多為負數代表未升穿觸發位；做空為正數代表未跌穿。"
+                  "系統開市前更新改用盤前價。",
+                  "现价距触发位 =（收盘价 − 技术触发位）÷ 技术触发位，与完整简报的数字相同。做多为负数代表未升穿触发位；做空为正数代表未跌穿。"
+                  "系统开盘前更新改用盘前价。"),
     "demo_note": ("Share counts and amounts in the full brief start from a demonstration account of {a}; set your own figures at the top of the brief.",
                   "完整簡報內的股數和金額預設按示範戶口 {a} 試算，可在簡報頁頂改用自己的參數。",
                   "完整简报内的股数和金额默认按示范账户 {a} 试算，可在简报页顶改用自己的参数。"),
     "disclaimer": ("Research disclosure: everything here is calculated automatically by fixed rules and is the same for every reader; it does not take "
                    "anyone’s financial situation, objectives or risk tolerance into account. Position sizes are arithmetic from the figures each reader "
                    "enters. For research and education only; not investment advice, an offer or a solicitation, and not guaranteed to be accurate, "
-                   "complete or timely. Past results, including backtests and the follow-up record, do not indicate future results.",
+                   "complete or timely. Past results, including the follow-up record, do not indicate future results.",
                    "研究聲明：本網站的全部內容由固定規則自動計算，所有讀者看到的內容相同，並不考慮任何人的財務狀況、投資目標或風險承受能力。"
                    "倉位試算只按讀者自行輸入的參數計算。內容只供研究和教育用途，不構成投資建議、要約或招攬，亦不保證準確、完整或及時。"
-                   "過往表現（包括回測和跟進紀錄）不代表將來表現。",
+                   "過往表現（包括跟進紀錄）不代表將來表現。",
                    "研究声明：本网站的全部内容由固定规则自动计算，所有读者看到的内容相同，并不考虑任何人的财务状况、投资目标或风险承受能力。"
                    "仓位试算只按读者自行输入的参数计算。内容只供研究和教育用途，不构成投资建议、要约或招揽，亦不保证准确、完整或及时。"
-                   "过往表现（包括回测和跟进记录）不代表将来表现。"),
+                   "过往表现（包括跟进记录）不代表将来表现。"),
     "pro_h": ("Full report", "完整報告", "完整报告"),
     "pro_body": ("The full report adds the rule-matched setup tables, setup cards with charts, the watch list, the position-size simulator "
                  "and the follow-up record of earlier setups.",
@@ -227,7 +244,7 @@ def range_bar(s, lang):
         segs.append(f'<div class="seg r{r} {cur}" style="flex:{hi - lo}"><span>{r}</span></div>')
     mk = ""
     if score is not None:
-        mk += f'<div class="mark" style="left:{min(max(score, 0), 100):.1f}%"><b>{fmt(score, 0)}</b></div>'
+        mk += f'<div class="mark" style="left:{min(max(score, 0), 100):.1f}%"><b>{e(s.get("score_txt") or fmt(score, 0))}</b></div>'
     if prev is not None:
         mk += f'<div class="prevmark" style="left:{min(max(prev, 0), 100):.1f}%" title="{e(t("score_vs", lang, a=fmt(prev, 0), b=fmt(s.get("score_5"), 0)))}"></div>'
     return (f'<div class="range" role="img" aria-label="{e(t("score", lang))} {fmt(score, 0)} / 100, {e(t("regime", lang))} {e(s["regime"])}">'
@@ -414,7 +431,7 @@ def page(lang, latest, latest_pre, hist, mode="full"):
             f'<a class="skip" href="#plan">{e(t("skip", lang))}</a>'
             f'<header class="top"><div class="wrap"><a class="brand" href="{up}{LANG_DIR[lang]}index.html">{e(t("site", lang))}</a>'
             f'<nav aria-label="{e(t("lang", lang))}">{nav}</nav></div></header><main class="wrap">')
-    foot = (f'</main><footer class="wrap"><p class="disc">{e(t("disclaimer", lang))}</p><p class="quiet">{e(t("sources", lang))}</p>'
+    foot = (f'</main><footer class="wrap"><p>{e(t("tagline", lang))}</p><p class="disc">{e(t("disclaimer", lang))}</p><p class="quiet">{e(t("sources", lang))}</p>'
             f'<p class="quiet">{e(t("built", lang, t=f"{now_et():%Y-%m-%d %H:%M}"))}</p></footer>'
             f'<script src="{up}assets/site.js?v={ASSET_VER}" defer></script></body></html>')
     if not latest:
@@ -430,7 +447,8 @@ def page(lang, latest, latest_pre, hist, mode="full"):
         prun, P = latest_pre[d]
         pre_btn = (f'<a class="btn ghost" href="{up}preopen/{e(prun)}/{lang}.html">{e(t("open_pre", lang))}'
                    f'<small>{e(t("pre_time", lang, t=P[lang]["run_et"][11:]))}</small></a>')
-    stats = [(t("score", lang), f'{fmt(s["score"], 0)}', t("score_vs", lang, a=fmt(s["score_prev"], 0), b=fmt(s["score_5"], 0))),
+    stats = [(t("score", lang), s.get("score_txt") or f'{fmt(s["score"], 0)}',
+              t("score_vs", lang, a=s.get("score_prev_txt") or fmt(s["score_prev"], 0), b=s.get("score_5_txt") or fmt(s["score_5"], 0))),
              (t("new_pos", lang), t("n_long_short", lang, a=s["n_long"], b=s["n_short"]), ""),
              (t("above50", lang), f'{fmt(s["pct50"], 0)}%', ""),
              (t("bo", lang), "–" if s["bo_follow"] is None else f'{fmt(s["bo_follow"], 0)}%', ""),
@@ -449,7 +467,10 @@ def page(lang, latest, latest_pre, hist, mode="full"):
         f'<div class="herotext"><p class="when">{e(t("brief_for", lang))} <b>{e(s["brief_date"])}</b>{p["c"]}{e(t("data_to", lang))} {e(s["asof"])}{p["p"]}'
         f'{e(t("updated", lang))} {e(s["run_et"][11:])} ET{p["o"]}{e(t("hk", lang))} {e(s["run_hk"][11:])}{p["x"]}{p["p"].strip()}</p>'
         f'<h1 id="verdict">{e(s["verdict"] or s["side"])}</h1>'
-        f'<p class="sub">{e(t("regime", lang))} {e(s["regime"])} {e(s["regime_name"])}{p["k"]}{e(s["side"])}{p["p"]}{e(t("cycle", lang))}{p["k"]}{e(s["cycle"])}{p["p"].strip()}</p>'
+        f'<p class="sub">{e(t("regime", lang))} {e(s["regime"])} {e(s["regime_name"])}'
+        + (f' <span class="hold">{e(t("held", lang, s=s.get("score_txt") or fmt(s["score"], 0), r=s.get("regime_raw", ""), g=s["regime"]))}</span>'
+           if s.get("regime_held") else "")
+        + f'{p["k"]}{e(s["side"])}{p["p"]}{e(t("cycle", lang))}{p["k"]}{e(s["cycle"])}{p["p"].strip()}</p>'
         + range_bar(s, lang) + f'<p class="small quiet">{e(t("range_note", lang))}</p>'
         f'<ul class="gates">{gate(t("gate_long", lang), g["long"], lang)}{gate(t("gate_pilot", lang), g["pilot"], lang)}'
         f'{gate(t("gate_short", lang), g["short"], lang, bad=True)}{gate(t("oversold", lang), g["oversold"], lang, "yes", "no", bad=True)}</ul>'
@@ -463,18 +484,23 @@ def page(lang, latest, latest_pre, hist, mode="full"):
         f'<h3>{e(t("live_h", lang))}</h3>'
         + (picks_table(live, lang) if live else f'<p class="quiet">{e(t("live_none" if s["picks"] else "picks_none", lang))}</p>')
         + (f'<h3>{e(t("watch_h", lang))}</h3><p class="small quiet">{e(t("watch_note", lang))}</p>{picks_table(watch, lang, watch=True)}' if watch else "")
-        + f'{bgrade_table(s["bgrade"], lang)}<p class="small quiet">{e(t("demo_note", lang, a=acct))}</p></div>'
+        + f'{bgrade_table(s["bgrade"], lang)}<p class="small quiet">{e(t("dist_note", lang))}</p>'
+        f'<p class="small quiet">{e(t("demo_note", lang, a=acct))}</p></div>'
         f'<aside><h2>{e(t("play_h", lang))}</h2><ul class="play">' + "".join(f"<li>{e(x)}</li>" for x in s["play"]) + "</ul></aside></section>")
         + f'<section class="grid2 tlsec"><div><h2>{e(t("tl_h", lang))}</h2>{timeline_list(s.get("timeline", []), lang, S["tc"].get("timeline", []))}</div>'
         f'<div><h2>{e(t("subs_h", lang))}</h2><p class="small quiet">{e(t("subs_note", lang))}</p>{subs_chart(s.get("sectors", []), lang)}</div></section>')
     sc = score_chart(hist, lang)
     if sc:
         n = min(120, len(hist))
-        rows = "".join(f'<tr><td class="n">{e(d_)}</td><td class="n">{fmt(v, 1)}</td><td>{e(rg)}</td></tr>' for d_, v, rg in reversed(hist[-n:]))
+        held = lambda v, rg: rg in REG_BANDS and not (REG_BANDS[rg][0] <= v < REG_BANDS[rg][1] or (rg == "A" and v >= 70))   # noqa: E731
+        rows = "".join(f'<tr><td class="n">{e(d_)}</td><td class="n">{fmt(v, 1)}</td><td>{e(rg)}{"＊" if held(v, rg) else ""}</td></tr>'
+                       for d_, v, rg in reversed(hist[-n:]))
+        any_held = any(held(v, rg) for _, v, rg in hist[-n:])
         body += (f'<section><h2>{e(t("hist_h", lang, n=n))}</h2>{sc}<p class="small quiet">{e(t("hist_note", lang))}</p>'
                  f'<details class="data"><summary>{e(t("show_data", lang))}</summary><div class="scroll"><table><thead><tr>'
                  f'<th class="n">{e(t("c_date", lang))}</th><th class="n">{e(t("score", lang))}</th><th>{e(t("regime", lang))}</th></tr></thead>'
-                 f'<tbody>{rows}</tbody></table></div></details></section>')
+                 f'<tbody>{rows}</tbody></table></div>'
+                 + (f'<p class="small quiet">{e(t("hist_held", lang))}</p>' if any_held else "") + '</details></section>')
     if not free:
         body += f'<section><h2>{e(t("arch_h", lang))}</h2>{archive_table(latest, latest_pre, lang, up)}</section>'
     body += f'<section class="how"><h2>{e(t("how_h", lang))}</h2><ol>' + "".join(f"<li>{e(x)}</li>" for x in L["how"][IDX[lang]]) + "</ol></section>"
@@ -495,6 +521,7 @@ html[lang=zh-Hans] body{font-family:"Atkinson Hyperlegible Next",system-ui,-appl
 a{color:var(--brand)}
 a:focus-visible,summary:focus-visible,[tabindex]:focus-visible,.btn:focus-visible{outline:3px solid var(--focus);outline-offset:3px;border-radius:4px}
 .wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+.hold{display:inline-block;margin:2px 0 2px 6px;padding:1px 9px;border:1px solid currentColor;border-radius:999px;font-size:.82em;font-weight:600;line-height:1.5}
 .skip{position:absolute;left:-999px;top:8px}.skip:focus{left:12px;background:var(--panel);padding:6px 10px;z-index:9}
 .top{border-bottom:1px solid var(--rule);background:var(--panel)}
 .top .wrap{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 16px;min-height:56px;padding-top:6px;padding-bottom:6px}

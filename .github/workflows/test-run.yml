@@ -5,7 +5,7 @@ name: Test run (no publishing)
 # so this is safe to run on a feature branch at any time.
 on:
   push:
-    branches: ["feat/**"]   # every push to a feature branch runs the checks
+    branches: ["feat/**", "fix/**"]   # every push to a feature or fix branch runs the checks
   workflow_dispatch:
     inputs:
       what:
