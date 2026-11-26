@@ -16,7 +16,8 @@ import sys
 from html.parser import HTMLParser
 
 FORBIDDEN = [r"跑格子", r"格子 ?2", r"（當日 \d+ 次）", r"（当日 \d+ 次）", r"Run Cell", r"\(\d+ runs that day\)"]
-PUBLIC = [r"Yahoo", r"OpenBB", r"FRED", r"Colab", r"Wikipedia", r"AI_NEWS", r"HTF_WIDE_SCAN", r"ANTHROPIC_API_KEY", r"表單", r"Cboe 取不到",
+PUBLIC = [r"(?i)yahoo", r"(?i)yhoo", r"\^(GSPC|IXIC|DJI|RUT|VIX)\b", r"Sharpe", r"四關", r"四关", r"\bCSV\b", r"v6\.1",
+          r"照抄用的文字", r"今日可落單", r"今日可落单", r"止蝕", r"止蚀", r"OpenBB", r"FRED", r"Colab", r"Wikipedia", r"AI_NEWS", r"HTF_WIDE_SCAN", r"ANTHROPIC_API_KEY", r"表單", r"Cboe 取不到",
           r"utm_source", r"yptr", r"數據源狀態", r"数据源状态", r"財報與經濟日曆的來源", r"Google Drive"]   # never on a public page
 CJK = re.compile(r"[㐀-鿿]")
 

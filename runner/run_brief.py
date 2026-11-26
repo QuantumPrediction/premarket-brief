@@ -39,7 +39,9 @@ def summary(G):
     def pick(c, tier, live=False):
         t = c["Ticker"]
         close, trig, stop = num(c.get("Close")), num(c.get("Trigger")), num(c.get("Stop"))
-        dist = (trig / close - 1) * 100 if (close and trig) else None
+        dist = num(c.get("DistT%"), 1)                     # same number as the brief: (price − trigger) / trigger
+        if dist is None and close and trig:
+            dist = (close / trig - 1) * 100
         risk = abs(trig - stop) / trig * 100 if (trig and stop) else None
         return {"ticker": t, "name": str(G["NAME_OF"].get(t, "") or "")[:40], "side": "做多" if c.get("Side") == "多" else "做空",
                 "tier": tier, "setup": str(c.get("Setup", "")), "sector": sec(t), "close": close, "trigger": trig, "stop": stop,
@@ -71,6 +73,10 @@ def summary(G):
         "regime": G["REG_L"], "regime_name": G["REG_T"], "side": G["SIDE"], "verdict": G.get("T6_VERDICT", ""),
         "cycle": G.get("CYCLE", ""), "short_timing": G.get("SHORT_TIMING", ""),
         "score": num(G["score_now"], 1), "score_prev": num(G["score_prev"], 1), "score_5": num(G["score_5"], 1),
+        "score_txt": G["score_txt"](G["score_now"]) if G.get("score_txt") else None,
+        "score_prev_txt": G["score_txt"](G["score_prev"]) if G.get("score_txt") else None,
+        "score_5_txt": G["score_txt"](G["score_5"]) if G.get("score_txt") else None,
+        "regime_raw": G.get("RAW_L", G["REG_L"]), "regime_held": bool(G.get("REG_HELD", False)),
         "gates": {"long": bool(G["LONG_GATE"]), "pilot": bool(G["PILOT_GATE"]), "short": bool(G["SHORT_GATE"]), "oversold": bool(G["OVERSOLD"])},
         "event_day": bool(G.get("EVENT_DAY")), "n_long": int(bud.get("n_long", 0) or 0), "n_short": int(bud.get("n_short", 0) or 0),
         "universe": len(G.get("TICKS", [])), "long_candidates": len(G.get("T6_L", [])),
@@ -172,6 +178,41 @@ def translate_charts(out):
             write(page, re.sub(r'src="charts/(c\d+)\.svg"', lambda m: f'src="charts/{m.group(1)}.{lang}.svg"', doc))
 
 
+RETIRED = re.compile(r"(?i)yahoo|跑格子|照抄用的文字|今日可落單|格子 ?2")    # wording of pages made before the public-site clean-up
+
+
+def retire_old_pages(state):
+    """Archived brief and pre-open pages made with the old template (vendor links, notebook wording) are removed, together with
+    redirect pages that pointed to them, so the home page's archive only links to current pages. The newest run is never touched."""
+    gone = []
+    for sub in ("site/briefs", "site/preopen"):
+        base = os.path.join(state, sub)
+        if not os.path.isdir(base):
+            continue
+        runs = sorted(r for r in os.listdir(base) if os.path.isdir(os.path.join(base, r)))
+        for r in runs[:-1]:
+            page = os.path.join(base, r, "tc.html")
+            try:
+                doc = open(page, encoding="utf-8").read()
+            except OSError:
+                continue
+            if 'http-equiv="refresh"' not in doc and RETIRED.search(re.sub(r"<script.*?</script>", "", doc, flags=re.S)):
+                shutil.rmtree(os.path.join(base, r), ignore_errors=True)
+                gone.append(f"{sub[5:]}/{r}")
+        for r in sorted(os.listdir(base)):                       # redirect pages whose target is gone
+            page = os.path.join(base, r, "tc.html")
+            try:
+                doc = open(page, encoding="utf-8").read()
+            except OSError:
+                continue
+            m = re.search(r'url=\.\./([^/"]+)/', doc) if 'http-equiv="refresh"' in doc else None
+            if m and not os.path.isdir(os.path.join(base, m.group(1))):
+                shutil.rmtree(os.path.join(base, r), ignore_errors=True)
+                gone.append(f"{sub[5:]}/{r} (redirect)")
+    if gone:
+        print("Old-template pages removed from the archive: " + ", ".join(gone))
+
+
 def prune(state, keep_days):
     """Keep the data branch small: site archive for keep_days, the script's daily folders for 14 days."""
     today = now_et().date()
@@ -266,6 +307,7 @@ def main():
     translate_charts(out)
     write(os.path.join(state, "marks", "brief.txt"), f"{now_et():%Y-%m-%d} {run_id}\n")
     prune(state, int(env_num("ARCHIVE_DAYS", 365)))
+    retire_old_pages(state)
     print(f"Saved site files for {run_id} in {out}")
 
 

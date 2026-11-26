@@ -180,7 +180,8 @@ GITHUB_WORDING = [
 ]
 
 
-TRACKING = re.compile(r"^(utm_[a-z]+|yptr|guccounter|guce_referrer(_sig)?|ncid|soc_src|soc_trk)$", re.I)
+TRACKING = re.compile(r"^(utm_[a-z]+|yptr|yhoo\w*|siteid|guccounter|guce_referrer(_sig)?|ncid|soc_src|soc_trk)$", re.I)
+VENDOR_HOST = re.compile(r"^(?:[a-z0-9-]+\.)*yahoo\.com$", re.I)          # the data vendor's own site: never linked from a public page
 
 
 def clean_url(url):
@@ -192,13 +193,24 @@ def clean_url(url):
         return url
     if not u.query:
         return url
-    q = [(k, v) for k, v in parse_qsl(u.query, keep_blank_values=True) if not TRACKING.match(k) and "yahoo" not in v.lower()]
+    q = [(k, v) for k, v in parse_qsl(u.query, keep_blank_values=True)
+         if not TRACKING.match(k) and "yahoo" not in v.lower() and "yhoo" not in v.lower()]
     return urlunsplit((u.scheme, u.netloc, u.path, urlencode(q), u.fragment))
 
 
 def clean_links(text):
-    """Every href="http..." in a page, and every bare http link in plain text, without tracking parameters."""
+    """Every href="http..." in a page, and every bare http link in plain text, without tracking parameters.
+    Links to the data vendor's own site are dropped (the link text stays)."""
     import html as _h
+    from urllib.parse import urlsplit
+
+    def vendor(u):
+        try:
+            return bool(VENDOR_HOST.match(urlsplit(_h.unescape(u)).hostname or ""))
+        except ValueError:
+            return False
+    text = re.sub(r'<a\b[^>]*?href="(https?://[^"]+)"[^>]*>(.*?)</a>', lambda m: m.group(2) if vendor(m.group(1)) else m.group(0), text, flags=re.S)
+    text = re.sub(r"(?<![\"'=])(https?://[^\s<>\"']+)", lambda m: "" if vendor(m.group(1)) else m.group(1), text)
     text = re.sub(r'href="(https?://[^"]+)"', lambda m: 'href="' + _h.escape(clean_url(_h.unescape(m.group(1))), quote=True) + '"', text)
     return re.sub(r"(?<![\"'=])(https?://[^\s<>\"']+)", lambda m: clean_url(m.group(1)), text)
 

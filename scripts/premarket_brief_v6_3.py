@@ -495,7 +495,7 @@ def parse_positions(text):
                 p_["entry_d"] = parse_entry_date(parts[4])
             pos[parts[0].upper()] = p_
         except Exception:
-            print(f"  ⚠ 持倉格式看不懂，已略過：{item.strip()}（格式：代號:股數:止蝕價:入場價:入場日）")
+            print(f"  ⚠ 持倉格式看不懂，已略過：{item.strip()}（格式：代號:股數:失效位:入場價:入場日）")
     return pos
 
 POSITIONS = parse_positions(POSITIONS_TEXT)
@@ -1030,6 +1030,16 @@ REGIME = pd.Series(reg, index=raw.index)
 score_now, score_prev, score_5 = float(SCORE.iloc[-1]), float(SCORE.iloc[-2]), float(SCORE.iloc[-6])
 reg_now, reg_prev = int(REGIME.iloc[-1]), int(REGIME.iloc[-2])
 REG_L, REG_T = REG_NAME[reg_now]
+RAW_L = REG_NAME[band_of(score_now)][0]                            # 分數本身所在的區間
+REG_HELD = RAW_L != REG_L                                          # 分數已進入較高區間，但未滿升級緩衝（降級即日生效，不會反過來）
+def score_txt(v):
+    """顯示用的分數：四捨五入後會跨過分界時多顯示一位小數（例如 24.6 不寫成 25），免得與級別看似矛盾。"""
+    return f"{v:.0f}" if band_of(round(v)) == band_of(v) else f"{v:.1f}"
+SCORE_TXT = score_txt(score_now)
+_b = TH["regime_bands"]
+REG_RULE = (f"分數區間：E 低於 {_b[3]}，D {_b[3]}–{_b[2] - 1}，C {_b[2]}–{_b[1] - 1}，B {_b[1]}–{_b[0] - 1}，A {_b[0]} 或以上。"
+            "級別降級即日生效；升級要連續兩個交易日留在較高區間，所以分數有時會高於級別所屬的區間。")
+REG_HOLD_NOTE = f"分數 {SCORE_TXT} 屬 {RAW_L} 區；升級要連續兩個交易日留在較高區間，暫維持 {REG_L} 級" if REG_HELD else ""
 REG_DAYS = int((REGIME.iloc[::-1] == reg_now).cumprod().sum())      # 已在現 Regime 幾多日
 
 pct50_now = float(PCT50.iloc[-1])
@@ -2057,6 +2067,22 @@ def news_relevant(n, extra_names):
              if len(w) >= 4 and w.lower() not in _NAME_STOP and w.upper() != t][:2] + _NAME_ALIAS.get(t, [])
     return any(re.search(r"\b" + re.escape(w) + r"\b", title, re.I) for w in words)
 
+INDEX_TAG = {"^GSPC": "SPX", "^IXIC": "IXIC", "^DJI": "DJI", "^RUT": "RUT", "^VIX": "VIX", "^NDX": "NDX"}
+def news_url(u):
+    """新聞連結：數據商自己網站（*.yahoo.com）的連結不顯示；其餘去掉追蹤參數（utm_*、siteid、yhoo… 等）。"""
+    from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+    try:
+        p = urlsplit(str(u or ""))
+    except ValueError:
+        return ""
+    host = (p.hostname or "").lower()
+    if not host or host == "yahoo.com" or host.endswith(".yahoo.com"):
+        return ""
+    q = [(k, v) for k, v in parse_qsl(p.query, keep_blank_values=True)
+         if not (k.lower().startswith(("utm_", "yhoo")) or k.lower() in ("siteid", "yptr", "guccounter", "ncid")
+                 or "yhoo" in v.lower() or "yahoo" in v.lower())]
+    return urlunsplit((p.scheme, p.netloc, p.path, urlencode(q), p.fragment))
+
 if FETCH_EVENTS:
     print("取標題…")
     movers = F.loc[[t for t in LEAD if t in F.index], "Chg%"].abs().sort_values(ascending=False).head(3).index.tolist()
@@ -2091,6 +2117,9 @@ if FETCH_EVENTS:
     except Exception:
         pass
     NEWS = sorted(NEWS, key=lambda x: x["when"], reverse=True)[:24]
+    for n_ in NEWS:                                          # 公開頁面：指數代號用通用寫法；數據商網站的連結不顯示，只留標題
+        n_["t"] = INDEX_TAG.get(n_["t"], n_["t"].lstrip("^"))
+        n_["url"] = news_url(n_["url"])
     for n_ in NEWS:
         low = " " + n_["title"].lower() + " "
         for th, keys in THEMES.items():
@@ -2129,7 +2158,7 @@ if POSITIONS:
         days = sessions_until(ed, ASOF.date()) if ed else np.nan
         n_e, R_ = earn_sessions(t), POS_RULES
         if px <= stop:
-            act.append(f"已到止蝕位 {stop:,.2f}：開市按計劃止蝕")
+            act.append(f"已到失效位 {stop:,.2f}：按自訂計劃處理")
         if cl < s50:
             note.append("收市跌穿 50 日線")
         elif cl < e21:
@@ -2137,9 +2166,9 @@ if POSITIONS:
         if F.at[t, "Fallen"]:
             note.append("墮落龍頭")
         if not isnan(gain) and stop >= ent:
-            note.append(f"止蝕已在成本之上，鎖定 {(stop / ent - 1) * 100:+.1f}%")
+            note.append(f"失效位已在成本之上，鎖定 {(stop / ent - 1) * 100:+.1f}%")
         if not isnan(g_atr) and stop < ent and g_atr >= R_["be_atr"]:
-            act.append(f"浮盈 {g_atr:.1f} 個 ATR，止蝕仍在成本之下：可考慮上移到成本 {ent:,.2f}")
+            act.append(f"浮盈 {g_atr:.1f} 個 ATR，失效位仍在成本之下：可考慮上移到成本 {ent:,.2f}")
         if n_e is not None and 0 <= n_e <= R_["earn_days"]:
             when = "今日" if n_e == 0 else f"{n_e} 個交易日後"
             if isnan(g_atr):
@@ -2149,12 +2178,12 @@ if POSITIONS:
             else:
                 note.append(f"{when}公佈業績，利潤墊 {g_atr:.1f} 個 ATR")
         if ed and not isnan(gain) and days <= R_["fast_days"] and gain >= R_["fast_gain"]:
-            note.append(f"入場 {days} 個交易日升 {gain:.0f}%：O'Neil 的做法是持有至少 {R_['hold_weeks']} 週，除非跌穿止蝕")
+            note.append(f"入場 {days} 個交易日升 {gain:.0f}%：O'Neil 的做法是持有至少 {R_['hold_weeks']} 週，除非跌穿失效位")
         ext = (cl / s50 - 1) * 100 if (not isnan(s50) and s50 > 0) else np.nan
         if not isnan(ext) and ext >= R_["ext50"]:
             act.append(f"高於 50 日線 {ext:.0f}%：可考慮分段鎖定利潤")
         if ed and not isnan(g_atr) and days >= R_["stall_days"] and abs(g_atr) < R_["stall_atr"]:
-            act.append(f"持有 {days} 個交易日，仍未走出 {R_['stall_atr']:g} 個 ATR：可考慮時間止蝕")
+            act.append(f"持有 {days} 個交易日，仍未走出 {R_['stall_atr']:g} 個 ATR：可考慮按時間離場")
         trail = "；".join(x for x in (f"21EMA {e21:,.2f}" if not isnan(e21) else "", f"10 日低位 {low10:,.2f}" if not isnan(low10) else "") if x)
         rows.append({"Ticker": t, "Px": px, "Entry": ent, "PnL%": gain, "R": r_now, "Days": days, "Stop": stop,
                      "ToStop%": (px / stop - 1) * 100, "Stage": F.at[t, "Stage"], "RS": F.at[t, "RS"], "Risk$": risk,
@@ -2408,7 +2437,7 @@ def focus_long(k=5):
             stop = entry * (1 - min(MAX_STOP_PCT, max(3.0, 1.5 * atrp)) / 100)
         shares, riskp, posp = size_for(entry, stop)
         out.append({"Ticker": t, "Setup": "＋".join(e["Tags"]), "RS": rs, "SecETF": F.at[t, "SecETF"] if inf else "",
-                    "SecRank": secr, "Close": close, "Trigger": piv * 1.001, "Dist%": dist,
+                    "SecRank": secr, "Close": close, "Trigger": piv * 1.001, "Dist%": dist, "DistT%": (close / (piv * 1.001) - 1) * 100,
                     "Status": "待升穿" if dist <= 0 else f"已升穿，買入區至 {piv * (1 + TH['extended_pct'] / 100):.2f}",
                     "Stop": stop, "Risk%": riskp,
                     "Shares": shares, "Pos%": posp, "UD": F.at[t, "UD"] if inf else np.nan, "Earn": earn_str(t), "Pts": pts})
@@ -2446,11 +2475,11 @@ for a_, what, dist, mean in TRIG:
         ALERTS.append({"Ticker": "QQQ", "Dir": "升穿" if a_ == "↑" else "跌穿", "Px": float(m_.group(1)), "Why": mean})
 for r in FOCUS_L.itertuples() if len(FOCUS_L) else []:
     if r.Status == "待升穿":
-        ALERTS.append({"Ticker": r.Ticker, "Dir": "升穿", "Px": round(r.Trigger, 2), "Why": f"{r.Setup} 觸發價；止蝕 {r.Stop:.2f}"})
+        ALERTS.append({"Ticker": r.Ticker, "Dir": "升穿", "Px": round(r.Trigger, 2), "Why": f"{r.Setup} 技術觸發位；失效位 {r.Stop:.2f}"})
     else:
-        ALERTS.append({"Ticker": r.Ticker, "Dir": "跌穿", "Px": round(r.Stop, 2), "Why": f"{r.Setup} 已升穿 pivot；這是止蝕位"})
+        ALERTS.append({"Ticker": r.Ticker, "Dir": "跌穿", "Px": round(r.Stop, 2), "Why": f"{r.Setup} 已升穿 pivot；這是形態失效位"})
 for r in FOCUS_S.itertuples() if len(FOCUS_S) else []:
-    ALERTS.append({"Ticker": r.Ticker, "Dir": "跌穿", "Px": round(r.Trigger, 2), "Why": f"回抽阻力，跌穿 3 日低位；止蝕 {r.Stop:.2f}"})
+    ALERTS.append({"Ticker": r.Ticker, "Dir": "跌穿", "Px": round(r.Trigger, 2), "Why": f"回抽阻力，跌穿 3 日低位；失效位 {r.Stop:.2f}"})
 ALERT_TBL = pd.DataFrame(ALERTS)
 
 # ---------- v6：分級與八項清單（第一步：把各名單合併成候選，逐隻檢查）----------
@@ -2669,9 +2698,10 @@ def t6_eval_long(t, e):
     if ck["事件"] is not True:
         miss.append(("財報", ev_miss))
     if not stop_ok:
-        miss.append(("止蝕", stop_miss))
+        miss.append(("失效位", stop_miss))
     c = {"Ticker": t, "Side": "多", "Setup": "＋".join(tags), "Main": tags[0], "PTag": ptag, "Tags": tags, "Close": close,
-         "Pivot": pivot, "Trigger": pivot * 1.001, "Entry": entry, "Dist%": dist, "Through": through,
+         "Pivot": pivot, "Trigger": pivot * 1.001, "Entry": entry, "Dist%": dist, "DistT%": (close / (pivot * 1.001) - 1) * 100,
+         "Through": through,
          "Chase": pivot * (1 + TH["extended_pct"] / 100), "Stop": stop, "StopSrc": stop_src, "Risk%": riskp,
          "Shares": shares, "Pos%": posp, "RS": rs, "SecETF": (fv("SecETF") if inf else "") or "", "SecRank": secr, "UD": ud,
          "ATR%": atrp, "Earn": earn_str(t), "EarnN": n_e, "Ck": ck, "Miss": miss, "InPool": inf, "DTC": np.nan, "Imp": None,
@@ -2736,7 +2766,7 @@ def t6_eval_short(r):
     if ck["事件"] is not True:
         miss.append(("財報", ev_miss))
     if riskp > MAX_STOP_PCT + 0.05:
-        miss.append(("止蝕", f"3 日高位距觸發價 {riskp:.1f}%，超過 {MAX_STOP_PCT:g}%"))
+        miss.append(("失效位", f"3 日高位距觸發價 {riskp:.1f}%，超過 {MAX_STOP_PCT:g}%"))
     if over:
         miss.append(("超跌", "已超跌，不追空"))
     at = "21EMA" if (not isnan(t6_f(r.get("From21%"))) and -3.0 <= t6_f(r.get("From21%")) <= 1.0) else "50 日線"
@@ -2749,7 +2779,7 @@ def t6_eval_short(r):
     if not isnan(ud):
         ex.append(f"U/D 量比 {ud:.2f}")
     c = {"Ticker": t, "Side": "空", "Setup": "回抽阻力", "Main": "回抽阻力", "PTag": "回抽阻力", "Tags": ["回抽阻力"], "Close": close,
-         "Pivot": l3, "Trigger": entry, "Entry": entry, "Dist%": dist, "Through": False, "Chase": entry * (1 - PLAN["near_trigger"] / 100),
+         "Pivot": l3, "Trigger": entry, "Entry": entry, "Dist%": dist, "DistT%": (close / entry - 1) * 100, "Through": False, "Chase": entry * (1 - PLAN["near_trigger"] / 100),
          "Stop": stop, "StopSrc": "3 日高位之上", "Risk%": riskp, "Shares": shares, "Pos%": shares * entry / ACCOUNT_EQUITY * 100,
          "RS": rs, "SecETF": sec or "", "SecRank": secr, "UD": ud, "ATR%": t6_f(r.get("ATR%")), "Earn": earn_str(t), "EarnN": n_e,
          "Ck": ck, "Miss": miss, "InPool": True, "DTC": np.nan, "Imp": None, "Tier": "", "Reason": "", "Drop": "", "ShCap": "", "Corr": [],
@@ -2925,7 +2955,7 @@ def render(df, spec, n=None, empty="沒有符合條件的股票"):
     body = []
     for rec in d.to_dict("records"):
         body.append("<tr>" + "".join(cell(rec.get(col), k) for col, _, k in spec) + "</tr>")
-    more = f'<div class="note">共 {len(df)} 隻，顯示首 {len(d)} 隻；完整名單在 CSV。</div>' if n and len(df) > n else ""
+    more = f'<div class="note">共 {len(df)} 隻，顯示首 {len(d)} 隻。</div>' if n and len(df) > n else ""
     return f'<div class="tw"><table><thead><tr>{th}</tr></thead><tbody>{"".join(body)}</tbody></table></div>{more}'
 
 def pill(label, state):
@@ -2945,7 +2975,7 @@ def names(d, n=4):
 COMMON = [("Ticker", "代號", "tk"), ("SecETF", "板塊", "t"), ("SecRank", "板塊排名", "i"), ("RS", "RS", "rs")]
 SPEC = dict(
     vcp=COMMON + [("Close", "收市", "p"), ("Pivot", "Pivot", "p"), ("Dist%", "距 Pivot", "pct"), ("Contr", "收縮", "t"),
-                  ("VolDry", "量縮比", "x"), ("BaseDays", "底部日數", "i"), ("Stop", "止蝕", "p"), ("Risk%", "風險", "pctn"),
+                  ("VolDry", "量縮比", "x"), ("BaseDays", "底部日數", "i"), ("Stop", "形態失效位", "p"), ("Risk%", "風險", "pctn"),
                   ("Shares", "股數", "i"), ("Pos%", "倉位", "pctn"), ("UD", "U/D 量比", "x"), ("Earn", "財報日", "t")],
     tight=COMMON + [("Close", "收市", "p"), ("R10%", "10 日波幅", "pctn"), ("TightPctD", "收窄百分位", "pct0"),
                     ("Vol10/50", "量縮比", "x"), ("Pivot10", "Pivot（10 日高）", "p"), ("DistPivot%", "距 Pivot", "pct"),
@@ -2975,7 +3005,7 @@ SPEC = dict(
          ("Jump%", "最大單日升幅", "pct"),
          ("PoleGain%", "旗桿升幅", "pct"), ("PoleDays", "旗桿日數", "i"), ("FlagDays", "旗形日數", "i"), ("FlagDepth%", "旗形回調", "pctn"),
          ("VolR", "量比（旗形／旗桿）", "x"), ("Pivot", "Pivot（旗桿高位）", "p"), ("Dist%", "距 Pivot", "pct"),
-         ("DV20M", "日均成交（百萬）", "i"), ("Stop", "止蝕", "p"), ("Shares", "股數", "i"), ("Earn", "財報日", "t")],
+         ("DV20M", "日均成交（百萬）", "i"), ("Stop", "形態失效位", "p"), ("Shares", "股數", "i"), ("Earn", "財報日", "t")],
     rsd=[("Ticker", "代號", "tk"), ("RS", "RS（v3）", "rs"), ("RS12", "12 個月 RS（舊）", "rs"), ("R21%", "1 個月", "pct"),
          ("R63%", "3 個月", "pct"), ("R126%", "6 個月", "pct"), ("R189%", "9 個月", "pct"), ("R252%", "12 個月", "pct"),
          ("FromHigh%", "距 52 週高", "pct")],
@@ -3003,13 +3033,13 @@ SPEC = dict(
         ("NH", "52 週高突破", "i"), ("NL", "52 週低跌破", "i")],
     dist=[("Date", "日期", "t"), ("Chg%", "當日跌幅", "pct"), ("Left", "尚餘交易日", "i"), ("Kill", "QQQ 收高於此即失效", "p")],
     focus_l=[("Ticker", "代號", "tk"), ("Setup", "形態", "t"), ("RS", "RS", "rs"), ("SecETF", "板塊", "t"), ("SecRank", "板塊排名", "i"),
-             ("Close", "收市", "p"), ("Trigger", "觸發價", "p"), ("Dist%", "現價距觸發", "pct"), ("Status", "狀態", "t"), ("Stop", "止蝕", "p"), ("Risk%", "風險", "pctn"),
+             ("Close", "收市", "p"), ("Trigger", "技術觸發位", "p"), ("DistT%", "現價距觸發位", "pct"), ("Status", "狀態", "t"), ("Stop", "形態失效位", "p"), ("Risk%", "風險", "pctn"),
              ("UD", "U/D 量比", "x"), ("Earn", "財報日", "t")],
     focus_s=[("Ticker", "代號", "tk"), ("Setup", "形態", "t"), ("RS", "RS", "rs"), ("SecETF", "板塊", "t"), ("SecRank", "板塊排名", "i"),
-             ("Close", "收市", "p"), ("Trigger", "觸發價（跌穿）", "p"), ("Stop", "止蝕", "p"), ("Risk%", "風險", "pctn"), ("Earn", "財報日", "t")],
+             ("Close", "收市", "p"), ("Trigger", "技術觸發位（跌穿）", "p"), ("Stop", "形態失效位", "p"), ("Risk%", "風險", "pctn"), ("Earn", "財報日", "t")],
     alerts=[("Ticker", "代號", "tk"), ("Dir", "方向", "t"), ("Px", "價位", "p"), ("Why", "原因", "t")],
     pos=[("Ticker", "代號", "tk"), ("Px", "現價", "p"), ("Entry", "入場價", "p"), ("PnL%", "盈虧", "pct"), ("R", "R 倍數", "atr"),
-         ("Days", "持有日", "i"), ("Stop", "止蝕", "p"), ("ToStop%", "距止蝕", "pct"), ("Stage", "階段", "stage"),
+         ("Days", "持有日", "i"), ("Stop", "形態失效位", "p"), ("ToStop%", "距失效位", "pct"), ("Stage", "階段", "stage"),
          ("RS", "RS", "rs"), ("Risk$", "未平倉風險 $", "i"), ("Earn", "財報日", "t"), ("Trail", "參考位", "t"), ("Note", "備註", "t")],
     attr=[("Pillar", "支柱", "t"), ("W", "權重 %", "i"), ("Prev5", "5 日前", "i"), ("Now", "現在", "i"), ("Contrib", "對總分的影響", "atr")],
 )
@@ -3127,6 +3157,8 @@ padding:18px 20px;max-width:1180px;border-radius:10px;line-height:1.5;font-size:
 .pmb .warnbox{background:#fff8e1;border:1px solid #f0d58a;border-radius:8px;padding:6px 10px;margin:6px 0;font-size:12.5px}
 .pmb pre{white-space:pre-wrap;font-size:12px;background:#f7f7f7;padding:10px;border-radius:8px}
 .pmb .dq{margin:6px 0 8px;font-size:12.5px}
+.pmb .hold{display:inline-block;margin-left:10px;padding:2px 9px;border:1px solid currentColor;border-radius:999px;font-size:12.5px;font-weight:600;
+  vertical-align:middle;background:rgba(255,255,255,.75)}
 .pmb .dq.ok{display:inline-block;padding:2px 10px;border:1px solid #9bc5a6;border-radius:999px;color:#1d5a2c;background:#eef7ef}
 .pmb details.dq{border:0;padding:0;background:none;box-shadow:none}
 .pmb details.dq summary{display:inline-block;padding:2px 10px;border:1px solid #e0c27a;border-radius:999px;background:#fdf6e3;color:#7a5a12;cursor:pointer}
@@ -3432,7 +3464,7 @@ def obb_extras():
                 return ""
             short_side = r["Grp"] in ("做空焦點", "回抽阻力")
             if r["DTC"] >= 5:
-                return "回補要 5 日以上：軋空風險高，空倉減注" if short_side else "沽空盤多：突破時有回補買盤"
+                return "回補日數逾 5 日：軋空風險較高（空頭風險提示）" if short_side else "沽空盤多：突破時有回補買盤"
             return "沽空盤偏多" if r["DTC"] >= 3 else "沽空盤不多"
         si["Read"] = [read(r) for r in si.to_dict("records")]
         out["si"] = si[["Ticker", "Grp", "Settle", "SIM", "Chg%", "DTC", "Read"]].sort_values("DTC", ascending=False).reset_index(drop=True)
@@ -3585,14 +3617,14 @@ T6_FR_L = T6_FR_S = pd.DataFrame()
 T6_TOP_L, T6_TOP_S = ("A 級" if long_ok else "預備"), ("A 級" if T6_SGATE else "預備")
 T6_LAB_L, T6_LAB_S = ("做多 A 級" if long_ok else "做多預備"), ("做空 A 級" if T6_SGATE else "做空預備")
 T6_VERDICT = ""
-T6_KEYS = {"形態": "未有形態", "趨勢": "未在 Stage 2", "距離": "距離太遠", "財報": "財報在即或未確認", "止蝕": "止蝕太遠", "清單": "清單太弱", "超跌": "已超跌", "軋空": "軋空風險"}
+T6_KEYS = {"形態": "未有形態", "趨勢": "未在 Stage 2", "距離": "距離太遠", "財報": "財報在即或未確認", "失效位": "失效位太遠", "清單": "清單太弱", "超跌": "已超跌", "軋空": "軋空風險"}
 
 def t6_frame(cands, cks):
     """把候選整理成一張表（存 CSV 用）。"""
     rows = []
     for c in cands:
         r = {k: c.get(k) for k in ["Ticker", "Side", "Tier", "Setup", "Reason", "NPass", "NFail", "Close", "Pivot", "Trigger", "Entry",
-                                   "Dist%", "Chase", "Stop", "StopSrc", "Risk%", "Shares", "Pos%", "RS", "SecETF", "SecRank", "UD",
+                                   "Dist%", "DistT%", "Chase", "Stop", "StopSrc", "Risk%", "Shares", "Pos%", "RS", "SecETF", "SecRank", "UD",
                                    "DTC", "Earn", "Why"]}
         for k in cks:
             v = c["Ck"].get(k)
@@ -3660,13 +3692,13 @@ def t6_outcome(t, side, asof, trigger, stop):
         hit_s = (ll[i] <= stop) if is_long else (hh[i] >= stop)
         if trig_i is None:
             if hit_s and not hit_t:
-                return f"未觸發，{idx[i]:%m-%d} 先穿止蝕，計劃作廢", np.nan, False
+                return f"未觸發，{idx[i]:%m-%d} 先穿形態失效位，計劃作廢", np.nan, False
             if hit_t:
                 trig_i = i
                 if hit_s:
-                    return f"{idx[i]:%m-%d} 觸發，同日打到止蝕", -1.0, True
+                    return f"{idx[i]:%m-%d} 觸發，同日到達形態失效位", -1.0, True
         elif hit_s:
-            return f"{idx[trig_i]:%m-%d} 觸發，{idx[i]:%m-%d} 止蝕", -1.0, True
+            return f"{idx[trig_i]:%m-%d} 觸發，{idx[i]:%m-%d} 到達形態失效位", -1.0, True
     last = cc[-1]
     if trig_i is None:
         return ("未觸發" if isnan(last) else f"未觸發，現價距觸發價 {(last / trigger - 1) * 100:+.1f}%"), np.nan, False
@@ -3834,11 +3866,11 @@ def t6_finalize():
     al = [a for a in ALERTS if a["Ticker"] == "QQQ"]
     for c in T6_LA:
         if c["Through"]:
-            al.append({"Ticker": c["Ticker"], "Dir": "跌穿", "Px": round(c["Stop"], 2), "Why": f"{T6_TOP_L}｜{c['Setup']} 已升穿 pivot；這是止蝕位"})
+            al.append({"Ticker": c["Ticker"], "Dir": "跌穿", "Px": round(c["Stop"], 2), "Why": f"{T6_TOP_L}｜{c['Setup']} 已升穿 pivot；這是形態失效位"})
         else:
-            al.append({"Ticker": c["Ticker"], "Dir": "升穿", "Px": round(c["Trigger"], 2), "Why": f"{T6_TOP_L}｜{c['Setup']} 觸發價；止蝕 {c['Stop']:.2f}"})
+            al.append({"Ticker": c["Ticker"], "Dir": "升穿", "Px": round(c["Trigger"], 2), "Why": f"{T6_TOP_L}｜{c['Setup']} 技術觸發位；失效位 {c['Stop']:.2f}"})
     for c in T6_SA:
-        al.append({"Ticker": c["Ticker"], "Dir": "跌穿", "Px": round(c["Trigger"], 2), "Why": f"{T6_LAB_S}｜跌穿 3 日低位；止蝕 {c['Stop']:.2f}"})
+        al.append({"Ticker": c["Ticker"], "Dir": "跌穿", "Px": round(c["Trigger"], 2), "Why": f"{T6_LAB_S}｜跌穿 3 日低位；失效位 {c['Stop']:.2f}"})
     for c in T6_LB:
         if not c["Through"]:
             al.append({"Ticker": c["Ticker"], "Dir": "升穿", "Px": round(c["Trigger"], 2), "Why": f"B 級｜{c['Setup']}；尚欠：{c['Reason']}"})
@@ -3886,20 +3918,20 @@ def t6_finalize():
         tx.append(f"  與上一份名單（{fu['prev'][5:]}）比較：新入選 " + ("、".join(fu["new"]) or "沒有") + "；留在名單 " + ("、".join(fu["stay"]) or "沒有")
                   + "；跌出 " + ("、".join(f"{t}（{why}）" for t, why in fu["gone"]) or "沒有"))
         for e in fu["rows"][:12]:
-            tx.append(f"  跟進：{e['ticker']}（{e['asof'][5:]} 列出，{t6_side(e['side'], e['tier'])}，觸發 {e['trigger']:.2f}，止蝕 {e['stop']:.2f}）{e['st']}"
+            tx.append(f"  跟進：{e['ticker']}（{e['asof'][5:]} 列出，{t6_side(e['side'], e['tier'])}，觸發位 {e['trigger']:.2f}，失效位 {e['stop']:.2f}）{e['st']}"
                       + ("" if isnan(e["R"]) else f"，{t6_r(e['R'])}"))
         for s in fu["score"]:
-            tx.append(f"  成績（{fu['n_days']} 個名單日）：{s['Grp']} {s['N']} 個，已觸發 {s['Trig']} 個，其中止蝕 {s['Stopped']} 個，平均 {fnum(s['AvgR'], 2, 'R', True)}")
+            tx.append(f"  成績（{fu['n_days']} 個名單日）：{s['Grp']} {s['N']} 個，已觸發 {s['Trig']} 個，其中失效 {s['Stopped']} 個，平均 {fnum(s['AvgR'], 2, 'R', True)}")
     elif fu["note"]:
         tx.append("  名單跟進：" + fu["note"])
     tx.append("【三、每隻怎樣做】" + ("" if (T6_LA or T6_SA) else "今日沒有首選" + ("，按 B 級的提示價等待。" if T6_LB else "，不要勉強找交易。")))
     for c in T6_LA:
         rps = c["Entry"] - c["Stop"]
-        tx.append(f"  {c['Ticker']}｜" + ("已升穿，" if c["Through"] else "") + f"觸發 {c['Trigger']:.2f}｜追價上限 {c['Chase']:.2f}｜止蝕 {c['Stop']:.2f}（{c['Risk%']:.1f}%，{c['StopSrc']}）"
+        tx.append(f"  {c['Ticker']}｜" + ("已升穿，" if c["Through"] else "") + f"觸發位 {c['Trigger']:.2f}｜規則追價上限 {c['Chase']:.2f}｜失效位 {c['Stop']:.2f}（{c['Risk%']:.1f}%，{c['StopSrc']}）"
                   f"｜{c['Shares']:,} 股（倉位 {c['Pos%']:.1f}%）｜2R {c['Entry'] + 2 * rps:.2f}｜3R {c['Entry'] + 3 * rps:.2f}｜財報 {c['Earn']}")
     for c in T6_SA:
         rps = c["Stop"] - c["Entry"]
-        tx.append(f"  做空 {c['Ticker']}｜跌穿 {c['Trigger']:.2f}｜不追空的下限 {c['Chase']:.2f}｜止蝕 {c['Stop']:.2f}（{c['Risk%']:.1f}%）"
+        tx.append(f"  做空 {c['Ticker']}｜跌穿 {c['Trigger']:.2f}｜規則追空下限 {c['Chase']:.2f}｜失效位 {c['Stop']:.2f}（{c['Risk%']:.1f}%）"
                   f"｜{c['Shares']:,} 股｜2R {c['Entry'] - 2 * rps:.2f}｜3R {c['Entry'] - 3 * rps:.2f}"
                   + ("" if isnan(c["DTC"]) else f"｜回補日數 {c['DTC']:.1f}") + f"｜財報 {c['Earn']}")
     T6_TXT = tx
@@ -4158,8 +4190,9 @@ if V6_OK:
 # --- Hero ---
 score_arrow = "▲" if score_now > score_prev + 0.5 else "▼" if score_now < score_prev - 0.5 else "■"
 hero = [f'<div class="hero" style="border-left-color:{REG_COLOR[0]};background:{REG_COLOR[1]}">']
-hero.append(f'<div class="big" style="color:{REG_COLOR[0]}">Regime {REG_L} {REG_T}　·　今日：{esc(SIDE)}</div>')
-hero.append(f'<div class="mid">市場健康分數 <b>{score_now:.0f}</b> {score_arrow}（昨日 {score_prev:.0f}，5 日前 {score_5:.0f}；已在 {REG_L} 區 {REG_DAYS} 日）'
+hero.append(f'<div class="big" style="color:{REG_COLOR[0]}">Regime {REG_L} {REG_T}'
+            + (f'<span class="hold">{esc(REG_HOLD_NOTE)}</span>' if REG_HELD else "") + f'　·　今日：{esc(SIDE)}</div>')
+hero.append(f'<div class="mid">市場健康分數 <b>{SCORE_TXT}</b> {score_arrow}（昨日 {score_txt(score_prev)}，5 日前 {score_txt(score_5)}；已在 {REG_L} 級 {REG_DAYS} 日）'
             f'　|　市場週期：<b>{esc(CYCLE)}</b></div>')
 hero.append("<div>" + pill("多頭閘門 " + ("開" if LONG_GATE else "關"), "on" if LONG_GATE else "off")
             + pill("試單閘門 " + ("開" if PILOT_GATE else "關"), "on" if PILOT_GATE else "off")
@@ -4193,7 +4226,7 @@ opp_long = (opp("VCP 候選", VCP, "距 pivot 5% 以內") + opp("High Tight Flag
 opp_short = (opp("回抽阻力", S_RETEST, "弱股反彈到下降中的均線") + opp("新跌破", BD, "上日首次跌穿低位")
              + opp("墮落龍頭", FALLEN, "一年升幅大但趨勢已壞") + opp("向下缺口", GAPDN, "缺口 ≤ −4% 且放量"))
 overview = ('<details open><summary>機會總覽 <span class="cnt">數字是符合條件的隻數，下面是 RS 最前的幾隻</span></summary><div class="sec">'
-            + ("" if long_ok else '<div class="warnbox">多頭與試單閘門都未開：做多名單只作觀察、設提示，不落盤。</div>')
+            + ("" if long_ok else '<div class="warnbox">多頭與試單閘門均關閉：做多形態只列作觀察。</div>')
             + f'<h3>做多</h3><div class="opp">{opp_long}</div><h3>做空與迴避</h3><div class="opp">{opp_short}</div></div></details>')
 
 # --- 1 市況 ---
@@ -4278,7 +4311,7 @@ s5 = (long_note
 # --- 6 做空 ---
 short_note = ("" if SHORT_GATE else '<div class="warnbox">空頭閘門未開，以下只作迴避名單和市場警號。</div>')
 s6 = (short_note + (f'<div class="note">空頭時機：{esc(SHORT_TIMING)}。</div>' if SHORT_SETUP else "")
-      + f"<h3>回抽阻力（{len(S_RETEST)}）</h3><div class='note'>Stage 4、RS ≤ 30、50 日線向下，近 3 日反彈到 21EMA 或 50 日線附近。反彈受阻回落才是入場點，止蝕放反彈高位之上。</div>" + render(S_RETEST, SPEC["retest"], 15)
+      + f"<h3>回抽阻力（{len(S_RETEST)}）</h3><div class='note'>Stage 4、RS ≤ 30、50 日線向下，近 3 日反彈到 21EMA 或 50 日線附近。規則以反彈受阻回落作為技術觸發條件，形態失效位設於反彈高位之上。</div>" + render(S_RETEST, SPEC["retest"], 15)
       + f"<h3>新跌破（{len(BD)}）</h3><div class='note'>上日首次跌穿 52 週低位，或 Stage 4 股票首次跌穿月低。低於 50 日線 15% 以上或低於 21EMA 3 個 ATR 以上，標為已超跌。</div>" + render(BD, SPEC["bd"], 15)
       + f"<h3>墮落龍頭（{len(FALLEN)}）</h3><div class='note'>舊算法的 12 個月 RS ≥ 80，但已跌離 52 週高位 25% 以上並失守 50 日線。它們過去一年升幅仍然很大，但趨勢已壞；v3 的 RS 已反映這一點。</div>" + render(FALLEN, SPEC["fallen"], 15)
       + f"<h3>向下缺口（{len(GAPDN)}）</h3>" + render(GAPDN, SPEC["gap"], 12))
@@ -4333,12 +4366,12 @@ TXT = [f"盤前簡報 {SESS:%Y-%m-%d}（數據截至 {ASOF:%Y-%m-%d} 收市，�
        "重點數據：" + ("；".join(f"{r.Tier}{r.When[-5:]} {r.Event}" for r in ECON[ECON["_d"] == SESS_D].itertuples()) if len(ECON) and "_d" in ECON.columns else (ECON_NOTE or "無")),
        "日曆因素：" + (" ".join(CAL_FLAGS) if CAL_FLAGS else "無"),
        "財報風險（3 日內）：" + ("、".join(f"{t}（{nm}，{es}）" for t, nm, es in EARN_SOON) if EARN_SOON else "無"),
-       "焦點名單：" + ("；".join(f"{r.Ticker}（{r.Setup}，{'觸發' if r.Status == '待升穿' else '已升穿'} {r.Trigger:.2f}，止蝕 {r.Stop:.2f}）" for r in FOCUS_L.itertuples()) if len(FOCUS_L) else "無")
-       + ("｜做空：" + "；".join(f"{r.Ticker}（跌穿 {r.Trigger:.2f}，止蝕 {r.Stop:.2f}）" for r in FOCUS_S.itertuples()) if len(FOCUS_S) else ""),
+       "焦點名單：" + ("；".join(f"{r.Ticker}（{r.Setup}，{'觸發' if r.Status == '待升穿' else '已升穿'} {r.Trigger:.2f}，失效位 {r.Stop:.2f}）" for r in FOCUS_L.itertuples()) if len(FOCUS_L) else "無")
+       + ("｜做空：" + "；".join(f"{r.Ticker}（跌穿 {r.Trigger:.2f}，失效位 {r.Stop:.2f}）" for r in FOCUS_S.itertuples()) if len(FOCUS_S) else ""),
        "標題：" + (" / ".join(n["title"] for n in NEWS[:8]) if NEWS else "無"),
        "今日劇本：" + " / ".join(PLAY)]
 if len(POS_TBL):
-    TXT.append("持倉：" + "；".join(f"{r.Ticker} 現價 {r.Px:.2f} 止蝕 {r.Stop:.2f}" for r in POS_TBL.itertuples() if hasattr(r, "Px") and not isnan(getattr(r, "Px", np.nan))))
+    TXT.append("持倉：" + "；".join(f"{r.Ticker} 現價 {r.Px:.2f} 失效位 {r.Stop:.2f}" for r in POS_TBL.itertuples() if hasattr(r, "Px") and not isnan(getattr(r, "Px", np.nan))))
 if V6_OK and T6_TXT:                                        # v6：三條問題放在文字摘要最前，取代舊的「焦點名單」一行
     TXT = TXT[:2] + T6_TXT + [x for x in TXT[2:] if not x.startswith("焦點名單：")]
 BRIEF_TXT = "\n".join(TXT) + OBB_TXT
@@ -4440,7 +4473,7 @@ focus_html = ('<details open><summary>焦點名單與提示價 <span class="cnt"
               + "<h3>提示價（可在 TradingView 逐個設定）</h3>" + render(ALERT_TBL, SPEC["alerts"], empty="沒有")
               + '<div class="note">計分：RS 為底；形態加分（VCP 8、HTF 和收窄 6、新高突破 5、回調 3）；板塊排名前四加 10；現價在觸發價之下 3% 以內加 8；'
                 "RS 線新高加 5；U/D 量比 ≥ 1.2 加 4；高於 50 日線逾 20% 減 15；3 個交易日內有財報減 30。沒有 pivot 的名單用 10 日高位或 3 日高位作觸發價，"
-                "止蝕取 1.5 倍 ATR（最少 3%、最多 8%）。這是篩選次序，不是買賣訊號。</div></div></details>")
+                "形態失效位取 1.5 倍 ATR（最少 3%、最多 8%）。這是篩選次序，不是買賣訊號。</div></div></details>")
 
 # ---------- v6：縮圖、計劃卡、首頁（三條問題）----------
 T6_UID = [0]
@@ -4626,7 +4659,7 @@ def t6_table(cands, cks, reason=False, tier=False):
         return '<div class="note">沒有。</div>'
     th = ("<th>代號</th><th>形態</th>" + ("<th>級別</th>" if tier else "") + ("<th>尚欠甚麼</th>" if reason else "") + '<th class="num">清單</th>'
           + "".join(f'<th class="ck">{esc(k)}</th>' for k in cks)
-          + '<th class="num">收市</th><th class="num">技術觸發位</th><th class="num">現價距觸發</th>'
+          + '<th class="num">收市</th><th class="num">技術觸發位</th><th class="num">現價距觸發位</th>'
           + ("" if reason else '<th class="num">形態失效位</th><th class="num">風險</th><th class="num">試算股數</th>')
           + '<th class="num">RS</th><th>板塊</th><th>財報日</th>')
     body = []
@@ -4638,7 +4671,7 @@ def t6_table(cands, cks, reason=False, tier=False):
                     + (f'<td>{esc(c["Tier"])}</td>' if tier else "")
                     + (f'<td class="wrap">{esc(c["Reason"] or "沒有")}</td>' if reason else "")
                     + f'<td class="num"><b>{c["NPass"]}/{known}</b></td>' + marks
-                    + cell(c["Close"], "p") + cell(c["Trigger"], "p") + cell(c["Dist%"], "pct")
+                    + cell(c["Close"], "p") + cell(c["Trigger"], "p") + cell(c["DistT%"], "pct")
                     + ("" if reason else cell(c["Stop"], "p") + cell(c["Risk%"], "pctn") + f'<td class="num" data-f="shares">{c["Shares"]:,}</td>') + cell(c["RS"], "rs")
                     + f'<td>{esc(t6_sec(c))}</td><td>{esc(c["Earn"])}</td></tr>')
     return f'<div class="tw"><table><thead><tr>{th}</tr></thead><tbody>{"".join(body)}</tbody></table></div>'
@@ -4741,7 +4774,7 @@ def t6_card(c):
 def t6_thumb(c):
     return (f'<div class="thumb"><b>{esc(c["Ticker"])}</b> <span class="m">{esc(c["Setup"])}</span>'
             + t6_chart(c["Ticker"], t6_lines(c)[:2], w=250, h=120, days=PLAN["thumb_days"], compact=True)
-            + f'<small>觸發 {c["Trigger"]:,.2f}（{c["Dist%"]:+.1f}%）・止蝕 {c["Stop"]:,.2f}</small>'
+            + f'<small>觸發位 {c["Trigger"]:,.2f}（{c["DistT%"]:+.1f}%）・失效位 {c["Stop"]:,.2f}</small>'
             + f'<small>尚欠：{esc(c["Reason"])}</small></div>')
 
 def t6_followup_html():
@@ -4756,7 +4789,7 @@ def t6_followup_html():
                        + ('<td class="num m">—</td>' if isnan(e["R"]) else f'<td class="num {"g" if e["R"] >= 0.05 else "r" if e["R"] <= -0.05 else "m"}"><b>{t6_r(e["R"])}</b></td>') + "</tr>"
                        for e in fu["rows"][:40])
         P.append('<div class="tw"><table><thead><tr><th>代號</th><th>方向與級別</th><th>首次列出</th><th>形態</th><th class="num">觸發價</th>'
-                 f'<th class="num">止蝕</th><th>其後的結果</th><th class="num">現時結果</th></tr></thead><tbody>{body}</tbody></table></div>')
+                 f'<th class="num">形態失效位</th><th>其後的結果</th><th class="num">現時結果</th></tr></thead><tbody>{body}</tbody></table></div>')
     else:
         P.append('<div class="note">最近幾個名單日沒有首選股票。</div>')
     if fu["score"]:
@@ -4764,17 +4797,17 @@ def t6_followup_html():
                        + cell(s["Win%"], "pct0") + ('<td class="num m">—</td>' if isnan(s["AvgR"]) else f'<td class="num"><b>{s["AvgR"]:+.2f}R</b></td>') + "</tr>"
                        for s in fu["score"])
         P.append(f'<h3>成績表（共 {fu["n_days"]} 個名單日，規則版本 {esc(T6_RULES)}）</h3><div class="tw"><table><thead><tr><th>組別</th><th class="num">計劃數</th>'
-                 '<th class="num">已觸發</th><th class="num">觸發比率</th><th class="num">其中止蝕</th><th class="num">現時為正</th><th class="num">平均結果</th>'
+                 '<th class="num">已觸發</th><th class="num">觸發比率</th><th class="num">其中失效</th><th class="num">現時為正</th><th class="num">平均結果</th>'
                  f"</tr></thead><tbody>{srow}</tbody></table></div>")
-    P.append('<div class="note">做法：每個計劃只看列出之後的日線；同一隻股票連續幾日在同一級別只計一次，用第一日的觸發價和止蝕。'
-             "假設在觸發價成交、在止蝕價離場，不計佣金、滑價和跳空，同日先後打到觸發價和止蝕的當作止蝕，所以數字偏樂觀。"
+    P.append('<div class="note">做法：每個計劃只看列出之後的日線；同一隻股票連續幾日在同一級別只計一次，用第一日的觸發位和形態失效位。'
+             "假設在觸發位成交、在形態失效位離場，不計佣金、滑價和跳空，同日先後到達觸發位和形態失效位的當作失效，所以數字偏樂觀。"
              "「預備」是閘門未開時列出的，實際上不會落盤，它的結果是用來檢查閘門有沒有幫你避開虧損。"
              "「全部候選」是對照組：首選的結果如果不比它好，分級就沒有用處。已觸發的計劃少於 30 個之前，這張表只是紀錄，不能當作證據。"
              + (f"另有 {fu['old_rules']} 筆舊規則版本的紀錄沒有計入。" if fu["old_rules"] else "") + "</div>")
     n_tr = sum(1 for e in fu["rows"] if e["trig"])
     n_st = sum(1 for e in fu["rows"] if e["R"] == -1.0)
     return (f'<details><summary style="font-size:13px;font-weight:600">之前名單的跟進與成績表（最近 {PLAN["follow_days"]} 個名單日的首選：'
-            f'{len(fu["rows"])} 個計劃，已觸發 {n_tr}，其中止蝕 {n_st}）</summary>' + "".join(P) + "</details>")
+            f'{len(fu["rows"])} 個計劃，已觸發 {n_tr}，其中失效 {n_st}）</summary>' + "".join(P) + "</details>")
 
 def t6_history_html():
     """近 10 日回顧：每日一行，新到舊；摘要列出分數和 Regime 的走勢。表格收窄到手機可以一屏看完。"""
@@ -4810,8 +4843,8 @@ def t6_history_html():
     return (f'<details><summary style="font-size:13px;font-weight:600">近 10 日回顧（分數 {esc(trend)}；Regime {esc(regs)}）</summary>'
             '<div class="tw"><table><thead><tr><th>簡報日</th><th class="num">分數</th><th>閘門／週期</th>'
             '<th>首選／變化</th></tr></thead><tbody>' + "".join(body) + "</tbody></table></div>"
-            '<div class="note">每行取自當日最後一次執行時存下的紀錄。分數旁的字母是 Regime；閘門指多頭、試單、空頭三個閘門哪幾個開著。首選下面的小字和上一次有分級紀錄的簡報比較：綠色「+」是新入選，紅色「−」是跌出'
-            "（v6.1 起才有分級紀錄，之前的日子只有焦點名單，不作比較）。沒有執行紀錄的日子，用今日的數據按同一套規則回算分數，"
+            '<div class="note">每行取自當日最後一次執行時存下的紀錄。分數旁的字母是當日的市況級別（升級要連續兩個交易日留在較高區間，所以字母可能低於分數所在的區間）；閘門指多頭、試單、空頭三個閘門哪幾個開著。首選下面的小字和上一次有分級紀錄的簡報比較：綠色「+」是新入選，紅色「−」是跌出。'
+            "沒有執行紀錄的日子，用今日的數據按同一套規則回算分數，"
             "數字可能和當日看到的略有不同。" + esc(where) + "</div></details>")
 
 def t6_timeline_html():
@@ -4850,8 +4883,8 @@ def t6_pos_html():
                     f'<td class="num" style="border-bottom:0">{r["Stop"]:,.2f}{SM.format(format(r["ToStop%"], "+.1f") + "%")}</td></tr>'
                     f'<tr><td colspan="3" class="w" style="padding-top:0">{todo}</td></tr>')
     return ('<h3>持倉：先處理，再開新倉</h3><div class="tw"><table class="cmp"><thead><tr><th>代號</th><th class="num">現價／盈虧</th>'
-            '<th class="num">止蝕／距離</th></tr></thead><tbody>' + "".join(rows) + "</tbody></table></div>"
-            '<div class="note">現價用最新的盤後或盤前報價，沒有就用上日收市。R 倍數以現時止蝕計；持有日數需要入場日資料。'
+            '<th class="num">失效位／距離</th></tr></thead><tbody>' + "".join(rows) + "</tbody></table></div>"
+            '<div class="note">現價用最新的盤後或盤前報價，沒有就用上日收市。R 倍數以現時失效位計；持有日數需要入場日資料。'
             "紅字按 POS_RULES 的經驗值標示（見頁底「方法論與局限性」），是規則提示，不是指令。</div>")
 
 def t6_orders_html():
@@ -4898,10 +4931,9 @@ def t6_orders_html():
             "這種情況和已升穿 pivot 的形態都改為開市後判定。附加的止損單是止損市價單，只在常規時段觸發；"
             "部分券商介面在這種單沒有「附加訂單」，需要在成交後另設一張賣出止損單。沽空要融資戶口，並確認有貨可借。</div></details>")
 
-BACKTEST_NOTE = ("做多規則（收窄與新高突破，配合多頭及試單閘門）以 2016–2022 年的歷史數據作樣本內回測："
-                 "股票池是當時的 S&P 500 與 Nasdaq 100 成份股，每次成交計 25 bps 成本（佣金 10 bps、滑價 15 bps），出場規則按參數卡的假設。"
-                 "結果：扣成本後 Sharpe −0.73，最大回撤 −41.5%，共 923 次交易，未通過四關驗證的第一關。"
-                 "這是初步結果：未包括 S&P 400，部分已除牌公司缺少價格；完整重測進行中。做空規則未有回測。歷史回測不代表將來表現。")
+REGIME_NOTE = ("市場健康分數（0–100）由五組指標加權計算：QQQ 趨勢、市場寬度、風險胃納、波動和利率；"
+               "分數決定 A 至 E 級市況；多頭、試單和空頭閘門按級別、分數、QQQ 相對均線的位置和超賣狀態開關。"
+               "這是每日整理市況和篩選技術形態的工作流程，不是買賣訊號。")
 LEDGER_NOTE = ("每個首選形態（A 級和預備）列出後只看之後的日線：5 個交易日內升穿（做空：跌穿）技術觸發位才算觸發，"
                "先觸及形態失效位或遇上財報就作廢；觸發後先到模型 2R 參考位記 +2R，先到形態失效位記 −1R，同一根日線兩者都到當作失效。"
                "跳空越過價位時按開市價計。同一隻股票在紀錄未完結前再次入選只計一次。「其餘候選」是對照組：首選的結果如果不比它好，分級就沒有用處。"
@@ -4910,24 +4942,25 @@ DATA_NOTE = ["數據來自公開市場及交易所的延遲數據，可能延誤
              "財報日取自公開來源，可能不完整；盤前價只作參考。",
              "成份股名單用當日的指數成份，過往日子的分數按今日的數據回算，可能和當日看到的略有不同。",
              "倉位試算只按讀者在頁頂輸入的參數計算，未計稅費、借貨成本和跳空；結果是數學試算，不是建議的倉位。"]
-DISCLOSURE = ("研究聲明：本報告的全部內容由固定規則自動計算，所有讀者看到的內容相同，並不考慮任何人的財務狀況、投資目標或風險承受能力。"
+DISCLOSURE = ("研究聲明：本報告是自動產生的市況、市場寬度與技術篩選工具，全部內容由固定規則計算，所有讀者看到的內容相同，並不考慮任何人的財務狀況、投資目標或風險承受能力。"
               "頁內的倉位試算只按讀者自行輸入的參數計算。內容只供研究和教育用途，不構成投資建議、要約或招攬，亦不保證準確、完整或及時。"
-              "過往表現（包括回測和跟進紀錄）不代表將來表現。")
+              "過往表現（包括跟進紀錄）不代表將來表現。")
 
 def method_html():
-    """方法論與局限性：八項清單、回測結果、跟進紀錄的判定方法、數據限制。"""
+    """方法論與局限性：市況分數與級別、八項清單、跟進紀錄、數據限制。"""
     return ('<details class="method"><summary>方法論與局限性</summary>'
+            + f"<h4>市況分數與級別</h4><p>{esc(REGIME_NOTE)}</p><p>{esc(REG_RULE)}</p>"
             + ("<h4>八項清單與分級</h4>" + "".join(f"<p>{esc(x)}</p>" for x in METHOD_CK) if METHOD_CK else "")
-            + f"<h4>回測</h4><p>{esc(BACKTEST_NOTE)}</p>"
-            + f"<h4>跟進紀錄的判定方法</h4><p>{esc(LEDGER_NOTE)}</p>"
+            + "<h4>跟進紀錄</h4><p>判定方法見上面「之前名單的跟進」：每個列出的形態按之後的日線自動判定，逐日累積成績。</p>"
             + "<h4>數據與試算的局限</h4><ul>" + "".join(f"<li>{esc(x)}</li>" for x in DATA_NOTE) + "</ul></details>")
 
 def t6_page_head():
     """首頁：今日可否交易、看哪幾隻、每隻怎樣做。"""
     b = T6_BUD
     P = [f'<div class="hero" style="border-left-color:{REG_COLOR[0]};background:{REG_COLOR[1]}">',
-         f'<div class="big" style="color:{REG_COLOR[0]}">Regime {REG_L} {REG_T}　·　規則狀態：{esc(SIDE)}</div>',
-         f'<div class="mid">市場健康分數 <b>{score_now:.0f}</b> {score_arrow}（昨日 {score_prev:.0f}，5 日前 {score_5:.0f}；已在 {REG_L} 區 {REG_DAYS} 日）'
+         f'<div class="big" style="color:{REG_COLOR[0]}">Regime {REG_L} {REG_T}'
+         + (f'<span class="hold">{esc(REG_HOLD_NOTE)}</span>' if REG_HELD else "") + f'　·　規則狀態：{esc(SIDE)}</div>',
+         f'<div class="mid">市場健康分數 <b>{SCORE_TXT}</b> {score_arrow}（昨日 {score_txt(score_prev)}，5 日前 {score_txt(score_5)}；已在 {REG_L} 級 {REG_DAYS} 日）'
          f'　|　市場週期：<b>{esc(CYCLE)}</b></div>',
          "<div>" + pill("多頭閘門 " + ("開" if LONG_GATE else "關"), "on" if LONG_GATE else "off")
          + pill("試單閘門 " + ("開" if PILOT_GATE else "關"), "on" if PILOT_GATE else "off")
@@ -5029,7 +5062,7 @@ def t6_page_head():
                         for c in sorted(others, key=lambda x: (x["Tier"] != "觀察", -x["NPass"], x["NFail"]))[:60])
         P.append(f'<details><summary style="font-size:13px;font-weight:600">其餘候選與未入選原因（{len(others)} 隻）</summary><div class="tw"><table><thead><tr>'
                  '<th>代號</th><th>形態</th><th>級別</th><th>原因</th><th class="num">RS</th><th class="num">現價距觸發</th></tr></thead>'
-                 f"<tbody>{orows}</tbody></table></div>" + ('<div class="note">只顯示首 60 隻，完整名單在 scan_tiers_long 的 CSV。</div>' if len(others) > 60 else "") + "</details>")
+                 f"<tbody>{orows}</tbody></table></div>" + ('<div class="note">只顯示首 60 隻。</div>' if len(others) > 60 else "") + "</details>")
 
     # 三、每隻怎樣做
     P.append('<div class="q">三、形態參數卡<small>每個首選形態一張卡；圖上藍線是技術觸發位（Pivot），紅線是形態失效位，灰線是模型 2R 參考位</small></div>')

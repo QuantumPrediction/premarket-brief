@@ -36,7 +36,7 @@ The website and `settings.txt` are public. Do not put your real account size or 
 | `runner/time_window.py` | Lets one of the two daily schedules through (US daylight saving) |
 | `runner/state.sh` | Saves and restores history on the `data` branch (one commit, replaced each run) |
 
-History (daily log, tier history, plan file, score history, signal ledger, regime history, website archive) lives on the `data` branch. Each brief run also writes `briefs/<run id>/data.json` with the numbers, tables and chart series of that run, for other front ends. The website keeps the newest run of each brief date for `ARCHIVE_DAYS` (365 by default). Delete that branch to start fresh.
+History (daily log, tier history, plan file, score history, signal ledger, regime history, website archive) lives on the `data` branch. Each brief run also writes `briefs/<run id>/data.json` with the numbers, tables and chart series of that run, for other front ends. The website keeps the newest run of each brief date for `ARCHIVE_DAYS` (365 by default); archived pages made with the old template (data-vendor links or notebook wording) are removed, with the redirects that pointed to them. Delete that branch to start fresh.
 
 `BUILD_MODE` in `settings.txt`: `full` (default) publishes everything; `freemium_split` publishes only the teaser (score, grade, score chart, sectors, calendar and a box describing the full report) and keeps the full site in `state/site` for a paid host.
 

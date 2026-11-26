@@ -225,6 +225,9 @@ _V63_PRE = [                                                     # Chinese -> En
     (re.compile(r"開在 " + _NUM + r"(?= 之上：)"), r"Opens above \1"),
     (re.compile(r"（第 (\d+)）"), r" (#\1)"),
     (re.compile(r" (\d+) 則(?=、|$|<|\s)"), r" \1"),
+    (re.compile(r"分數 (\d+(?:\.\d)?) 屬 ([A-E]) 區；升級要連續兩個交易日留在較高區間，暫維持 ([A-E]) 級"),
+     r"Score \1 is in the \2 band; an upgrade needs two consecutive sessions in the higher band, so the grade stays \3"),
+    (re.compile(r"；已在 ([A-E]) 級 (\d+) 日）"), r"; grade \1 for \2 days)"),
 ]
 _V63_POST = [                                                    # English clean-up after the phrase table
     (re.compile(r"\bbetween " + _NUM + r" to " + _NUM), r"between \1 and \2"),
