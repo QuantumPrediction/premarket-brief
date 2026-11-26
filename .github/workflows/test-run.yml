@@ -11,6 +11,9 @@ on:
       what:
         description: "What to run: brief, preopen or both"
         default: both
+      build_mode:
+        description: "Website build mode: full or freemium_split"
+        default: full
 
 permissions:
   contents: write           # reads the data branch (never writes it); writes only the "preview" branch
@@ -40,6 +43,7 @@ jobs:
       AI_MODEL: ${{ vars.AI_MODEL }}
       ARCHIVE_DAYS: ${{ vars.ARCHIVE_DAYS }}
       SHOW_DEBUG_PANEL: ${{ vars.SHOW_DEBUG_PANEL }}
+      BUILD_MODE: ${{ inputs.build_mode || 'full' }}
     steps:
       - uses: actions/checkout@v7
 
@@ -76,7 +80,7 @@ jobs:
         if: always()
         run: |
           rm -rf /tmp/preview && mkdir -p /tmp/preview
-          for d in site; do [ -d "state/$d" ] && cp -r "state/$d" /tmp/preview/; done
+          for d in site site_free ledger; do [ -d "state/$d" ] && cp -r "state/$d" /tmp/preview/; done
           cd /tmp/preview
           git init -q -b preview
           git config user.name "github-actions[bot]"
@@ -90,5 +94,8 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: site-preview
-          path: state/site
+          path: |
+            state/site
+            state/site_free
+            state/ledger
           retention-days: 7

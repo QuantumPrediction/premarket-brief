@@ -1,6 +1,6 @@
 # US Pre-market Brief (v6.3) – automatic daily site
 
-This repository runs the US pre-market brief v6.3 on GitHub Actions every US trading day and publishes rules-based market research as a website with GitHub Pages. The two scripts started as the Google Colab cells; the copies here are the web edition (impersonal research wording, position-size simulator), so they no longer match the Colab files line for line.
+This repository runs the US pre-market brief v6.3 on GitHub Actions every US trading day and publishes rules-based market research as a website with GitHub Pages. The two scripts started as the Google Colab cells; the copies here are the web edition (impersonal research wording, position-size simulator, signal ledger), so they no longer match the Colab files line for line.
 
 - **Daily pre-market brief** (`.github/workflows/brief.yml`): about 07:17 New York time, Monday to Friday. Runs cell 1 over the S&P 500, Nasdaq 100 and S&P 400 and rebuilds the website.
 - **Automated pre-market refresh** (`.github/workflows/preopen.yml`): about 08:47 New York time. Runs cell 2 against that morning's plan and adds it to the website.
@@ -28,14 +28,17 @@ The website and `settings.txt` are public. Do not put your real account size or 
 | `settings.txt` | The Colab form values, one per line (account, risk, universe, AI news, ...) |
 | `runner/common.py` | Runs a Colab script on Actions: Colab stand-ins and form values from `settings.txt` |
 | `runner/run_brief.py`, `runner/run_preopen.py` | Run cell 1 / cell 2 and save the website copies |
-| `runner/build_site.py` | Builds the home pages, adds missing translations, the top bar and the position-size simulator to each brief page |
+| `runner/build_site.py` | Builds the home pages, adds missing translations, the top bar and the position-size simulator to each brief page, copies the ledger files to `site/data/`; `BUILD_MODE=freemium_split` also writes a public teaser to `state/site_free` |
 | `runner/sizer.js` | The position-size simulator (plain JavaScript): recalculates shares, amounts and maximum loss from the reader's account and risk %, and writes the order parameters in Generic, Futu or IBKR format; settings stay in the browser |
+| `runner/ledger.py` | Signal ledger (`signal_ledger.json`) and regime history (`regime_history.json`): grades every top setup and, as a control group, the other candidates by fixed rules (see the file's header) |
 | `runner/check_site.py` | Checks the built website: local links, leftover notebook wording, sizer data, JSON, script syntax, page sizes |
 | `runner/i18n.py` | Traditional Chinese to Simplified Chinese and English |
 | `runner/time_window.py` | Lets one of the two daily schedules through (US daylight saving) |
 | `runner/state.sh` | Saves and restores history on the `data` branch (one commit, replaced each run) |
 
-History (daily log, tier history, plan file, score history, website archive) lives on the `data` branch. The website keeps the newest run of each brief date for `ARCHIVE_DAYS` (365 by default). Delete that branch to start fresh.
+History (daily log, tier history, plan file, score history, signal ledger, regime history, website archive) lives on the `data` branch. Each brief run also writes `briefs/<run id>/data.json` with the numbers, tables and chart series of that run, for other front ends. The website keeps the newest run of each brief date for `ARCHIVE_DAYS` (365 by default). Delete that branch to start fresh.
+
+`BUILD_MODE` in `settings.txt`: `full` (default) publishes everything; `freemium_split` publishes only the teaser (score, grade, score chart, sectors, calendar and a box describing the full report) and keeps the full site in `state/site` for a paid host.
 
 To update the scripts later, replace the two files in `scripts/` and carry over the web-edition changes. If the new file names differ (for example v6.4), change `SCRIPT` near the top of `runner/run_brief.py` and the file name in `runner/run_preopen.py`.
 

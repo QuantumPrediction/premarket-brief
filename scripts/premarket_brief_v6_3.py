@@ -3017,33 +3017,81 @@ SPEC = dict(
 REG_COLOR = {"A": ("#0a7d33", "#eaf6ee"), "B": ("#3c8c3c", "#eef7ea"), "C": ("#b7791f", "#fdf6e3"),
              "D": ("#c05621", "#fdf0e6"), "E": ("#c0392b", "#fdecea")}[REG_L]
 
-# 圖表（嵌入版面）
-CHART_IMG = ""
-try:
-    import matplotlib.pyplot as plt
-    w = 250
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(11, 5.6), sharex=True, gridspec_kw={"height_ratios": [2.2, 1]})
-    ax1.plot(Q["c"].iloc[-w:], color="black", lw=1.3, label="QQQ")
-    ax1.plot(Q["ema21"].iloc[-w:], lw=0.9, label="21 EMA")
-    ax1.plot(Q["s50"].iloc[-w:], lw=0.9, label="50 SMA")
-    ax1.plot(Q["s200"].iloc[-w:], lw=0.9, label="200 SMA")
-    if RALLY["in_correction"]:
-        ax1.axhline(RALLY["low"], color="#c0392b", lw=0.8, ls=":")
-    ax1.set_title(f"QQQ and Market Health Score (as of {ASOF:%Y-%m-%d})", fontsize=10)
-    ax1.legend(loc="upper left", fontsize=8)
-    ax1.grid(alpha=0.3)
-    ax2.plot(SCORE.iloc[-w:], color="tab:blue", lw=1.3)
+# 圖表（嵌入版面）：QQQ 與市場健康分數，內嵌 SVG，與個股縮圖同一風格
+def svg_market_chart(w_days=250):
+    W, H = 800, 400
+    L_, R_ = 8, 62
+    top, pb = 26, 252                                         # 價格區
+    s_top, s_bot = 276, 382                                   # 分數區
+    idx = Q.index[-w_days:]
+    n = len(idx)
+    if n < 20:
+        return ""
+    X = lambda i: L_ + i * (W - L_ - R_) / (n - 1)
+    ser = {k: Q[k].reindex(idx).astype(float).values for k in ("c", "ema21", "s50", "s200")}
+    vals = np.concatenate([v[~np.isnan(v)] for v in ser.values()])
+    lo, hi = float(vals.min()), float(vals.max())
+    if RALLY.get("in_correction") and not isnan(RALLY.get("low", np.nan)):
+        lo = min(lo, float(RALLY["low"]))
+    pad = (hi - lo) * 0.04 or 1.0
+    lo, hi = lo - pad, hi + pad
+    Yp = lambda v: top + (hi - v) / (hi - lo) * (pb - top)
+    Ys = lambda v: s_bot - v / 100 * (s_bot - s_top)
+    def path(v, fy):
+        out, seg = [], []
+        for i, x in enumerate(v):
+            if isnan(x):
+                if len(seg) > 1:
+                    out.append("M" + "L".join(seg))
+                seg = []
+            else:
+                seg.append(f"{X(i):.1f},{fy(float(x)):.1f}")
+        if len(seg) > 1:
+            out.append("M" + "L".join(seg))
+        return "".join(out)
+    P_ = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" role="img" aria-label="QQQ 與市場健康分數" '
+          'style="width:100%;height:auto;display:block;background:#fff;border:1px solid #e6e6e6;border-radius:8px;margin:10px 0">']
+    prev_m = None
+    for i, d_ in enumerate(idx):
+        if prev_m is not None and d_.month != prev_m:
+            x = X(i)
+            P_.append(f'<line x1="{x:.1f}" x2="{x:.1f}" y1="{top}" y2="{s_bot}" stroke="#f1f1f1"/>'
+                      f'<text x="{x + 2:.1f}" y="{H - 4}" font-size="10" fill="#888">{d_.month}月</text>')
+        prev_m = d_.month
     for lvl in TH["regime_bands"]:
-        ax2.axhline(lvl, color="gray", lw=0.6, ls="--")
-    ax2.set_ylim(0, 100)
-    ax2.set_ylabel("Health score", fontsize=8)
-    ax2.grid(alpha=0.3)
-    fig.tight_layout()
-    buf = io.BytesIO()
-    fig.savefig(buf, format="png", dpi=100)
-    plt.close(fig)
-    CHART_IMG = '<img style="max-width:100%" src="data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode() + '"/>'
+        y = Ys(lvl)
+        P_.append(f'<line x1="{L_}" x2="{W - R_}" y1="{y:.1f}" y2="{y:.1f}" stroke="#c9c9c9" stroke-dasharray="4 3"/>'
+                  f'<text x="{W - R_ + 4}" y="{y + 3:.1f}" font-size="10" fill="#888">{lvl}</text>')
+    P_.append(f'<line x1="{L_}" x2="{W - R_}" y1="{s_bot}" y2="{s_bot}" stroke="#ddd"/>')
+    for k, col, wd in (("s200", "#8a94a6", 1.1), ("s50", "#dd6b20", 1.1), ("ema21", "#2b6cb0", 1.0), ("c", "#1a1a1a", 1.5)):
+        p_ = path(ser[k], Yp)
+        if p_:
+            P_.append(f'<path d="{p_}" fill="none" stroke="{col}" stroke-width="{wd}"/>')
+    if RALLY.get("in_correction") and not isnan(RALLY.get("low", np.nan)):
+        y = Yp(float(RALLY["low"]))
+        P_.append(f'<line x1="{L_}" x2="{W - R_}" y1="{y:.1f}" y2="{y:.1f}" stroke="#c0392b" stroke-dasharray="2 3"/>'
+                  f'<text x="{W - R_ + 4}" y="{y + 3:.1f}" font-size="10" fill="#c0392b">低位 {RALLY["low"]:,.0f}</text>')
+    last = ser["c"][~np.isnan(ser["c"])]
+    if len(last):
+        y = Yp(float(last[-1]))
+        P_.append(f'<text x="{W - R_ + 4}" y="{y + 3:.1f}" font-size="10.5" font-weight="700" fill="#1a1a1a">{last[-1]:,.2f}</text>')
+    sc_v = SCORE.reindex(idx).astype(float).values
+    p_ = path(sc_v, Ys)
+    if p_:
+        P_.append(f'<path d="{p_}" fill="none" stroke="#0b6574" stroke-width="1.5"/>')
+    P_.append(f'<text x="{L_ + 2}" y="16" font-size="12" font-weight="700" fill="#333">QQQ（{n} 日）</text>'
+              f'<text x="{L_ + 110}" y="16" font-size="10.5" fill="#2b6cb0">21EMA</text>'
+              f'<text x="{L_ + 160}" y="16" font-size="10.5" fill="#dd6b20">50 日線</text>'
+              f'<text x="{L_ + 216}" y="16" font-size="10.5" fill="#8a94a6">200 日線</text>'
+              f'<text x="{L_ + 2}" y="{s_top - 6}" font-size="11" font-weight="700" fill="#0b6574">市場健康分數</text>'
+              f'<text x="{L_ + 100}" y="{s_top - 6}" font-size="10" fill="#888">虛線：Regime 分界 {"／".join(str(x) for x in TH["regime_bands"])}</text>')
+    P_.append("</svg>")
+    return "".join(P_)
+
+try:
+    CHART_IMG = svg_market_chart()
 except Exception as e:
+    CHART_IMG = ""
     print(f"圖表略過（{type(e).__name__}）")
 
 CSS = """
@@ -4854,6 +4902,10 @@ BACKTEST_NOTE = ("做多規則（收窄與新高突破，配合多頭及試單�
                  "股票池是當時的 S&P 500 與 Nasdaq 100 成份股，每次成交計 25 bps 成本（佣金 10 bps、滑價 15 bps），出場規則按參數卡的假設。"
                  "結果：扣成本後 Sharpe −0.73，最大回撤 −41.5%，共 923 次交易，未通過四關驗證的第一關。"
                  "這是初步結果：未包括 S&P 400，部分已除牌公司缺少價格；完整重測進行中。做空規則未有回測。歷史回測不代表將來表現。")
+LEDGER_NOTE = ("每個首選形態（A 級和預備）列出後只看之後的日線：5 個交易日內升穿（做空：跌穿）技術觸發位才算觸發，"
+               "先觸及形態失效位或遇上財報就作廢；觸發後先到模型 2R 參考位記 +2R，先到形態失效位記 −1R，同一根日線兩者都到當作失效。"
+               "跳空越過價位時按開市價計。同一隻股票在紀錄未完結前再次入選只計一次。「其餘候選」是對照組：首選的結果如果不比它好，分級就沒有用處。"
+               "樣本少於 10 筆時只顯示筆數；樣本少於 30 筆的統計只是紀錄，不能當作證據。")
 DATA_NOTE = ["數據來自公開市場及交易所的延遲數據，可能延誤、缺漏或出錯；頁頂的「數據狀態」列出今次發現的問題。",
              "財報日取自公開來源，可能不完整；盤前價只作參考。",
              "成份股名單用當日的指數成份，過往日子的分數按今日的數據回算，可能和當日看到的略有不同。",
@@ -4867,6 +4919,7 @@ def method_html():
     return ('<details class="method"><summary>方法論與局限性</summary>'
             + ("<h4>八項清單與分級</h4>" + "".join(f"<p>{esc(x)}</p>" for x in METHOD_CK) if METHOD_CK else "")
             + f"<h4>回測</h4><p>{esc(BACKTEST_NOTE)}</p>"
+            + f"<h4>跟進紀錄的判定方法</h4><p>{esc(LEDGER_NOTE)}</p>"
             + "<h4>數據與試算的局限</h4><ul>" + "".join(f"<li>{esc(x)}</li>" for x in DATA_NOTE) + "</ul></details>")
 
 def t6_page_head():
@@ -4989,7 +5042,7 @@ def t6_page_head():
     if T6_LB:
         P.append(f"<h3>B 級縮圖總覽（{len(T6_LB)} 隻，近 {PLAN['thumb_days']} 日）</h3>" + '<div class="thumbs">' + "".join(t6_thumb(c) for c in T6_LB) + "</div>")
     P.append("<h3>提示價（可在 TradingView 逐個設定）</h3>" + render(ALERT_TBL, SPEC["alerts"], empty="沒有"))
-    P.append(t6_followup_html())
+    P.append("<!--ledger-->" + t6_followup_html() + "<!--/ledger-->")
     P.append(method_html())
     P.append('<div class="more">以下是資料章節，按需要展開。</div>')
     return "".join(P)
@@ -5020,7 +5073,7 @@ PAGE = (CSS + '<div class="pmb">'
         + section("6　做多形態", s5, long_ok and not V6_OK, f"VCP {len(VCP)}・HTF {int((HTF['Note'] == '').sum()) if len(HTF) else 0}・收窄 {len(TIGHT)}・突破 {len(BO52)}・抗跌 {len(RESIL)}・回調 {len(PULL)}")
         + section("7　做空形態與迴避名單", s6, SHORT_GATE and not V6_OK, f"回抽 {len(S_RETEST)}・跌破 {len(BD)}・墮落龍頭 {len(FALLEN)}")
         + (section("8　持倉檢查", s8, True) if len(POS_TBL) else "")
-        + section("文字摘要（可複製）", f"<pre>{esc(BRIEF_TXT)}</pre>", False)
+        + ('<div class="note"><a href="brief_tc.txt">文字摘要（純文字檔）</a></div>' if os.environ.get("PMB_WEB") else section("文字摘要（可複製）", f"<pre>{esc(BRIEF_TXT)}</pre>", False))
         + f'<div class="disc">{esc(DISCLOSURE)}</div>'
         + "</div>")
 
