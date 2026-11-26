@@ -1,0 +1,4 @@
+symbol,name,price,chg,pct,List,Ticker,Px,Chg%,InPool,InList,RS,Stage,Name,Earn
+JAGX,"Jaguar Health, Inc.",$12.8,+6.6825,+109.2358%,升幅榜,JAGX,12.8,109.236,False,False,,,"Jaguar Health, Inc.",
+AKAN,Akanda Corp.,$5.2,+2.62,+101.5504%,升幅榜,AKAN,5.2,101.55,False,False,,,Akanda Corp.,
+EUDA,Euda Health Holdings Limited,$9,-7.24,-44.5813%,跌幅榜,EUDA,9.0,-44.581,False,False,,,Euda Health Holdings Limit,

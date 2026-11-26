@@ -1,0 +1,126 @@
+Pre-market brief 2026-11-27 (data as of 2026-11-25 close, run 11-26 02:11 ET)
+Regime E Downtrend | Short gate open, middle of range | score 29 (prev 24, 5 days ago 27) | In correction; rally attempt day 3 
+[Bottom line] Model market framework (E grade): the rules’ illustrative exposure limit is long 0 units / short 1 unit. For research reference only.
+[1. Model market framework] Regime E Downtrend | Short gate open, middle of range | Rule exposure limit: long 0 units (Neither the long gate nor the pilot gate is open), short 1 unit (Regime E daily maximum of 1 unit) | Illustrative risk per unit: long $188, short $375 | Open risk 0.00% / cap 1% | Long exposure 0% / cap 10%
+[2. Rule-matched setups] Universe 918 names → long candidates 75 names → Ready 5, B grade 10, watch 58, excluded 2 (No pattern 32, Too extended 12, Checklist too weak 10, Invalidation too far 4, Possible takeover pin 2)
+  Long ready: USFD (Tightening+Relative strength, checklist 8/8) | AHR (Tightening+Relative strength, checklist 8/8) | HOG (Tightening+Relative strength, checklist 7/8, fails: Sector) | AIZ (Tightening, checklist 7/8, fails: Sector) | ALLE (Tightening+Relative strength, checklist 7/8, fails: Sector)
+  Long B grade: MAS (Tightening+Relative strength; still needs: Ready slots full (5 names), ranked lower) | THG (Tightening+Pullback; still needs: Ready slots full (5 names), ranked lower) | ALL (Tightening; still needs: Ready slots full (5 names), ranked lower) | FCN (New-high breakout; still needs: Ready slots full (5 names), ranked lower) | DIS (New-high breakout+Relative strength; still needs: Ready slots full (5 names), ranked lower) | ADP (New-high breakout+Relative strength; still needs: Ready slots full (5 names), ranked lower) | DRI (New-high breakout+Relative strength; still needs: Ready slots full (5 names), ranked lower) | MAR (Pullback; still needs: Ready slots full (5 names), ranked lower) | CNO (Pullback+Relative strength; still needs: Ready slots full (5 names), ranked lower) | EXR (Relative strength; still needs: Only on the relative-strength list; no contraction or breakout pattern yet)
+  Short A: XYL (Checklist 7/8, fails: Money flow) | HBAN (Checklist 7/8, fails: Sector) | PLD (Checklist 7/8, fails: Sector) | B grade: FHN (still needs: A slots full (3 names), ranked lower) | GGG (still needs: A slots full (3 names), ranked lower) | SBAC (still needs: A slots full (3 names), ranked lower) | FICO (still needs: 3-day high to trigger 10.7%, more than 8%) | BA (still needs: Price above trigger 3.5%, not there yet)
+  Diversification: Ready with positions, total 5 names, across 5 sectors: Consumer Staples 1 name (USFD); Real Estate 1 name (AHR); Consumer Discretionary 1 name (HOG); Financials 1 name (AIZ); Industrials 1 name (ALLE).
+  Diversification: No pair among watchlist and positions has a correlation above 0.75.
+  Compared with the previous list (11-24): new AHR, HOG; stayed USFD, AIZ, ALLE; dropped LH (No longer on any long list), MRSH (now Watch: Checklist: 3 items fail (Sector, Contraction, Volume); B-grade slots full)
+  Follow-up: USFD (11-24 listed, Long ready, Trigger 110.79, invalidation 104.97) 11-25 Triggered, holding day 1, +0.1R
+  Follow-up: SBAC (11-24 listed, Short A, Trigger 169.83, invalidation 176.26) Not triggered, 11-25 invalidation reached first, plan void
+  Follow-up: MRSH (11-24 listed, Long ready, Trigger 213.73, invalidation 201.13) 11-25 Triggered, holding day 1, +0.2R
+  Follow-up: LH (11-24 listed, Long ready, Trigger 379.26, invalidation 361.19) Not triggered, price to trigger -2.7%
+  Follow-up: ALLE (11-24 listed, Long ready, Trigger 193.99, invalidation 182.34) Not triggered, price to trigger -0.9%
+  Follow-up: AIZ (11-24 listed, Long ready, Trigger 327.32, invalidation 312.17) 11-25 Triggered, holding day 1, -0.1R
+  Results (1 list days): Long top picks (A or ready) 5, triggered 3, invalidated 0, average +0.09R
+  Results (1 list days): Long B 10, triggered 7, invalidated 0, average +0.42R
+  Results (1 list days): All long candidates (for comparison) 63, triggered 36, invalidated 2, average +0.12R
+  Results (1 list days): Short top picks 1, triggered 0, invalidated 0, average —
+  Results (1 list days): All short candidates (for comparison) 36, triggered 0, invalidated 0, average —
+[3. How to trade each]
+  USFD | Trigger 112.04 | rule chase limit 117.52 | invalidation 104.97 (6.3%, 10-day low) | 26 shares (size 2.9%) | 2R 126.17 | 3R 133.23 | earnings —
+  AHR | Trigger 60.75 | rule chase limit 63.72 | invalidation 56.80 (6.5%, 10-day low) | 47 shares (size 2.9%) | 2R 68.66 | 3R 72.61 | earnings —
+  HOG | Trigger 34.43 | rule chase limit 36.12 | invalidation 32.00 (7.1%, 10-day low) | 76 shares (size 2.6%) | 2R 39.30 | 3R 41.74 | earnings 02-10
+  AIZ | Trigger 328.07 | rule chase limit 344.13 | invalidation 312.17 (4.8%, 10-day low) | 11 shares (size 3.6%) | 2R 359.86 | 3R 375.76 | earnings 02-09
+  ALLE | Trigger 193.99 | rule chase limit 203.49 | invalidation 182.34 (6.0%, 10-day low) | 16 shares (size 3.1%) | 2R 217.29 | 3R 228.94 | earnings 02-16
+  Short XYL | break below 93.82 | rule short-chase limit 91.00 | invalidation 97.34 (3.8%) | 106 shares | 2R 86.76 | 3R 83.23 | days to cover 2.9 | earnings —
+  Short HBAN | break below 14.48 | rule short-chase limit 14.04 | invalidation 15.04 (3.9%) | 658 shares | 2R 13.34 | 3R 12.77 | days to cover 3.1 | earnings —
+  Short PLD | break below 123.50 | rule short-chase limit 119.79 | invalidation 128.67 (4.2%) | 72 shares | 2R 113.15 | 3R 107.98 | days to cover 4.6 | earnings —
+[Last 10 days] newest first; for several runs on one day, only the last is listed
+  11-27 (Fri) | score 29 | Regime E | gates Downtrend open | Ready: USFD, AHR, HOG, AIZ, ALLE | new AHR, HOG | dropped LH, MRSH | ran 2 runs (this run)
+  11-25 (Wed) | score 24 | Regime E | gates Downtrend open | Ready: LH, USFD, AIZ, ALLE, MRSH | ran 8 runs
+  11-24 (Tue) | score 18 | Regime E | no run record (score recomputed from today’s data)
+  11-23 (Mon) | score 20 | Regime E | no run record (score recomputed from today’s data)
+  11-20 (Fri) | score 18 | Regime E | no run record (score recomputed from today’s data)
+  11-19 (Thu) | score 27 | Regime D | no run record (score recomputed from today’s data)
+  11-18 (Wed) | score 26 | Regime D | no run record (score recomputed from today’s data)
+  11-17 (Tue) | score 32 | Regime D | no run record (score recomputed from today’s data)
+  11-16 (Mon) | score 45 | Regime C | no run record (score recomputed from today’s data)
+  11-13 (Fri) | score 46 | Regime C | no run record (score recomputed from today’s data)
+[Simulated parameter summary (reference only, not a trading instruction)] Brief date 2026-11-27; rule limit: long 0 units, short 1 unit; the automated pre-market refresh (gap & level recalculation) re-checks each parameter set against pre-market prices
+  Long gate closed: the long parameters below are illustrative only and do not apply under the rules
+  Backup | USFD | Buy | stop-limit order | trigger price 112.04 | price 112.59 | quantity 24 | time in force: day | trigger in regular hours only (not pre/post-market) | attached order: stop, stop price 104.97; child order good till cancelled
+  Backup | AHR | Buy | stop-limit order | trigger price 60.76 | price 61.02 | quantity 43 | time in force: day | trigger in regular hours only (not pre/post-market) | attached order: stop, stop price 56.79; child order good till cancelled
+  Backup | HOG | Buy | stop-limit order | trigger price 34.44 | price 34.66 | quantity 69 | time in force: day | trigger in regular hours only (not pre/post-market) | attached order: stop, stop price 31.99; child order good till cancelled
+  Backup | AIZ | Buy | stop-limit order | trigger price 328.07 | price 329.24 | quantity 10 | time in force: day | trigger in regular hours only (not pre/post-market) | attached order: stop, stop price 312.17; child order good till cancelled
+  Backup | ALLE | Buy | stop-limit order | trigger price 194.00 | price 194.87 | quantity 14 | time in force: day | trigger in regular hours only (not pre/post-market) | attached order: stop, stop price 182.34; child order good till cancelled
+  Within limit | XYL | Sell (short) | stop-limit order | trigger price 93.81 | price 93.34 | quantity 93 | time in force: day | trigger in regular hours only (not pre/post-market) | attached order: stop, stop price 97.35; child order good till cancelled | shorting needs a margin account; confirm shares are available to borrow
+  Backup | HBAN | Sell (short) | stop-limit order | trigger price 14.47 | price 14.39 | quantity 567 | time in force: day | trigger in regular hours only (not pre/post-market) | attached order: stop, stop price 15.05; child order good till cancelled | shorting needs a margin account; confirm shares are available to borrow
+  Backup | PLD | Sell (short) | stop-limit order | trigger price 123.49 | price 122.99 | quantity 65 | time in force: day | trigger in regular hours only (not pre/post-market) | attached order: stop, stop price 128.68; child order good till cancelled | shorting needs a margin account; confirm shares are available to borrow
+[Tonight’s timeline] Hong Kong time (ET); the US opens at Hong Kong time 22:30
+  21:47 (08:47) Automated Pre-Market Refresh (Gap & Level Recalculation)
+  22:30 (09:30) US open
+  23:00 (10:00) First 30 minutes complete (opening scenario check)
+  02:00 (next day) (13:00) US close (early close)
+Gates: long closed, pilot closed, short open, oversold no; short timing: Middle of range: new short setups need a bounce to resistance first
+Pillars: Trend 17 (5-day +0), Breadth 55 (5-day +9), Risk appetite 25 (5-day +0), Volatility 0 (5-day -12), Rates and credit 50 (5-day +17)
+QQQ 633.93; 21EMA 666.84; 50-day MA 707.05; 200-day MA 683.50; prior high/low 634.89/607.74; 20-day low 606.23; 52-week high 762.86 (-16.9%); ATR 23.32; distribution days 8
+Correction low 606.23 (11-20, from the prior high -20.5%); Data day is rally day 3; no FTD yet.
+Open reference: Ref. price 640.83 (estimated from the Nasdaq 100 futures move since the close), gap +1.09%, equal to +0.30 ATR.
+Breadth: >50-day MA 56%, >200-day MA 51%, >20-day MA 45% (5 days ago 40%); new highs 30 / new lows 36; breakout success rate 53% (129)
+Volatility and rates: VIX 28.3; VXN 38.5; VIX/VIX3M 1.08; 10-year 4.85%; Short rates (13-week T-bill), 3 months +48bp; the market is pricing in hikes.
+Since the close: Nasdaq 100 futures +1.09%; S&P 500 futures +0.71%; Russell 2000 futures +0.59%; VIX —; 10-year yield —; Dollar index +0.11%; Crude oil +0.34%; Gold +0.49%; Bitcoin +0.38%
+Sectors 1 month: XLP +5.9%, XLRE +3.3%, XLV +2.5%, XLU +1.8%, XLY +1.8%, XLC +1.7%, XLF +1.1%, XLB -1.1%, XLI -3.0%, XLE -10.7%, XLK -17.8%
+Strongest industry groups: Apparel, Accessories & Luxury Goods; Health Care Distributors; Insurance Brokers; Industrial Conglomerates; Data Processing & Outsourced Services | weakest: Semiconductor Materials & Equipment; Electronic Manufacturing Services; Communications Equipment; Semiconductors; Agricultural Products & Services
+Leaders: NVDA(S3,RS5), MU(S3,RS25), AMD(S3,RS34), SPCX(S—,RS16), AAPL(S2,RS86), META(S3,RS47), TSLA(S1,RS37), MSFT(S3,RS53), AMZN(S3,RS41), INTC(S3,RS18), GOOGL(S4,RS10), AVGO(S4,RS11), MRVL(S3,RS23), ORCL(S4,RS3), LITE(S4,RS10), PLTR(S3,RS37), NBIS(S4,RS3), BE(S3,RS14), CRWV(S4,RS1), DELL(S3,RS31)
+Long watch | VCP: GKOS, CART, AVNT | High Tight Flag: none | Tight: HOG, MAS, AIZ, MANH, CDW, HAE, ALLE, PCTY | New-high breakout: DIS, WTW, FCN, EXLS, RGA, ADP, MRSH, DRI | Relative strength: CROX, HOG, SN, REGN, LIVN, ANF, BDX, ROIV, MAS, MANH, CAH, CPAY | Pullback: VTRS, SWK, HAE, OKTA, THG, CART, MORN, MAR | Gap up: HPQ
+Short and avoid | Pullback to resistance: ALNY, SFM, BROS, STWD, FICO, WHR, ARWR, NRG | New breakdown: none | Fallen leaders: MU, DELL, HPE, P, PBF, AMD, ILMN, DINO, FTNT, NTAP, VLO, MPC | Gap down: none
+Yesterday’s review: Indexes: Nasdaq 100 -0.7%, S&P 500 -0.3%, Dow +0.3%, Russell 2000 +0.6%, S&P 500 equal-weight +0.8%, Semiconductors -1.0%. Sectors: strongest Materials +2.1%, Real Estate +0.9%, Communication +0.9%; weakest Technology -0.8%, Health Care -0.6%, Consumer Discretionary -0.2%. Breadth: advancers 713, decliners 201; 52-week highs 30, lows 36; Stage 2 share 29% (5 days ago 29%, 20 days ago 31%). Leaders: biggest gain META +3.4%, PLTR +1.5%, SPCX +1.3%; biggest drop ORCL -5.1%, MU -4.5% (volume 1.7 ×), NVDA -3.9% (volume 1.8 ×).
+Earnings reactions: DE +4.4% (Missed but rose: strong); DELL +0.6% (muted reaction); ADSK -3.5% (Beat but fell: weak); WDAY +0.7% (muted reaction); HPQ +11.5% (Beat, rose); NTNX -15.2% (Beat but fell: weak)
+11-27 Earnings: none
+Key data: No key data are listed for these two days.
+Calendar factors: 11-27 is day after Thanksgiving; early close at 13:00 ET, light volume.
+Earnings risk (within 3 days): OKTA (Pullback, 12-01 ⚠2 days)
+Headlines: MU, SNDK, SKHY Jump As Nvidia Tests Kioxia Memory Fix — Analyst Presses Memory Giants For ‘Massive’ Buybacks / HP Inc. (HPQ) Explodes After Delivering This Double Dose of Good News / Micron faces Taiwan uncertainty as labor dispute threatens expansion, report warns / Asian stocks rally as Taiwan, South Korea rebound; Nvidia risks linger / CNH Industrial Stock Gains Attention As Deere Lifts Farm Equipment Outlook / GoodRx Holdings (GDRX) Faces A Fresh Test As Its Narrative Shifts Toward Fair Value / Stocks rally in Asia, US tariffs not as dire as feared / Dow Jones Futures Rise After Nasdaq Slashes Losses In Wild Market Ride
+Today’s playbook: Longs: the long and pilot gates are both closed, so long setups are listed for observation only; the “relative strength” list often holds the next leaders. / Shorts: Middle of range: new short setups need a bounce to resistance first. The rules allow only weak stocks on the “pullback to resistance” list, except those marked “oversold”. / Calendar: 11-27 is day after Thanksgiving; early close at 13:00 ET, light volume. / Earnings risk: OKTA (Pullback, 12-01 ⚠2 days). The rules list no new setups in stocks reporting within 3 sessions. / Rally attempt: next session is day 4; the FTD window is open, watch for a gain ≥ 1.25% on rising volume. / Breakout success rate 53%, below 60%: even with a gate open, breakout setups get pilot size only. / Last 25 sessions: 8 distribution days; institutions are still selling. / There are 14 “fallen leaders” (still up a lot over the year, but more than 25% off the high and below the 50-day MA): past strength is not a reason to list them. / Open: Small gap up: the rules do not chase the first print; the condition is holding the upper half of the opening range for 30 minutes without falling back below the prior close.
+Extra data layer (reference only, not scored): Volatility structure: VIX 28.3, VIX3M 26.3, ratio 1.08 (backwardation); VIX9D 29.6, above VIX. Short-term fear is clearly above medium-term; a sharp selloff is usually still under way. QQQ implied move: ATM straddle to 11-27 (2 days) costs 2.1%, breakevens 620.67 to 647.33. Earnings implied moves: OKTA ±16.2% (Earnings 12-01 after close, options 12-04 expiry). Short candidates with 5+ days to cover: FFIN (11.2 days), CDP (9.8 days); high squeeze risk.
+
+===== News (text) 2026-11-27 =====
+[Yesterday’s market review]
+  Indexes: Nasdaq 100 -0.7%, S&P 500 -0.3%, Dow +0.3%, Russell 2000 +0.6%, S&P 500 equal-weight +0.8%, Semiconductors -1.0%.
+  Sectors: strongest Materials +2.1%, Real Estate +0.9%, Communication +0.9%; weakest Technology -0.8%, Health Care -0.6%, Consumer Discretionary -0.2%.
+  Breadth: advancers 713, decliners 201; 52-week highs 30, lows 36; Stage 2 share 29% (5 days ago 29%, 20 days ago 31%).
+  Leaders: biggest gain META +3.4%, PLTR +1.5%, SPCX +1.3%; biggest drop ORCL -5.1%, MU -4.5% (volume 1.7 ×), NVDA -3.9% (volume 1.8 ×).
+[Calendar factors]
+  11-27 is day after Thanksgiving; early close at 13:00 ET, light volume.
+[Earnings reactions]
+  DE    11-25 time unknown | Earnings surprise -4.4% | price +4.4% (all day) | Missed but rose: strong
+  DELL  11-24 after close | Earnings surprise +43.5% | price +0.6% (all day) | muted reaction
+  ADSK  11-24 after close | Earnings surprise +4.3% | price -3.5% (all day) | Beat but fell: weak
+  WDAY  11-24 after close | Earnings surprise +2.8% | price +0.7% (all day) | muted reaction
+  HPQ   11-24 after close | Earnings surprise +12.0% | price +11.5% (all day) | Beat, rose
+  NTNX  11-24 after close | Earnings surprise +20.6% | price -15.2% (all day) | Beat but fell: weak
+[11-27 and next-session earnings]
+  None listed.
+[Key economic data (ET)]
+  No key data are listed for these two days.
+[Earnings risk for watchlist and positions (within 3 sessions)]
+  OKTA (Pullback, 12-01 ⚠2 days)
+[Market Headlines (ET)]
+  11-26 01:30 [MU] MU, SNDK, SKHY Jump As Nvidia Tests Kioxia Memory Fix — Analyst Presses Memory Giants For ‘Massive’ Buybacks (Stocktwits)
+  11-26 01:18 [HPQ] HP Inc. (HPQ) Explodes After Delivering This Double Dose of Good News (Insider Monkey)
+  11-26 00:55 [MU] Micron faces Taiwan uncertainty as labor dispute threatens expansion, report warns (Investing.com)
+  11-26 00:31 [SPX] Asian stocks rally as Taiwan, South Korea rebound; Nvidia risks linger (Investing.com)
+  11-26 00:16 [DE] CNH Industrial Stock Gains Attention As Deere Lifts Farm Equipment Outlook (Simply Wall St.)
+  11-26 00:15 [IXIC] GoodRx Holdings (GDRX) Faces A Fresh Test As Its Narrative Shifts Toward Fair Value (Simply Wall St.)
+  11-26 00:02 [SPX] Stocks rally in Asia, US tariffs not as dire as feared (Reuters)
+  11-25 23:06 [SPX] Dow Jones Futures Rise After Nasdaq Slashes Losses In Wild Market Ride (Investor's Business Daily)
+  11-25 22:14 [SPX] Dow, S&P 500, Nasdaq Futures Edge Higher As Tech Rebounds After Selloff: DIS, VRTX, DE, CHTR In Focus (Stocktwits)
+  11-25 21:58 [SPX] Michael Burry Says His Portfolio Was Discussed 'About the Time the Market Reversed Off Its Lows': He Is 'Temporarily Almost Entirely Long' (Benzinga)
+  11-25 21:15 [ORCL] Is Oracle the First AI Casualty as It Sheds 70% of Its Value? (BeInCrypto)
+  11-25 21:11 [DE] DE Stock Ticks Higher Overnight: Deere CEO Sees Agriculture Recovery In 2027 — Brazil And Data Centers Could Add To The Upside (Stocktwits)
+  11-25 20:37 [SPX] Goldman Sachs lays out three signals stock investors should watch (TheStreet)
+  11-25 20:19 [ORCL] Tech Stocks Stall Into Thanksgiving: Will the AI Rebound Return? (BeInCrypto)
+  11-25 20:00 [CART] The Race to Make Dinner Delivery More Affordable (The Wall Street Journal)
+  11-25 19:46 [MU] 5 Best Strong Buy Growth Stocks to Buy for 2027 (Insider Monkey)
+  11-25 19:09 [QQQ] S&P 500, Nasdaq End Lower But Dow Rebounds As Traders Rotate Out Of AI — NVDA, SPCX, PANW  In Focus (Stocktwits)
+  11-25 17:58 [DE] Deere: 3 Key Takeaways for Long-Term Investors (Motley Fool)
+  11-25 17:18 [QQQ] The Average Stock Shrugged Off the Tech Slide. History Is Split (Trefis)
+  11-25 16:48 [ORCL] Wall Street Can’t Seem to Find Its Footing in the Chaos of the New AI Trade (The Wall Street Journal)
+  11-25 16:47 [ORCL] Stocks to Watch Recap: Nvidia, Anthropic, Dell (The Wall Street Journal)
+  11-25 16:46 [ORCL] Oracle Bonds Yield a Towering 9% on Debt and Data-Center Concerns. Are They a Buy? (Barrons.com)
+  11-25 16:44 [DE] Deere & Company Q4 2026 Earnings Call Summary (Moby)
+  11-25 16:28 [NVDA] Jensen Huang reclaims throne at Nvidia: Here's the bottom line for investors

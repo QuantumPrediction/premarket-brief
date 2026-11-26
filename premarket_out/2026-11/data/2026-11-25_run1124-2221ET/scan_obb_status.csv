@@ -1,0 +1,9 @@
+Feed,Status,Rows,Sec,Note
+財報日曆（Nasdaq 直連）,成功,398,10.317,18/18 日
+經濟日曆（Nasdaq 直連）,成功,17,3.404,
+波動指數快照（Cboe，經 OpenBB）,失敗,0,0.088,"OpenBBError: [Unexpected Error] -> ContentTypeError -> 403, message='Attempt to decode JSON with unexpected mimetype: text/html; charset=utf-8', url='https://cdn-a"
+波動指數（Yahoo 後備）,成功,7,0.371,
+VIX 期貨曲線（Cboe，經 OpenBB）,失敗,0,8.568,"OpenBBError: [Unexpected Error] -> ContentTypeError -> 403, message='Attempt to decode JSON with unexpected mimetype: text/html; charset=utf-8', url='https://cdn-a"
+期權引伸波幅（Yahoo 後備，Cboe 取不到）,成功,2,4.444,1/1 隻
+盤後異動榜（Nasdaq 直連）,成功,60,4.895,
+沽空數據（FINRA，經 OpenBB）,成功,5854,9.74,

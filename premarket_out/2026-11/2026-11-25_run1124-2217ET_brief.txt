@@ -1,0 +1,148 @@
+盤前簡報 2026-11-25（數據截至 2026-11-24 收市，執行 11-24 22:17 ET）
+Regime E 空頭｜等反彈到阻力才空｜分數 24（昨 18，5 日前 26）｜調整中，反彈嘗試第 2 日
+【結論】今日最多開 1 注做空，只在計劃卡的條件出現時才動手。
+【一、今日可否交易】Regime E 空頭｜等反彈到阻力才空｜今日最多開新倉：做多 0 注（多頭與試單閘門都未開）、做空 1 注（A 級只有 1 隻）｜每注風險 做多 $188、做空 $375｜未平倉風險 0.00%／上限 1%｜多倉市值 0%／上限 10%
+【二、看哪幾隻】股票池 918 隻 → 做多候選 63 隻 → 預備 5、B 級 10、觀察 46、剔除 2（未有形態 19、距離太遠 9、名額已滿 9、清單太弱 7、疑似收購鎖價 2、止蝕太遠 1、未在 Stage 2 1）
+  做多預備：LH（收窄＋新高突破，清單 8/8）｜USFD（收窄，清單 8/8）｜AIZ（收窄，清單 7/8，不通過：板塊）｜ALLE（收窄，清單 7/8，不通過：板塊）｜MRSH（收窄，清單 7/8，不通過：板塊）
+  做多 B 級：AHR（收窄＋新高突破＋抗跌強勢；尚欠：預備名額已滿（5 隻），排序在後）｜DLTR（新高突破；尚欠：預備名額已滿（5 隻），排序在後）｜CHE（新高突破；尚欠：預備名額已滿（5 隻），排序在後）｜TMO（回調＋抗跌強勢；尚欠：預備名額已滿（5 隻），排序在後）｜MAS（收窄；尚欠：預備名額已滿（5 隻），排序在後）｜AJG（收窄；尚欠：同板塊已有 2 隻（金融））｜THG（收窄＋回調；尚欠：同板塊已有 2 隻（金融））｜ALL（收窄；尚欠：同板塊已有 2 隻（金融））｜OMC（收窄；尚欠：預備名額已滿（5 隻），排序在後）｜WTW（收窄；尚欠：同板塊已有 2 隻（金融））
+  做空 A 級：SBAC（清單 7/8，不通過：板塊）｜B 級：WLK（尚欠：現價高於觸發價 5.6%，未到位）｜CARR（尚欠：現價高於觸發價 6.1%，未到位）｜PCAR（尚欠：現價高於觸發價 3.6%，未到位）｜NLY（尚欠：現價高於觸發價 4.4%，未到位）｜ARE（尚欠：現價高於觸發價 4.8%，未到位）
+  分散：預備和持倉合共 5 隻，分佈在 4 個板塊：金融 2 隻（AIZ、MRSH）；醫療 1 隻（LH）；必需消費 1 隻（USFD）；工業 1 隻（ALLE）。
+  分散：名單和持倉之間沒有相關係數高於 0.75 的組合。
+  名單跟進：未有今日之前、而且用同一版規則的名單紀錄。要在表單勾選 SAVE_TO_DRIVE，名單才會存到 Google Drive，下次執行才可以跟進。
+【三、每隻怎樣做】
+  LH｜觸發 379.26｜追價上限 397.82｜止蝕 361.19（4.8%，10 日低位）｜10 股（倉位 3.8%）｜2R 415.41｜3R 433.48｜財報 02-23
+  USFD｜觸發 110.79｜追價上限 116.21｜止蝕 104.97（5.3%，10 日低位）｜32 股（倉位 3.5%）｜2R 122.43｜3R 128.25｜財報 —
+  AIZ｜觸發 327.32｜追價上限 343.34｜止蝕 312.17（4.6%，10 日低位）｜12 股（倉位 3.9%）｜2R 357.61｜3R 372.75｜財報 02-09
+  ALLE｜觸發 193.99｜追價上限 203.49｜止蝕 182.34（6.0%，10 日低位）｜16 股（倉位 3.1%）｜2R 217.29｜3R 228.94｜財報 02-16
+  MRSH｜觸發 213.73｜追價上限 224.20｜止蝕 201.13（5.9%，10 日低位）｜14 股（倉位 3.0%）｜2R 238.94｜3R 251.55｜財報 —
+  做空 SBAC｜跌穿 169.83｜不追空的下限 164.74｜止蝕 176.26（3.8%）｜58 股｜2R 156.98｜3R 150.55｜回補日數 2.9｜財報 —
+【近 10 日回顧】新到舊；同一日跑了幾次只列最後一次；這次沒有存到 Google Drive，紀錄只存在這次的 Colab 工作階段
+  11-25（三）｜分數 24｜Regime E｜閘門 空頭開｜預備：LH、USFD、AIZ、ALLE、MRSH｜當日跑了 4 次（今次）
+  11-24（二）｜分數 18｜Regime E｜沒有執行紀錄（分數按今日數據回算）
+  11-23（一）｜分數 20｜Regime E｜沒有執行紀錄（分數按今日數據回算）
+  11-20（五）｜分數 18｜Regime E｜沒有執行紀錄（分數按今日數據回算）
+  11-19（四）｜分數 27｜Regime D｜沒有執行紀錄（分數按今日數據回算）
+  11-18（三）｜分數 26｜Regime D｜沒有執行紀錄（分數按今日數據回算）
+  11-17（二）｜分數 32｜Regime D｜沒有執行紀錄（分數按今日數據回算）
+  11-16（一）｜分數 45｜Regime C｜沒有執行紀錄（分數按今日數據回算）
+  11-13（五）｜分數 46｜Regime C｜沒有執行紀錄（分數按今日數據回算）
+  11-12（四）｜分數 50｜Regime C｜沒有執行紀錄（分數按今日數據回算）
+【富途下單清單】簡報日 2026-11-25；今日最多開 0 注做多、1 注做空；開市前約 30 分鐘先跑格子 2（開市前快速更新），按結果決定落不落
+  閘門未開：以下只供閘門打開時使用，今日不落單
+  後備　｜LH｜買入｜止損限價單｜觸發價 379.26｜價格 380.79｜數量 9｜期限 當日有效｜只在常規時段觸發（不選盤前盤後）｜附加訂單：止損單，止損價 361.18，子單期限 撤單前有效
+  後備　｜USFD｜買入｜止損限價單｜觸發價 110.80｜價格 111.39｜數量 29｜期限 當日有效｜只在常規時段觸發（不選盤前盤後）｜附加訂單：止損單，止損價 104.97，子單期限 撤單前有效
+  後備　｜AIZ｜買入｜止損限價單｜觸發價 327.32｜價格 328.60｜數量 11｜期限 當日有效｜只在常規時段觸發（不選盤前盤後）｜附加訂單：止損單，止損價 312.17，子單期限 撤單前有效
+  後備　｜ALLE｜買入｜止損限價單｜觸發價 194.00｜價格 194.91｜數量 14｜期限 當日有效｜只在常規時段觸發（不選盤前盤後）｜附加訂單：止損單，止損價 182.34，子單期限 撤單前有效
+  後備　｜MRSH｜買入｜止損限價單｜觸發價 213.74｜價格 214.67｜數量 13｜期限 當日有效｜只在常規時段觸發（不選盤前盤後）｜附加訂單：止損單，止損價 201.12，子單期限 撤單前有效
+  名額內｜SBAC｜賣出（沽空）｜止損限價單｜觸發價 169.83｜價格 168.79｜數量 49｜期限 當日有效｜只在常規時段觸發（不選盤前盤後）｜附加訂單：止損單，止損價 176.26，子單期限 撤單前有效｜沽空要融資戶口，並確認有貨可借
+【今晚時間表】香港時間（美東）；美股開市是香港時間 22:30
+  16:15（03:15）★★ ADP Employment Change Weekly
+  18:00（05:00）★★ CB Consumer Confidence
+  21:30（08:30）★★★ Core PCE Prices Prelim
+  21:30（08:30）★★ GDP Cons Spending Prelim
+  21:30（08:30）★★ GDP 2nd Estimate
+  21:30（08:30）★★ GDP Sales Prelim
+  21:30（08:30）★★★ Core PCE Price Index MM *
+  21:30（08:30）★★★ PCE Price Index YY *
+  21:30（08:30）★★★ PCE Prices Prelim
+  21:30（08:30）★★★ PCE Price Index MM*
+  21:30（08:30）★★★ Core PCE Price Index YY*
+  22:00（09:00）跑格子 2「開市前快速更新」，按結果落單
+  22:00（09:00）DE 公佈業績（開市前；大型股）
+  22:30（09:30）美股開市
+  23:00（10:00）首 30 分鐘完結：按開市情景和計劃卡決定
+  23:00（10:00）★ New Home Sales Chg MM
+  23:00（10:00）★ New Home Sales-Units
+  05:00（翌日）（16:00）美股收市
+閘門：多頭 關，試單 關，空頭 開，超賣 否；空頭時機：中間位置：等反彈到阻力才開新空倉
+支柱：趨勢 17（5 日 +0），寬度 36（5 日 -9），風險偏好 25（5 日 +0），波動率 0（5 日 +0），利率與信貸 50（5 日 +0）
+QQQ 638.10；21EMA 670.13；50 日線 708.47；200 日線 683.39；上日高低 648.00/631.15；20 日低 606.23；52 週高 762.86（-16.4%）；ATR 24.36；派發日 7
+調整低位 606.23（11-20，距之前高位 -20.5%）；數據日是反彈第 2 日，未有 FTD。
+開市參考：參考價 630.16（按 Nasdaq 100 期貨自收市以來的變動推算），缺口 -1.24%，相當於 -0.33 ATR。
+寬度：>50 日線 52%，>200 日線 49%，>20 日線 36%（5 日前 38%）；新高 21 / 新低 11；突破成功率 41%（129 個）
+波動與利率：VIX 26.4；VXN 36.4；VIX/VIX3M 1.03；10 年期 4.90%；短端利率（13 週國庫券）三個月 +48bp，市場正在消化加息。
+自收市以來：Nasdaq 100 期貨 -1.24%；S&P 500 期貨 -0.71%；Russell 2000 期貨 -0.51%；VIX —；10 年期孳息 —；美元指數 +0.07%；原油 -0.97%；黃金 +0.08%；Bitcoin -0.48%
+板塊 1 個月：XLP +4.5%，XLV +3.0%，XLY +3.0%，XLU +2.0%，XLRE +1.5%，XLC +0.6%，XLF +0.2%，XLB -2.4%，XLI -3.2%，XLE -13.2%，XLK -15.7%
+最強行業組別：Consumer Staples Merchandise Retail；Health Care Distributors；Apparel, Accessories & Luxury Goods；Industrial Conglomerates；Insurance Brokers｜最弱：Agricultural Products & Services；Technology Hardware, Storage & Peripherals；Electronic Manufacturing Services；Semiconductor Materials & Equipment；Oil & Gas Equipment & Services
+龍頭：NVDA(S3,RS6)，MU(S3,RS27)，AMD(S3,RS38)，SPCX(S—,RS18)，AAPL(S2,RS90)，META(S3,RS39)，TSLA(S1,RS50)，MSFT(S3,RS63)，AMZN(S3,RS57)，INTC(S3,RS19)，GOOGL(S4,RS12)，AVGO(S4,RS13)，MRVL(S3,RS24)，ORCL(S4,RS5)，LITE(S4,RS10)，PLTR(S3,RS44)，NBIS(S4,RS5)，BE(S3,RS15)，STX(S4,RS20)，DELL(S3,RS33)
+做多觀察｜VCP: BAX, CART｜High Tight Flag: 無｜收窄: AIZ, MANH, LH, MAS, HAE, ALLE, MTD, AJG｜新高突破: DLTR, GILD, A, CHE, GKOS, BIIB, COLM, EXPO｜抗跌強勢: HOG, SN, REGN, BIIB, ROIV, GILD, TGT, EW, LLY, ANF, CPAY, ABBV｜回調: VTRS, HAE, MTD, PCTY, THG, MORN, CDW, TMO｜向上缺口: ANF, DLTR
+做空與迴避｜回抽阻力: SFM, ALNY, FICO, NLY, WLK, CG, GNTX, ARE｜新跌破: MSTR, DY, RH, NXT, BG, DAR, MMS｜墮落龍頭: DELL, MU, HPE, PBF, AMD, ILMN, DINO, FTNT, NTAP, VLO, HALO, MPC｜向下缺口: ADI, HPE, DY, DELL
+昨日回顧：指數：Nasdaq 100 -2.0%，S&P 500 -0.5%，道指 +0.8%，Russell 2000 +0.5%，S&P 500 等權 +0.5%，半導體 -7.3%。 板塊：最強 醫療 +3.0%、必需消費 +1.7%、房地產 +1.3%；最弱 科技 -3.3%、工業 -0.5%、公用 +0.2%。 寬度：上升 587 隻，下跌 329 隻；52 週新高 21，新低 11；Stage 2 股票佔 28%（5 日前 29%，20 日前 31%）。 龍頭：升幅最大 AAPL +1.4%、PLTR +1.1%、MSFT +0.7%；跌幅最大 DELL -11.8%（成交 2.6 倍）、MU -11.0%、NBIS -10.7%。
+財報反應：MDT -4.6%（符合預期，大跌）；ADI -17.4%（勝預期但跌：弱）；BURL +3.9%（符合預期，大升）；DKS +14.6%（勝預期，升）；DLTR +11.2%（勝預期，升）；BBY +2.7%（勝預期，升）；ANF +19.7%（勝預期，升）；SJM -1.5%（勝預期但跌：弱）；DY -18.0%（勝預期但跌：弱）；DELL +0.9%（反應平淡）
+11-25 財報：DE（開市前）
+重點數據：★★03:15 ADP Employment Change Weekly；★★05:00 CB Consumer Confidence；★★★08:30 Core PCE Prices Prelim；★★08:30 GDP Cons Spending Prelim；★★08:30 GDP 2nd Estimate；★★08:30 GDP Sales Prelim；★★★08:30 Core PCE Price Index MM *；★★★08:30 PCE Price Index YY *；★★★08:30 PCE Prices Prelim；★★★08:30 PCE Price Index MM*；★★★08:30 Core PCE Price Index YY*；★10:00 New Home Sales Chg MM；★10:00 New Home Sales-Units
+日曆因素：今日是事件日：08:30 Core PCE Prices Prelim、08:30 Core PCE Price Index MM *、08:30 PCE Price Index YY *、08:30 PCE Prices Prelim、08:30 PCE Price Index MM*、08:30 Core PCE Price Index YY*。公佈前新倉注碼減半。 11-26 感恩節休市。 11-27 感恩節翌日，13:00 提早收市。
+財報風險（3 日內）：無
+標題：Dow Jones Futures Fall; Trump Says 'Not Too Late' For U.S. To Take Nvidia Stake / Jensen Huang's Return Could Make a Tesla/SpaceX Merger More Likely / Dell Says AI Demand Remains ‘Firm,’ Every Order ‘Fully Vetted’ – But DELL Stock Barely Moves After Beat-And-Raise Quarter / Abercrombie & Fitch (ANF) Has Investors Rushing Back. Here’s Why / Ethereum treasury firm sells $43 million in Ether to repay debt / Wall St futures fall after S&P 500, Nasdaq end lower; inflation data eyed / Why Nvidia's rebound may not mean the S&P 500 has bottomed / Sat Out Abercrombie & Fitch's Rally? Here Is What Holders Saw
+今日劇本：做多：不開新倉。做多名單只作觀察，先看「抗跌強勢」，它們通常是下一輪的領先股。 / 做空：中間位置：等反彈到阻力才開新空倉。只空「回抽阻力」名單內的弱股，標示「已超跌」的不追。 / 日曆：今日是事件日：08:30 Core PCE Prices Prelim、08:30 Core PCE Price Index MM *、08:30 PCE Price Index YY *、08:30 PCE Prices Prelim、08:30 PCE Price Index MM*、08:30 Core PCE Price Index YY*。公佈前新倉注碼減半。 11-26 感恩節休市。 11-27 感恩節翌日，13:00 提早收市。 / 反彈嘗試：下一個交易日是第 3 日，FTD 最早在第 4 日，當日升幅再大也不算確認。 / 突破成功率 41%，未達 60%：即使閘門打開，突破也只宜試單。 / 近 25 日有 7 個派發日，機構仍在賣。 / 有 12 隻「墮落龍頭」（過去一年升幅仍大，但已跌離高位 25% 以上、失守 50 日線）：不要因為舊強勢而接。 / 開市：小幅低開：先看能否守住上日低位，重上開市區間高位才動手。
+補充數據層（只供參考，不計入分數）：波動結構：VIX 26.4，VIX3M 25.5，比率 1.03（接近持平）；VIX9D 26.7，高於 VIX。市場仍然緊張，但未到恐慌定價；比率回落到 0.95 以下才算回復正常。 QQQ 引伸波幅：到 11-25（1 日）的平價跨式成本 1.7%，打和位 626.89 至 649.11。 隔夜缺口 -1.2% 已用掉期權為今日定價波幅的 71%：開市後追低的風險回報差，等回調或首 30 分鐘區間確立。 做空候選中回補日數 5 日以上的：GNTX（6.9 日）、CG（6.2 日），軋空風險高。
+
+===== 消息面（文字版）2026-11-25 =====
+【昨日市場回顧】
+  指數：Nasdaq 100 -2.0%，S&P 500 -0.5%，道指 +0.8%，Russell 2000 +0.5%，S&P 500 等權 +0.5%，半導體 -7.3%。
+  板塊：最強 醫療 +3.0%、必需消費 +1.7%、房地產 +1.3%；最弱 科技 -3.3%、工業 -0.5%、公用 +0.2%。
+  寬度：上升 587 隻，下跌 329 隻；52 週新高 21，新低 11；Stage 2 股票佔 28%（5 日前 29%，20 日前 31%）。
+  龍頭：升幅最大 AAPL +1.4%、PLTR +1.1%、MSFT +0.7%；跌幅最大 DELL -11.8%（成交 2.6 倍）、MU -11.0%、NBIS -10.7%。
+【日曆因素】
+  今日是事件日：08:30 Core PCE Prices Prelim、08:30 Core PCE Price Index MM *、08:30 PCE Price Index YY *、08:30 PCE Prices Prelim、08:30 PCE Price Index MM*、08:30 Core PCE Price Index YY*。公佈前新倉注碼減半。
+  11-26 感恩節休市。
+  11-27 感恩節翌日，13:00 提早收市。
+【財報反應】
+  MDT   11-24 開市前｜盈利驚喜 +0.6%｜股價 -4.6%（數據日全日）｜符合預期，大跌
+  ADI   11-24 開市前｜盈利驚喜 +4.6%｜股價 -17.4%（數據日全日）｜勝預期但跌：弱
+  BURL  11-24 開市前｜盈利驚喜 -1.1%｜股價 +3.9%（數據日全日）｜符合預期，大升
+  DKS   11-24 開市前｜盈利驚喜 +37.6%｜股價 +14.6%（數據日全日）｜勝預期，升
+  DLTR  11-24 開市前｜盈利驚喜 +25.4%｜股價 +11.2%（數據日全日）｜勝預期，升
+  BBY   11-24 開市前｜盈利驚喜 +8.6%｜股價 +2.7%（數據日全日）｜勝預期，升
+  ANF   11-24 開市前｜盈利驚喜 +21.4%｜股價 +19.7%（數據日全日）｜勝預期，升
+  SJM   11-24 開市前｜盈利驚喜 +24.8%｜股價 -1.5%（數據日全日）｜勝預期但跌：弱
+  DY    11-24 開市前｜盈利驚喜 +14.5%｜股價 -18.0%（數據日全日）｜勝預期但跌：弱
+  DELL  11-24 收市後｜盈利驚喜 +43.5%｜股價 +0.9%（盤後／盤前）｜反應平淡
+  ADSK  11-24 收市後｜盈利驚喜 +4.3%｜股價 -3.6%（盤後／盤前）｜勝預期但跌：弱
+  WDAY  11-24 收市後｜盈利驚喜 +2.8%｜股價 -7.2%（盤後／盤前）｜勝預期但跌：弱
+  HPQ   11-24 收市後｜盈利驚喜 +12.0%｜股價 +2.0%（盤後／盤前）｜勝預期，升
+  NTNX  11-24 收市後｜盈利驚喜 +20.6%｜股價 -7.9%（盤後／盤前）｜勝預期但跌：弱
+  HPE   11-23 收市後｜盈利驚喜 +11.0%｜股價 -16.3%（數據日全日）｜勝預期但跌：弱
+【11-25 及下一個交易日的財報】
+  DE    11-25 開市前｜Deere & Company
+【重點經濟數據（美東時間）】
+  ★★  11-25 03:15　ADP Employment Change Weekly｜前值 23.80K
+  ★★  11-25 05:00　CB Consumer Confidence｜預期 92.4｜前值 91.9
+  ★★★ 11-25 08:30　Core PCE Prices Prelim｜前值 2.5
+  ★★  11-25 08:30　GDP Cons Spending Prelim｜前值 3.8
+  ★★  11-25 08:30　GDP 2nd Estimate｜前值 3.4
+  ★★  11-25 08:30　GDP Sales Prelim｜前值 1.7
+  ★★★ 11-25 08:30　Core PCE Price Index MM *｜前值 0.3
+  ★★★ 11-25 08:30　PCE Price Index YY *｜前值 3.6
+  ★★★ 11-25 08:30　PCE Prices Prelim｜前值 2.1
+  ★★★ 11-25 08:30　PCE Price Index MM*｜前值 0.5
+  ★★★ 11-25 08:30　Core PCE Price Index YY*｜前值 3.1
+  ★   11-25 10:00　New Home Sales Chg MM｜前值 -0.6
+  ★   11-25 10:00　New Home Sales-Units｜前值 0.68
+【名單與持倉的財報風險（3 個交易日內）】
+  沒有。
+【標題（Yahoo，美東時間）】
+  11-24 22:06 [^GSPC] Dow Jones Futures Fall; Trump Says 'Not Too Late' For U.S. To Take Nvidia Stake（Investor's Business Daily）
+  11-24 21:50 [^GSPC] Jensen Huang's Return Could Make a Tesla/SpaceX Merger More Likely（Motley Fool）
+  11-24 21:50 [DELL] Dell Says AI Demand Remains ‘Firm,’ Every Order ‘Fully Vetted’ – But DELL Stock Barely Moves After Beat-And-Raise Quarter（Stocktwits）
+  11-24 21:19 [ANF] Abercrombie & Fitch (ANF) Has Investors Rushing Back. Here’s Why（Insider Monkey）
+  11-24 21:00 [^GSPC] Ethereum treasury firm sells $43 million in Ether to repay debt（TheStreet）
+  11-24 20:42 [^GSPC] Wall St futures fall after S&P 500, Nasdaq end lower; inflation data eyed（Investing.com）
+  11-24 20:23 [^GSPC] Why Nvidia's rebound may not mean the S&P 500 has bottomed（TheStreet）
+  11-24 20:09 [ANF] Sat Out Abercrombie & Fitch's Rally? Here Is What Holders Saw（Simply Wall St.）
+  11-24 19:55 [^IXIC] Review & Preview: Tech’s Rough Day（Barrons.com）
+  11-24 19:52 [MU] 5 Sleeper Blue-Chip Stock Picks for Steady Long-Term Gains（Kiplinger）
+  11-24 19:16 [NBIS] Nvidia-Backed Nscale Reportedly Eyes Private Route As AI Market Sell-Off Clouds $35B IPO Plans（Stocktwits）
+  11-24 18:26 [MU] Stocks to Watch Recap: Nvidia, Alibaba, Hewlett Packard（The Wall Street Journal）
+  11-24 18:19 [MU] 3 AI Investment Stocks We’re Buying Today And Why We’re Selling On Micron（24/7 Wall St.）
+  11-24 18:10 [ANF] Abercrombie: 3 Key Takeaways for Long-Term Investors（Motley Fool）
+  11-24 17:40 [NBIS] Update: US Equity Indexes Mixed as Investors Rotate into Defensives Amid Weakening AI Trade（MT Newswires）
+  11-24 16:58 [ANF] Abercrombie (ANF) Q3 2026 Earnings Call Transcript（Motley Fool）
+  11-24 16:57 [DY] Dycom Industries, Inc. Q3 2027 Earnings Call Summary（Moby）
+  11-24 16:49 [ADI] Analog Devices Tops Fiscal Q4 Views, Gives Mixed Outlook（Investor's Business Daily）
+  11-24 16:44 [ANF] Abercrombie & Fitch Co. Q3 2026 Earnings Call Summary（Moby）
+  11-24 16:28 [DY] Dycom (DY) Q3 2027 Earnings Call Transcript（Motley Fool）
+  11-24 16:13 [QQQ] Is Apple (AAPL) Above Fair Value As ETF Buying Returns?（Simply Wall St.）
+  11-24 16:10 [DY] Dycom Industries (DY) Stock Still Looks Like A Bargain On Its 123% Run（Simply Wall St.）
+  11-24 16:01 [CART] Coupang (CPNG) Stock Is Up 7.8% Today Without Company News（GuruFocus.com）
+  11-24 15:57 [BAX] Why Is Everybody Paying A Premium For West Pharmaceutical Stock?（Trefis）
