@@ -357,6 +357,8 @@
   "盤前報價為延遲數據，可能有延誤。": "Pre-market quotes are delayed data and can lag. ",
   "盤前報價為延遲數據（5 分鐘線），可能有延誤。": "Pre-market quotes are delayed data (5-minute bars) and can lag.",
   "名單與持倉在未來": "Earnings for listed and held stocks in the next",
-  "個交易日內的財報": "sessions"
+  "個交易日內的財報": "sessions",
+  "正常情況下期限越長，數值越高（正價差）。VIX 明顯高於 VIX3M 是逆價差，代表市場為眼前的風險付出更高價錢，多數出現在急跌期間；回復正價差是恐慌消退的訊號，可以配合 Follow-Through Day 一起看。": "Normally the longer the tenor, the higher the value (contango). VIX well above VIX3M is backwardation: the market is paying more for near-term risk, which mostly happens in sharp sell-offs. A return to contango is a sign that fear is fading; read it together with a Follow-Through Day. ",
+  "股票池成員的升跌按上日收市價計算，沒有異動的不列出；名單或持倉內的排在最前。": "Changes for universe members are measured from the prior close; names with no move are left out; watchlist and held names come first. "
  }
 }

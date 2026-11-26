@@ -2079,7 +2079,8 @@ if FETCH_EVENTS:
                 ts = pd.to_datetime(c.get("pubDate") or c.get("displayTime"), errors="coerce", utc=True)
                 if pd.notna(ts) and ts.tz_convert(ET) < CLOSE_CUT - pd.Timedelta(days=2):
                     continue                                 # 兩日前的舊標題不要
-                NEWS.append({"t": t, "title": title, "prov": str(prov or ""),
+                prov = "" if "yahoo" in str(prov or "").lower() else str(prov or "")   # 不在公開頁面顯示數據商名稱
+                NEWS.append({"t": t, "title": title, "prov": prov,
                              "when": f"{ts.tz_convert(ET):%Y-%m-%d %H:%M}" if pd.notna(ts) else "", "url": url})
         except Exception:
             pass
