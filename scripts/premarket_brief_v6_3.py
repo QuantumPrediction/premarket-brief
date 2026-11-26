@@ -4879,9 +4879,9 @@ def t6_orders_html():
                f'<div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px">{lines}</div></details>' if lines else "")
             + '<details><summary style="font-size:13px;font-weight:600">單種和數量的說明</summary><div class="note">'
             "止損限價單：股價升到觸發價就以限價送出買單；開市價已高過限價就不會成交，等於不追。限價 = 觸發價 + "
-            f"{PLAN['limit_atr']:g} 個 ATR，不超過追價上限。數量按限價（最差成交價）計，所以可能比計劃卡少，每注最大虧損不變；"
-            "跳空穿過止損時實際虧損會更大。富途的買入止損單要求觸發價高於現價：盤前價已越過觸發價就落不到單，"
-            "這種情況和已升穿 pivot 的股票都改為開市後才落。附加的止損單是止損市價單，只在常規時段觸發；"
+            f"{PLAN['limit_atr']:g} 個 ATR，不超過追價上限。數量按限價（最差成交價）計，所以可能比參數卡少，每單位最大損失不變；"
+            "跳空穿過失效位時實際損失會更大。部分券商的買入止損單要求觸發價高於現價：盤前價已越過觸發價時，預設參數不再適用；"
+            "這種情況和已升穿 pivot 的形態都改為開市後判定。附加的止損單是止損市價單，只在常規時段觸發；"
             "部分券商介面在這種單沒有「附加訂單」，需要在成交後另設一張賣出止損單。沽空要融資戶口，並確認有貨可借。</div></details>")
 
 BACKTEST_NOTE = ("做多規則（收窄與新高突破，配合多頭及試單閘門）以 2016–2022 年的歷史數據作樣本內回測："
@@ -5059,7 +5059,7 @@ PAGE = (CSS + '<div class="pmb">'
         + section("6　做多形態", s5, long_ok and not V6_OK, f"VCP {len(VCP)}・HTF {int((HTF['Note'] == '').sum()) if len(HTF) else 0}・收窄 {len(TIGHT)}・突破 {len(BO52)}・抗跌 {len(RESIL)}・回調 {len(PULL)}")
         + section("7　做空形態與迴避名單", s6, SHORT_GATE and not V6_OK, f"回抽 {len(S_RETEST)}・跌破 {len(BD)}・墮落龍頭 {len(FALLEN)}")
         + section("8　持倉檢查", s8, bool(len(POS_TBL)))
-        + section("文字摘要（可複製）", f"<pre>{esc(BRIEF_TXT)}</pre>", False)
+        + ('<div class="note"><a href="brief_tc.txt">文字摘要（純文字檔）</a></div>' if os.environ.get("PMB_WEB") else section("文字摘要（可複製）", f"<pre>{esc(BRIEF_TXT)}</pre>", False))
         + f'<div class="disc">{esc(DISCLOSURE)}</div>'
         + "</div>")
 

@@ -195,12 +195,14 @@ def main():
         AI_MODEL=env("AI_MODEL", "claude-sonnet-5-5"))
     print(f"Running cell 1 (v6.3) · universe {values['UNIVERSE']} · account {values['ACCOUNT_EQUITY']:,} · risk {values['BASE_RISK_PCT']}% "
           f"· AI news {'on' if values['AI_NEWS'] else 'off'}", flush=True)
+    os.environ["PMB_WEB"] = "1"                                                  # web edition: the text summary is a linked .txt file
     G = run_script(os.path.join(ROOT, "scripts", SCRIPT), values, state)
 
     run_id = G["RUN_ID"]
     out = os.path.join(state, "site", "briefs", run_id)
     dash = github_wording(open(os.path.join(state, G["DASH_PATH"]), encoding="utf-8").read())   # the script's paths are relative to state/
     txt = github_wording(G["BRIEF_TXT"] + "\n\n" + G["NEWS_TXT"])
+    dash = re.sub(r"<svg.*?</svg>", lambda m: re.sub(r"(?<=\d)\.0(?!\d)", "", m.group(0)), dash, flags=re.S)   # 12.0 -> 12 inside charts
     s = summary(G)
     try:                                                                          # the follow-up section comes from the ledger
         recs, _ = ledger.update(state, G)

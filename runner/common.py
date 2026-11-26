@@ -126,6 +126,7 @@ def translate_doc(doc, lang):
     """A whole saved HTML page: text, <html lang>, and a font that suits the language."""
     out = doc if lang == "tc" else i18n.translate(doc, lang, True)
     out = re.sub(r"<html(?: lang=\"[^\"]*\")?>", f'<html lang="{HTML_LANG[lang]}">', out, count=1)
+    out = out.replace('href="brief_tc.txt"', f'href="brief_{lang}.txt"')                # the text summary in the same language
     return out if lang == "tc" else out.replace("</body>", FONT_CSS[lang] + "</body>", 1)
 
 

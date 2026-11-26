@@ -16,7 +16,7 @@ on:
         default: full
 
 permissions:
-  contents: read            # read the data branch; never writes
+  contents: write           # reads the data branch (never writes it); writes only the "preview" branch
 
 concurrency:
   group: premarket-brief-test
@@ -74,6 +74,19 @@ jobs:
 
       - name: Check the website
         run: python runner/check_site.py "$STATE_DIR"
+
+      - name: Save a preview copy (branch "preview", replaced each run)
+        if: always()
+        run: |
+          rm -rf /tmp/preview && mkdir -p /tmp/preview
+          for d in site site_free ledger; do [ -d "state/$d" ] && cp -r "state/$d" /tmp/preview/; done
+          cd /tmp/preview
+          git init -q -b preview
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "preview of ${GITHUB_REF_NAME} ${GITHUB_SHA::7}"
+          git -c push.negotiate=false push -q --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" preview
 
       - name: Keep the result
         if: always()
