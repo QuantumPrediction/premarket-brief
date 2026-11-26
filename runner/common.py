@@ -180,6 +180,29 @@ GITHUB_WORDING = [
 ]
 
 
+TRACKING = re.compile(r"^(utm_[a-z]+|yptr|guccounter|guce_referrer(_sig)?|ncid|soc_src|soc_trk)$", re.I)
+
+
+def clean_url(url):
+    """Drop tracking parameters (utm_*, yptr=yahoo and the like) from an outbound link; keep everything else."""
+    from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+    try:
+        u = urlsplit(url)
+    except ValueError:
+        return url
+    if not u.query:
+        return url
+    q = [(k, v) for k, v in parse_qsl(u.query, keep_blank_values=True) if not TRACKING.match(k) and "yahoo" not in v.lower()]
+    return urlunsplit((u.scheme, u.netloc, u.path, urlencode(q), u.fragment))
+
+
+def clean_links(text):
+    """Every href="http..." in a page, and every bare http link in plain text, without tracking parameters."""
+    import html as _h
+    text = re.sub(r'href="(https?://[^"]+)"', lambda m: 'href="' + _h.escape(clean_url(_h.unescape(m.group(1))), quote=True) + '"', text)
+    return re.sub(r"(?<![\"'=])(https?://[^\s<>\"']+)", lambda m: clean_url(m.group(1)), text)
+
+
 def github_wording(text):
     for old, new in GITHUB_WORDING:
         text = text.replace(old, new)

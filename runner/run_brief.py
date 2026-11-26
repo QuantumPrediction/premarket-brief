@@ -15,8 +15,8 @@ import shutil
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import (HK, LANGS, ROOT, ensure_languages, env, env_bool, env_num, github_wording, now_et, redirect_page, run_script,
-                    translate_doc, write)  # noqa: E402
+from common import (HK, LANGS, ROOT, clean_links, ensure_languages, env, env_bool, env_num, github_wording, now_et, redirect_page,
+                    run_script, translate_doc, write)  # noqa: E402
 import ledger  # noqa: E402
 
 SCRIPT = "premarket_brief_v6_3.py"
@@ -234,7 +234,7 @@ def main():
         UNIVERSE=env("UNIVERSE", "sp500+ndx100+sp400"), EXTRA_TICKERS_TEXT=env("EXTRA_TICKERS", ""), SAVE_TO_DRIVE=False,
         FETCH_EVENTS=True, SCAN_PREMARKET=True, HTF_WIDE_SCAN=env_bool("HTF_WIDE_SCAN", False), USE_OPENBB=env_bool("USE_OPENBB", True),
         PRINT_NEWS_TEXT=False, AI_NEWS=env_bool("AI_NEWS", False) and bool(os.environ.get("ANTHROPIC_API_KEY")),
-        AI_MODEL=env("AI_MODEL", "claude-sonnet-5-5"))
+        AI_MODEL=env("AI_MODEL", "claude-sonnet-5-5"), SHOW_DEBUG_PANEL=env_bool("SHOW_DEBUG_PANEL", False))
     print(f"Running cell 1 (v6.3) · universe {values['UNIVERSE']} · account {values['ACCOUNT_EQUITY']:,} · risk {values['BASE_RISK_PCT']}% "
           f"· AI news {'on' if values['AI_NEWS'] else 'off'}", flush=True)
     os.environ["PMB_WEB"] = "1"                                                  # web edition: the text summary is a linked .txt file
@@ -242,8 +242,8 @@ def main():
 
     run_id = G["RUN_ID"]
     out = os.path.join(state, "site", "briefs", run_id)
-    dash = github_wording(open(os.path.join(state, G["DASH_PATH"]), encoding="utf-8").read())   # the script's paths are relative to state/
-    txt = github_wording(G["BRIEF_TXT"] + "\n\n" + G["NEWS_TXT"])
+    dash = clean_links(github_wording(open(os.path.join(state, G["DASH_PATH"]), encoding="utf-8").read()))   # paths are relative to state/
+    txt = clean_links(github_wording(G["BRIEF_TXT"] + "\n\n" + G["NEWS_TXT"]))
     dash = re.sub(r"<svg.*?</svg>", lambda m: re.sub(r"(?<=\d)\.0(?!\d)", "", m.group(0)), dash, flags=re.S)   # 12.0 -> 12 inside charts
     s = summary(G)
     try:                                                                          # the follow-up section comes from the ledger

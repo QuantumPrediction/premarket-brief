@@ -10,7 +10,7 @@ import sys
 import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import ROOT, ensure_languages, env, now_et, run_script, translate_doc, write  # noqa: E402
+from common import ROOT, clean_links, ensure_languages, env, now_et, run_script, translate_doc, write  # noqa: E402
 
 
 def main():
@@ -24,7 +24,7 @@ def main():
         return
     html_path = max(new, key=os.path.getmtime)
     stem = os.path.basename(html_path)[: -len("_preopen.html")]
-    doc = open(html_path, encoding="utf-8").read()
+    doc = clean_links(open(html_path, encoding="utf-8").read())
     txt_path = html_path[: -len(".html")] + ".txt"
     txt = open(txt_path, encoding="utf-8").read() if os.path.exists(txt_path) else ""
     out = os.path.join(state, "site", "preopen", stem)

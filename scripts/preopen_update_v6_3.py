@@ -416,7 +416,7 @@ def main():
     scen = scen_of(gap_atr) if not np.isnan(gap_atr) else "未有 QQQ 盤前報價，開市後按四種情景判斷。"
     banner = []
     if not len(C.columns):
-        banner.append("盤前報價全部取不到（Yahoo 沒有回應）：以下判斷沒有用到盤前價。")
+        banner.append("盤前報價今次全部暫缺：以下判斷沒有用到盤前價。")
     if stale:
         banner.append(f"計劃檔是為 {plan.get('brief_date')} 準備的，不是 {target:%Y-%m-%d}：以下價位只作參考。")
     if phase == "未到盤前時段":
@@ -522,19 +522,19 @@ def main():
             todo = "；".join(r["live"] + ([r["act"]] if r["act"] else [])) or "沒有需要注意的事項"
             T.append(f"  {r['t']}：{'盤前 ' + format(r['lp'][0], ',.2f') if r['lp'] else '未有盤前價'}｜止蝕 {fnum(r['stop'])}｜{todo}")
     if res:
-        T.append("【委託與倉位參數試算（按盤前價重算）】")
+        T.append("【倉位與委託參數試算（按盤前價重算）】")
         for r in res:
             T.append(f"  {r['Ticker']}｜{LABEL[r['code']]}{('・' + r['slot']) if r['slot'] else ''}｜{r['txt']}")
             if r["code"] == "ok" and r["slot"] == "上限內":
                 T.append("    " + t6_order_line(r))
     else:
-        T.append("【委託與倉位參數試算（按盤前價重算）】完整簡報今日沒有首選形態。")
+        T.append("【倉位與委託參數試算（按盤前價重算）】完整簡報今日沒有首選形態。")
     if walert:
         T.append("【B 級提示】" + "；".join(walert))
     if tl:
         T.append("【今晚時間表】香港時間（美東）")
         T += [f"  {h:%H:%M}{'（翌日）' if nx else ''}（{et:%H:%M}）{w}{'｜' + st if st else ''}" for h, et, w, k, st, nx in tl]
-    T.append("盤前報價來自 Yahoo，可能有延誤。" + DISCLOSURE)
+    T.append("盤前報價為延遲數據，可能有延誤。" + DISCLOSURE)
     TXT = "\n".join(T)
     print(TXT)
 
@@ -563,7 +563,7 @@ def main():
                          f'<td class="num"{TOP}>{fnum(r["stop"])}</td></tr><tr><td colspan="3" class="w" style="padding-top:0">'
                          + (f'<b class="r">{esc("；".join(todo))}</b>' if todo else '<span class="g">沒有需要注意的事項</span>') + "</td></tr>")
         H.append('<div class="q">一、示範持倉</div>' + tb(["代號", "盤前價", "形態失效位"], rows_))
-    H.append('<div class="q">二、委託與倉位參數試算（按盤前價重算）</div>')
+    H.append('<div class="q">二、倉位與委託參數試算（按盤前價重算）</div>')
     if res:
         rows_ = []
         for r in res:
@@ -594,7 +594,7 @@ def main():
                  f'<td class="w">{esc(w)}{SM.format(esc(st)) if st else ""}</td></tr>'
                  for h, et, w, k, st, nx in tl]
         H.append('<div class="q">三、今晚時間表（香港時間）</div>' + tb(["香港", "美東", "事項"], rows_))
-    H.append(f'<div class="note">盤前報價來自 Yahoo 的 5 分鐘線，可能有延誤。</div><div class="disc">{esc(DISCLOSURE)}</div></div>')
+    H.append(f'<div class="note">盤前報價為延遲數據（5 分鐘線），可能有延誤。</div><div class="disc">{esc(DISCLOSURE)}</div></div>')
     H.insert(1, f'<div id="sizer-meta" hidden data-equity0="{plan.get("account_equity") or 100000:g}" data-risk0="{plan.get("base_risk_pct") or 0.75:g}" '
                 f'data-mult-long="{plan.get("mult_long") or 0:.4f}" data-mult-short="{plan.get("mult_short") or 0:.4f}" data-event="{int(bool(plan.get("event_day")))}"></div>')
     PAGE = CSS + T6_CSS + "".join(H)

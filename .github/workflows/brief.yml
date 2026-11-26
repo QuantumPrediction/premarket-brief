@@ -57,6 +57,7 @@ jobs:
       AI_NEWS: ${{ vars.AI_NEWS }}
       AI_MODEL: ${{ vars.AI_MODEL }}
       ARCHIVE_DAYS: ${{ vars.ARCHIVE_DAYS }}
+      SHOW_DEBUG_PANEL: ${{ vars.SHOW_DEBUG_PANEL }}
       BUILD_MODE: ${{ vars.BUILD_MODE }}
     steps:
       - uses: actions/checkout@v7

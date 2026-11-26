@@ -46,6 +46,7 @@ jobs:
       DEMO_ACCOUNT: ${{ vars.DEMO_ACCOUNT }}
       DEMO_POSITIONS: ${{ vars.DEMO_POSITIONS }}
       ARCHIVE_DAYS: ${{ vars.ARCHIVE_DAYS }}
+      SHOW_DEBUG_PANEL: ${{ vars.SHOW_DEBUG_PANEL }}
       BUILD_MODE: ${{ vars.BUILD_MODE }}
     steps:
       - uses: actions/checkout@v7

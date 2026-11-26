@@ -16,6 +16,8 @@ import sys
 from html.parser import HTMLParser
 
 FORBIDDEN = [r"跑格子", r"格子 ?2", r"（當日 \d+ 次）", r"（当日 \d+ 次）", r"Run Cell", r"\(\d+ runs that day\)"]
+PUBLIC = [r"Yahoo", r"OpenBB", r"FRED", r"Colab", r"Wikipedia", r"AI_NEWS", r"HTF_WIDE_SCAN", r"ANTHROPIC_API_KEY", r"表單", r"Cboe 取不到",
+          r"utm_source", r"yptr", r"數據源狀態", r"数据源状态", r"財報與經濟日曆的來源", r"Google Drive"]   # never on a public page
 CJK = re.compile(r"[㐀-鿿]")
 
 
@@ -83,6 +85,10 @@ def check_site(site, errors, notes):
                 errors.append(f"{rel}: link leaves the site folder ({ref})")
             elif not os.path.exists(tgt) and not os.path.exists(os.path.join(tgt, "index.html")):
                 errors.append(f"{rel}: link to a missing file ({ref})")
+        if os.path.dirname(page) in newest or os.path.basename(page) == "index.html":
+            for pat in PUBLIC:
+                for m in re.finditer(pat, re.sub(r"<script.*?</script>", "", html, flags=re.S)):
+                    errors.append(f"{rel}: public page shows «{m.group(0)}»")
         if os.path.dirname(page) in newest:
             for pat in FORBIDDEN:
                 for m in re.finditer(pat, html):
@@ -106,6 +112,12 @@ def check_site(site, errors, notes):
             if left:
                 sample = sorted(set(m.group(0) for m in re.finditer(r"[㐀-鿿][㐀-鿿，、：；（）「」]*", text)), key=len)[-8:]
                 notes.append(f"{rel}: {len(left)} Chinese characters left, e.g. {' | '.join(sample)}")
+    for folder in newest:                                          # the plain-text summaries of the newest runs
+        for txt in glob.glob(os.path.join(folder, "*.txt")):
+            body = open(txt, encoding="utf-8").read()
+            for pat in PUBLIC + FORBIDDEN:
+                for m in re.finditer(pat, body):
+                    errors.append(f"{os.path.relpath(txt, site)}: text summary shows «{m.group(0)}»")
     for js in glob.glob(os.path.join(site, "**", "*.json"), recursive=True):
         try:
             json.load(open(js, encoding="utf-8"))

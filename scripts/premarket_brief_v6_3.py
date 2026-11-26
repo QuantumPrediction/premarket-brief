@@ -23,6 +23,8 @@ PRINT_NEWS_TEXT = True  #@param {type:"boolean"}
 #@markdown **AI 消息面（選用，要收費）**：勾選後由 Claude 上網搜尋當日消息，寫成一段消息面放進簡報。需要 Anthropic API key：在 Colab 左邊的鑰匙圖示（Secrets）加一個名為 `ANTHROPIC_API_KEY` 的密鑰並允許這個筆記本讀取。
 AI_NEWS = False  #@param {type:"boolean"}
 AI_MODEL = "claude-sonnet-5-5"  #@param ["claude-sonnet-5-5", "claude-opus-5-5", "claude-haiku-5-5"]
+#@markdown **顯示數據源診斷**：在簡報內顯示數據源狀態表和日曆來源（只供開發時用；平時只印在執行紀錄）
+SHOW_DEBUG_PANEL = False  #@param {type:"boolean"}
 
 # ======================================================================
 # 美股盤前簡報引擎 v6.3（格子 1：完整簡報，可直接複製貼上）
@@ -1514,7 +1516,7 @@ def run_htf():
         except Exception as e:
             HTF_NOTE = f"全市場名單取不到（{type(e).__name__}），只掃了股票池。"
     else:
-        HTF_NOTE = "只掃了股票池。大型和中型股很少在 8 週內升近一倍，想掃全美上市股票，在表單勾選 HTF_WIDE_SCAN。"
+        HTF_NOTE = "只掃了股票池。大型和中型股很少在 8 週內升近一倍。"
     d = pd.DataFrame(rows)
     if len(d):
         d["RS"] = d["Ticker"].map(F["RS"])
@@ -1686,9 +1688,10 @@ if FETCH_EVENTS:
             EARN_REACT = pd.concat([done, pend], ignore_index=True)
             EARN_NEXT = ea[ea["_d"] >= SESS_D].copy()
         if not len(EARN_REACT) and not len(EARN_NEXT):
-            EARN_NOTE = "Yahoo 財報日曆在這幾日沒有列出股票池內的公司。"
+            EARN_NOTE = "財報日曆在這幾日沒有列出股票池內的公司。"
     except Exception as e:
-        EARN_NOTE = f"Yahoo 財報日曆取不到（{type(e).__name__}），請手動查。"
+        EARN_NOTE = "財報日曆暫時未能提供。"
+        print(f"  財報日曆出錯：{type(e).__name__}")
     try:
         ec = yf.Calendars(start=f"{SESS_D:%Y-%m-%d}", end=d_end).get_economic_events_calendar(limit=100).reset_index()
         if "Region" in ec.columns:
@@ -1701,9 +1704,10 @@ if FETCH_EVENTS:
         ec["Tier"] = (ec["Event"] if "Event" in ec.columns else pd.Series("", index=ec.index)).map(econ_tier)
         ECON = ec[ec["Tier"] != ""]
         if not len(ECON):
-            ECON_NOTE = "Yahoo 未列出這兩日的重點數據。"
+            ECON_NOTE = "這兩日沒有列出重點數據。"
     except Exception as e:
-        ECON_NOTE = f"Yahoo 經濟日曆取不到（{type(e).__name__}），請手動查。"
+        ECON_NOTE = "經濟日曆暫時未能提供。"
+        print(f"  經濟日曆出錯：{type(e).__name__}")
 # ---------- 補充數據層・事件（v5.2）：Nasdaq 財報日曆覆蓋整個股票池；Nasdaq 經濟日曆補上聯儲局講話和市場預期 ----------
 OBB_EARN_WINDOW = 15                                         # 財報日曆向前取多少個交易日
 OBB_EARN, OBB_EARN_FULL, OBB_WIN_END = {}, False, None       # 代號 →（財報日、時段）；整段期間是否都取到；期間最後一日
@@ -1862,7 +1866,7 @@ if FETCH_EVENTS and USE_OPENBB:
                     OBB_ONLY_N, OBB_ONLY_Y = sorted(_ns - _ys), sorted(_ys - _ns)
                 EARN_REACT, EARN_NEXT, PEND = _react, _nextt, _pend
                 EARN_SRC = "Nasdaq，Yahoo 補充" if (len(_yr) or len(_yn)) else "Nasdaq"
-                EARN_NOTE = "" if (len(EARN_REACT) or len(EARN_NEXT)) else "Nasdaq 和 Yahoo 的財報日曆在這幾日都沒有列出股票池內的公司。"
+                EARN_NOTE = "" if (len(EARN_REACT) or len(EARN_NEXT)) else "財報日曆在這幾日沒有列出股票池內的公司。"
     except Exception as e:
         OBB_ERR.append(f"Nasdaq 財報日曆處理出錯（{type(e).__name__}: {' '.join(str(e).split())[:160]}），已沿用 Yahoo 的結果。")
     try:
@@ -2075,7 +2079,7 @@ if FETCH_EVENTS:
                 ts = pd.to_datetime(c.get("pubDate") or c.get("displayTime"), errors="coerce", utc=True)
                 if pd.notna(ts) and ts.tz_convert(ET) < CLOSE_CUT - pd.Timedelta(days=2):
                     continue                                 # 兩日前的舊標題不要
-                NEWS.append({"t": t, "title": title, "prov": str(prov or "Yahoo"),
+                NEWS.append({"t": t, "title": title, "prov": str(prov or ""),
                              "when": f"{ts.tz_convert(ET):%Y-%m-%d %H:%M}" if pd.notna(ts) else "", "url": url})
         except Exception:
             pass
@@ -2269,7 +2273,9 @@ ATTR = pd.DataFrame([{"Pillar": p.name, "W": TH["weights"][p.key], "Now": PS[p.k
                       "Contrib": (PS[p.key].iloc[-1] - PS[p.key].iloc[-6]) * TH["weights"][p.key] / 100} for p in PILLARS])
 
 quality = list(UNI_NOTES)
-quality += [x for x in OBB_ERR if "載入失敗" in x]
+quality += (["補充數據層暫時未能載入，該節已略過。"] if any("載入失敗" in x for x in OBB_ERR) else [])
+for _x in OBB_ERR:
+    print("  補充數據層：" + _x)
 if DATA_HOLE:
     quality.insert(0, f"收市價缺漏：{len(DATA_HOLE)} 隻（佔股票池 {fnum(len(DATA_HOLE) / max(len(TICKS), 1) * 100, 1 if len(DATA_HOLE) < 0.01 * max(len(TICKS), 1) else 0)}%）"
                    f"沒有 {ASOF:%m-%d} 的收市價，未計入掃描、分級和寬度。成交最大的：" + "、".join(DATA_HOLE[:12]) + ("…" if len(DATA_HOLE) > 12 else ""))
@@ -3371,7 +3377,7 @@ def obb_extras():
             mv["Chg%"] = ext.where(mv["InPool"], mv["Chg%"])
             odd = mv["InPool"] & (ext.abs() > 60)                                     # v6.1：與日線相差太遠，多數是拆股或數據錯誤
             if odd.any():
-                out["key"].append(f"以下股票的{lab}報價與日線收市價相差超過 60%，疑似拆股或數據錯誤，已從異動榜略過，落盤前請自行核對："
+                out["key"].append(f"以下股票的{lab}報價與日線收市價相差超過 60%，疑似拆股或數據錯誤，已從異動榜略過，請自行核對："
                                   + "、".join(f"{t_}（{x_:+.0f}%）" for t_, x_ in zip(mv.loc[odd, "Ticker"], ext[odd])) + "。")
                 mv = mv[~odd].copy()
             mv = mv[~mv["InPool"] | mv["InList"] | (mv["Chg%"].abs() >= 1)]          # 延長時段沒有異動的大型股不列
@@ -3487,12 +3493,15 @@ def obb_section_html(x):
     """把補充數據層的結果砌成簡報內的一節。回傳（HTML、成功的項數）。"""
     log = pd.DataFrame(OBB_LOG)
     n_ok = int((log["Status"] == "成功").sum()) if len(log) else 0
-    p = [f'<div class="warnbox">⚠ {esc(e)}</div>' for e in OBB_ERR]
-    p.append('<div class="note">這一節是 v5 新增的補充數據：Cboe 和 FINRA 的數據經 OpenBB 取得，Nasdaq 直接連線。報價有延遲。'
-             "除了財報日和經濟日曆會併入第 3 節之外，其餘只供參考，不計入健康分數和四個閘門。任何一項取不到，簡報其餘部分照 v4 的做法運作。</div>")
+    p = [f'<div class="warnbox">⚠ {esc(e)}</div>' for e in OBB_ERR] if SHOW_DEBUG_PANEL else []
+    p.append('<div class="note">這一節是補充市場數據：期權引伸波幅、波動指數期限結構和沽空數據，報價有延遲。'
+             "除了財報日和經濟日曆會併入第 3 節之外，其餘只供參考，不計入健康分數和四個閘門。任何一項暫缺，簡報其餘部分照常。</div>")
     if x["key"]:
         p.append("<h3>重點</h3><ul>" + "".join(f"<li>{esc(k)}</li>" for k in x["key"]) + "</ul>")
-    p.append("<h3>數據源狀態</h3>" + render(log, OSPEC["log"], empty="沒有執行任何取數指令"))
+    if SHOW_DEBUG_PANEL:
+        p.append("<h3>數據源狀態</h3>" + render(log, OSPEC["log"], empty="沒有執行任何取數指令"))
+    elif len(log):
+        print("  數據源狀態：\n" + log.to_string(index=False))
     src = [f"財報日曆和財報反應現在取自 {EARN_SRC}。"]
     if OBB_EARN:
         src.append(f"Nasdaq 日曆覆蓋到 {OBB_WIN_END:%m-%d}（未來 {OBB_EARN_WINDOW} 個交易日），共 {len(OBB_EARN)} 間公司；"
@@ -3513,39 +3522,46 @@ def obb_section_html(x):
                    "想要這兩項，到 fred.stlouisfed.org 申請 API key，在 Colab 左邊的鑰匙圖示加入 FRED_API_KEY。")
     if x["stale"]:
         src.append("以下數據的來源沒有更新，已停用：" + "、".join(x["stale"]) + "。")
-    p.append("<h3>財報與經濟日曆的來源</h3><ul>" + "".join(f"<li>{esc(s)}</li>" for s in src) + "</ul>")
+    if SHOW_DEBUG_PANEL:
+        p.append("<h3>財報與經濟日曆的來源</h3><ul>" + "".join(f"<li>{esc(s)}</li>" for s in src) + "</ul>")
+    else:
+        print("  財報與經濟日曆的來源：" + " ".join(src))
     if len(OBB_ECON):
-        p.append("<h3>Nasdaq 經濟日曆（美國重點項目，含市場預期）</h3>" + render(OBB_ECON, SPEC["econ"], 20)
-                 + f'<div class="note">{esc(OBB_TZ_NOTE)}Nasdaq 不提供重要性，星級按關鍵字判斷：官員講話只有主席算三星。'
-                   "與 Yahoo 不重複的項目已併入第 3 節。</div>")
+        p.append("<h3>經濟日曆（美國重點項目，含市場預期）</h3>" + render(OBB_ECON, SPEC["econ"], 20)
+                 + f'<div class="note">{esc(OBB_TZ_NOTE)}星級按關鍵字判斷：官員講話只有主席算三星。重點項目已併入第 3 節。</div>')
     if len(x["earn"]):
-        p.append(f"<h3>名單與持倉在未來 {OBB_EARN_WINDOW} 個交易日內的財報（Nasdaq）</h3>" + render(x["earn"], OSPEC["earn"], 30)
+        p.append(f"<h3>名單與持倉在未來 {OBB_EARN_WINDOW} 個交易日內的財報</h3>" + render(x["earn"], OSPEC["earn"], 30)
                  + '<div class="note">「距今交易日」0 代表今日，−1 代表剛公佈。</div>')
     if len(x["imp"]):
-        p.append("<h3>期權引伸波幅（" + esc(x.get("imp_src", "Cboe")) + "）</h3>" + render(x["imp"], OSPEC["imp"])
-                 + ('<div class="note">今次 Cboe 取不到，數字來自 Yahoo 的期權鏈：用買賣中間價，沒有買賣報價時用最後成交價，準確度較低，只作參考。</div>'
+        p.append("<h3>期權引伸波幅（參考值）</h3>" + render(x["imp"], OSPEC["imp"])
+                 + ('<div class="note">今次的數字按期權鏈的買賣中間價計算，沒有買賣報價時用最後成交價，準確度較低，只作參考。</div>'
                     if "Yahoo" in str(x.get("imp_src", "")) else "")
                  + '<div class="note">跨式成本＝同一到期日、同一行使價的認購加認沽期權的價錢，佔股價的百分比，是期權市場對到期前波幅的定價。'
                    "美股收市後和盤前，期權報價仍是上日收市的，所以行使價取最接近上日收市價的一個。"
                  + ("" if "Yahoo" in str(x.get("imp_src", "")) else "這裡用賣出價計算，會略為高估，流通量低的期權誤差更大。")
                  + "財報股的數字包括由現在到期權到期的所有日子，不只是財報當日。</div>")
     if len(x["vol"]) or len(x["vx"]):
-        p.append('<div class="two"><div><h3>波動指數的期限結構（' + esc(x.get("vol_src", "Cboe")) + '）</h3>' + render(x["vol"], OSPEC["vol"], empty="取不到")
-                 + '</div><div><h3>VIX 期貨曲線（上日結算）</h3>' + render(x["vx"], OSPEC["vx"], empty="取不到") + "</div></div>"
+        panels = []
+        if len(x["vol"]):
+            panels.append("<div><h3>" + ("波動指數期限結構（上日收市）" if "Yahoo" in str(x.get("vol_src", "")) else "波動指數期限結構")
+                          + "</h3>" + render(x["vol"], OSPEC["vol"]) + "</div>")
+        if len(x["vx"]):
+            panels.append("<div><h3>VIX 期貨曲線（上日結算）</h3>" + render(x["vx"], OSPEC["vx"]) + "</div>")
+        p.append(('<div class="two">' + "".join(panels) + "</div>" if len(panels) == 2 else "".join(panels))
                  + '<div class="note">正常情況下期限越長，數值越高（正價差）。VIX 明顯高於 VIX3M 是逆價差，代表市場為眼前的風險付出更高價錢，'
                    "多數出現在急跌期間；回復正價差是恐慌消退的訊號，可以配合 Follow-Through Day 一起看。"
-                   "VIX 期貨的數字是 Cboe 的結算參考值，與你的報價軟件有出入時，以報價軟件為準。</div>")
+                 + ("VIX 期貨的數字是交易所的結算參考值，與報價軟件有出入時，以報價軟件為準。" if len(x["vx"]) else "") + "</div>")
     if len(x["mov"]):
         lab = x["mov_label"]
-        p.append(f"<h3>全市場{esc(lab)}異動榜（Nasdaq）</h3>" + render(x["mov"], OSPEC["mov"], 40)
+        p.append(f"<h3>全市場{esc(lab)}異動榜</h3>" + render(x["mov"], OSPEC["mov"], 40)
                  + '<div class="note">' + ("" if lab == "盤前" else "現在不是美東的盤前時段，顯示的是" + esc(lab) + "榜；美東 4:00 至 9:30 之間執行才是盤前榜，用處最大。")
                  + "股票池成員的升跌按上日收市價計算，沒有異動的不列出；名單或持倉內的排在最前。"
-                   "池外的股票用 Nasdaq 的數字，沒有 RS 和階段；ETF 和低於 5 元的不列出。</div>")
+                   "池外的股票只有報價數字，沒有 RS 和階段；ETF 和低於 5 元的不列出。</div>")
     if len(x["si"]):
-        p.append("<h3>沽空數據（FINRA，每半個月公佈一次）</h3>" + render(x["si"], OSPEC["si"])
+        p.append("<h3>沽空數據（每半個月公佈一次）</h3>" + render(x["si"], OSPEC["si"])
                  + '<div class="note">回補日數＝沽空股數 ÷ 日均成交量。數據以結算日計，公佈時已滯後一至兩星期。'
                    "做空候選的回補日數高，代表好消息出現時容易被軋空。5 日這條線是常用的經驗值（見頁底「方法論與局限性」）。</div>")
-    return section("補充數據層（v5：OpenBB、Nasdaq、FRED）", "".join(p), True, f"{n_ok}/{len(log)} 項成功"), n_ok
+    return section("補充數據層（期權引伸波幅、波動結構與沽空數據）", "".join(p), True, f"{n_ok}/{len(log)} 項成功" if SHOW_DEBUG_PANEL else ""), n_ok
 
 OBB_SECTION, OBB_TXT, OBB_OKN = "", "", 0
 OBB_MOV = OBB_IMP = OBB_SI = pd.DataFrame()
@@ -3557,9 +3573,10 @@ if USE_OPENBB:
         if _ox["key"]:
             OBB_TXT = "\n補充數據層（只供參考，不計入分數）：" + " ".join(_ox["key"])
     except Exception as e:
-        OBB_SECTION = section("補充數據層（v5：OpenBB、Nasdaq、FRED）", "".join(f'<div class="warnbox">⚠ {esc(x)}</div>' for x in OBB_ERR)
-                              + f'<div class="warnbox">⚠ 補充數據層出錯（{esc(type(e).__name__)}: {esc(" ".join(str(e).split())[:200])}），'
-                                "簡報其餘部分不受影響。</div>", True)
+        print(f"  補充數據層出錯：{type(e).__name__}: {' '.join(str(e).split())[:200]}")
+        OBB_SECTION = section("補充數據層（期權引伸波幅、波動結構與沽空數據）",
+                              ("".join(f'<div class="warnbox">⚠ {esc(x)}</div>' for x in OBB_ERR) if SHOW_DEBUG_PANEL else "")
+                              + '<div class="note">補充數據層今次未能提供，簡報其餘部分不受影響。</div>', True)
 
 # ---------- v6：分級（第二步）：用上沽空數據，計風險預算、分散檢查、提示價和文字版 ----------
 T6_BUD, T6_DIV, T6_TXT, T6_TV = {}, [], [], []
@@ -3659,7 +3676,7 @@ def t6_outcome(t, side, asof, trigger, stop):
 
 def t6_followup():
     path = os.path.join(HIST_DIR, "tier_history.csv")
-    keep_hint = "今日的名單已存起來，下次執行就會有跟進。" if SAVE_TO_DRIVE else "要在表單勾選 SAVE_TO_DRIVE，名單才會存到 Google Drive，下次執行才可以跟進。"
+    keep_hint = "今日的名單已存起來，下次執行就會有跟進。"
     if not os.path.exists(path):
         T6_FU["note"] = "未有之前的名單紀錄。" + keep_hint
         return
@@ -3777,7 +3794,7 @@ def t6_finalize():
         n_short, lim_s = min(opts, key=lambda x: x[0])
     T6_BUD = dict(heat_cap=heat_cap, heat_left=heat_left, expo_cap=expo_cap, expo_left=expo_left, risk_l=LONG_RISK, risk_s=short_risk,
                   n_long=max(n_long, 0), n_short=max(n_short, 0), lim_l=lim_l, lim_s=lim_s, day_cap=day_cap,
-                  heat_src="表單設定" if (not isnan(MAX_HEAT_PCT) and MAX_HEAT_PCT > 0) else f"Regime {REG_L} 預設")
+                  heat_src="自訂設定" if (not isnan(MAX_HEAT_PCT) and MAX_HEAT_PCT > 0) else f"Regime {REG_L} 預設")
 
     # 3. 分散檢查：板塊分佈、相關係數
     div = []
@@ -3960,7 +3977,7 @@ def t6_history_build(n=10):
         out.append(r)
     T6_HIST = out[::-1]                                                          # 新到舊
     lines = ["【近 10 日回顧】新到舊；同一日跑了幾次只列最後一次"
-             + ("" if (SAVE_TO_DRIVE and HIST_DIR == DRIVE_DIR) else "；這次沒有存到 Google Drive，紀錄只存在這次的 Colab 工作階段")]
+             ]
     for r in T6_HIST:
         head = f"  {r['bd']:%m-%d}（{WD_ZH[r['bd'].weekday()]}）｜分數 {fnum(r['score'], 0)}｜Regime {r['regime'] or '—'}"
         if r["src"] == "calc":
@@ -4268,27 +4285,28 @@ s6 = (short_note + (f'<div class="note">空頭時機：{esc(SHORT_TIMING)}。</d
 # --- 7 消息面 ---
 def _news_li(n):
     link = f'<a href="{esc(n["url"])}" target="_blank">{esc(n["title"])}</a>' if n["url"] else esc(n["title"])
-    return f'<li><span class="m">{esc(n["when"][5:])}</span> [{esc(n["t"])}] {link} <span class="m">（{esc(n["prov"])}）</span></li>'
+    return (f'<li><span class="m">{esc(n["when"][5:])}</span> [{esc(n["t"])}] {link}'
+            + (f' <span class="m">（{esc(n["prov"])}）</span>' if n["prov"] else "") + "</li>")
 if len(EARN_NEXT):
     EARN_NEXT["InList"] = EARN_NEXT["Symbol"].isin(WATCH + list(POSITIONS) + (list(HTF["Ticker"]) if len(HTF) else []))
 theme_txt = "、".join(f"{k} {v} 則" for k, v in sorted(THEME_N.items(), key=lambda kv: -kv[1]))
 s7 = ("<h3>昨日市場回顧（由數據計算）</h3><ul>" + "".join(f"<li>{esc(x)}</li>" for x in RECAP) + "</ul>"
       + ("<h3>日曆因素</h3><ul>" + "".join(f"<li>{esc(x)}</li>" for x in CAL_FLAGS) + "</ul>" if CAL_FLAGS else "")
-      + "<h3>財報反應</h3><div class='note'>好消息不升是弱，壞消息不跌是強。盈利驚喜取自 Yahoo，剛公佈時可能未有數字。</div>"
+      + "<h3>財報反應</h3><div class='note'>好消息不升是弱，壞消息不跌是強。剛公佈時盈利驚喜可能未有數字。</div>"
       + (render(EARN_REACT, SPEC["react"], 20) if len(EARN_REACT) else f'<div class="note">{esc(EARN_NOTE or "這兩日沒有股票池內的公司公佈財報。")}</div>')
       + f"<h3>{SESS:%m-%d} 及下一個交易日的財報（股票池內，按成交金額排序）</h3>"
-      + (render(EARN_NEXT, SPEC["enext"], 25) if len(EARN_NEXT) else f'<div class="note">{esc(EARN_NOTE or "Yahoo 沒有列出。")}</div>')
-      + f"<h3>重點經濟數據（{SESS:%m-%d} 起）</h3>" + (render(ECON, SPEC["econ"], 20) if len(ECON) else f'<div class="note">{esc(ECON_NOTE or "未取")}</div>')
+      + (render(EARN_NEXT, SPEC["enext"], 25) if len(EARN_NEXT) else f'<div class="note">{esc(EARN_NOTE or "沒有列出。")}</div>')
+      + "<h3>重點經濟數據</h3>" + (render(ECON, SPEC["econ"], 20) if len(ECON) else f'<div class="note">{esc(ECON_NOTE or "未取")}</div>')
       + "<h3>名單與持倉的財報風險（3 個交易日內）</h3>"
       + ("<ul>" + "".join(f"<li><b>{esc(t)}</b>（{esc(nm)}）：{esc(es)}</li>" for t, nm, es in EARN_SOON) + "</ul>" if EARN_SOON else '<div class="note">沒有。</div>')
-      + ("<h3>標題（Yahoo，美東時間）</h3>" + (f'<div class="note">主題：{esc(theme_txt)}</div>' if theme_txt else "") + "<ul>" + "".join(_news_li(n) for n in NEWS) + "</ul>" if NEWS else "")
-      + "<h3>AI 消息面</h3>__AI_NEWS__"
-      + '<div class="note">Yahoo 的日曆和標題不保證齊全；聯儲局官員講話和突發消息不在日曆內。</div>')
+      + ("<h3>市場要聞（美東時間）</h3>" + (f'<div class="note">主題：{esc(theme_txt)}</div>' if theme_txt else "") + "<ul>" + "".join(_news_li(n) for n in NEWS) + "</ul>" if NEWS else "")
+      + ("<h3>AI 消息面</h3>__AI_NEWS__" if AI_NEWS else "")
+      + '<div class="note">日曆和要聞不保證齊全；聯儲局官員講話和突發消息不在日曆內。</div>')
 
 # --- 8 持倉 ---
 s8 = (f'<div class="note">未平倉總風險佔戶口 {OPEN_RISK_PCT:.2f}%；多倉市值佔戶口 {LONG_EXPO:.0f}%，Regime {REG_L} 的上限是 {CAP_MAX[REG_L]}%'
       + ("，已超出上限。" if LONG_EXPO > CAP_MAX[REG_L] else "。") + "</div>" + render(POS_TBL, SPEC["pos"])) if len(POS_TBL) else \
-     '<div class="note">沒有輸入持倉。在表單的「現有持倉」填 代號:股數:止蝕價:入場價:入場日（入場價和入場日可以不填）。</div>'
+     ""
 
 # --- 文字摘要 ---
 def tl(d, n=8):
@@ -4381,8 +4399,7 @@ if AI_NEWS:
 
 def ai_html():
     if not AI_NEWS:
-        return ('<div class="note">未啟用。在表單勾選 AI_NEWS 並設定 ANTHROPIC_API_KEY，腳本會請 Claude 上網搜尋當日消息，'
-                "寫出隔夜要聞、今日事件、與名單有關的消息和對劇本的影響。這項功能按 Anthropic API 收費。</div>")
+        return ""
     if not AI_TEXT:
         return f'<div class="warnbox">{esc(AI_NOTE or "沒有回應")}</div>'
     out, in_ul = [], False
@@ -4411,9 +4428,7 @@ def ai_html():
 
 
 s7 = s7.replace("__AI_NEWS__", ai_html())
-s7 = (s7.replace("盈利驚喜取自 Yahoo", "盈利驚喜取自 " + EARN_SRC)
-        .replace(f"重點經濟數據（{SESS:%m-%d} 起）", f"重點經濟數據（{SESS:%m-%d} 起；來源 {ECON_SRC}）")
-        .replace("（股票池內，按成交金額排序）", f"（股票池內，按成交金額排序；來源 {EARN_SRC}）"))
+print(f"  財報來源：{EARN_SRC}；經濟日曆來源：{ECON_SRC}")
 
 # --- 焦點名單卡片 ---
 focus_note = ("閘門已開：以下是按固定計分挑出的首選；規則要求升穿觸發價並通過五項入場確認。" if long_ok else
@@ -4790,10 +4805,7 @@ def t6_history_html():
         body.append(f'<tr{bold}><td>{esc(day)}{SM.format(esc(run))}</td>' + sc
                     + f'<td style="{W.format(80)}">{esc(r["gates"])}{SM.format(esc(r["cycle"])) if r["cycle"] else ""}</td>'
                     + f'<td style="{W.format(100)}"><span class="m">{esc(r["label"])}</span> {names}{chg}</td></tr>')
-    where = (f"每日的完整簡報存在 Google Drive 的 premarket_brief/年-月/ 資料夾，檔名以簡報日開頭，例如 {RUN_ID}_dashboard.html。"
-             if SAVE_TO_DRIVE and HIST_DIR == DRIVE_DIR else
-             ("勾選了 SAVE_TO_DRIVE，但這次連接不到 Google Drive，" if SAVE_TO_DRIVE else "這次沒有存到 Google Drive，")
-             + "紀錄只存在 Colab 的臨時資料夾，工作階段結束就會刪除。要回看之前的簡報，請勾選 SAVE_TO_DRIVE，並在彈出的視窗允許 Colab 連接 Google Drive。")
+    where = "每日的完整簡報都保留在網站首頁的「之前的簡報」。"
     return (f'<details><summary style="font-size:13px;font-weight:600">近 10 日回顧（分數 {esc(trend)}；Regime {esc(regs)}）</summary>'
             '<div class="tw"><table><thead><tr><th>簡報日</th><th class="num">分數</th><th>閘門／週期</th>'
             '<th>首選／變化</th></tr></thead><tbody>' + "".join(body) + "</tbody></table></div>"
@@ -4838,7 +4850,7 @@ def t6_pos_html():
                     f'<tr><td colspan="3" class="w" style="padding-top:0">{todo}</td></tr>')
     return ('<h3>持倉：先處理，再開新倉</h3><div class="tw"><table class="cmp"><thead><tr><th>代號</th><th class="num">現價／盈虧</th>'
             '<th class="num">止蝕／距離</th></tr></thead><tbody>' + "".join(rows) + "</tbody></table></div>"
-            '<div class="note">現價用最新的盤後或盤前報價，沒有就用上日收市。R 倍數以現時止蝕計；持有日數要在表單填入場日。'
+            '<div class="note">現價用最新的盤後或盤前報價，沒有就用上日收市。R 倍數以現時止蝕計；持有日數需要入場日資料。'
             "紅字按 POS_RULES 的經驗值標示（見頁底「方法論與局限性」），是規則提示，不是指令。</div>")
 
 def t6_orders_html():
@@ -4871,7 +4883,7 @@ def t6_orders_html():
         return (f'<div style="margin:3px 0" data-order{attrs} data-mode="{"open" if o["Mode"] == "開市後" else "stop"}" '
                 f'data-trigger="{o["Trigger"]:.2f}" data-pivot="{o["Pivot"]:.2f}" data-sym="{esc(o["Ticker"])}">{esc(t6_order_line(o))}</div>')
     lines = "".join(order_div(o) for o in T6_ORD if o["InSlot"])
-    return ('<h3>委託與倉位參數試算（按自訂戶口試算）</h3>'
+    return ('<h3>倉位與委託參數試算（按自訂戶口試算）</h3>'
             + ('' if long_ok else '<div class="note">多頭閘門未開：做多參數只作試算，規則上不適用。</div>')
             + f'<div class="note">{esc(head)}</div>'
             '<div class="tw"><table class="cmp"><thead><tr><th>代號</th><th class="num">觸發位</th><th class="num">試算數量</th>'
@@ -4893,7 +4905,7 @@ LEDGER_NOTE = ("每個首選形態（A 級和預備）列出後只看之後的�
                "先觸及形態失效位或遇上財報就作廢；觸發後先到模型 2R 參考位記 +2R，先到形態失效位記 −1R，同一根日線兩者都到當作失效。"
                "跳空越過價位時按開市價計。同一隻股票在紀錄未完結前再次入選只計一次。「其餘候選」是對照組：首選的結果如果不比它好，分級就沒有用處。"
                "樣本少於 10 筆時只顯示筆數；樣本少於 30 筆的統計只是紀錄，不能當作證據。")
-DATA_NOTE = ["數據來自公開來源（Yahoo Finance、Nasdaq、FRED 等），可能延誤、缺漏或出錯；頁頂的「數據狀態」列出今次發現的問題。",
+DATA_NOTE = ["數據來自公開市場及交易所的延遲數據，可能延誤、缺漏或出錯；頁頂的「數據狀態」列出今次發現的問題。",
              "財報日取自公開來源，可能不完整；盤前價只作參考。",
              "成份股名單用當日的指數成份，過往日子的分數按今日的數據回算，可能和當日看到的略有不同。",
              "倉位試算只按讀者在頁頂輸入的參數計算，未計稅費、借貨成本和跳空；結果是數學試算，不是建議的倉位。"]
@@ -4995,7 +5007,7 @@ def t6_page_head():
     P.append(f"<h3>{esc(T6_LAB_L)}（最多 {PLAN['a_max']} 隻）</h3>" + t6_table(T6_LA, T6_CK_L))
     P.append(f"<h3>做多 B 級：接近成熟，只作觀察（最多 {PLAN['b_max']} 隻）</h3>" + t6_table(T6_LB, T6_CK_L, reason=True))
     if T6_WATCH or T6_WATCH_NA:
-        P.append("<h3>自選名單體檢（表單「額外股票」內的代號，用同一套清單檢查）</h3>" + t6_table(T6_WATCH, T6_CK_L, reason=True, tier=True)
+        P.append("<h3>自選名單體檢（額外加入的代號，用同一套清單檢查）</h3>" + t6_table(T6_WATCH, T6_CK_L, reason=True, tier=True)
                  + ('<div class="note">沒有數據：' + esc("、".join(T6_WATCH_NA)) + "。</div>" if T6_WATCH_NA else "")
                  + '<div class="note">「尚欠甚麼」是系統按規則列出的反對理由；級別是「自選」的，代表它不在任何掃描名單。</div>')
     if SHORT_SETUP:
@@ -5059,7 +5071,7 @@ PAGE = (CSS + '<div class="pmb">'
         + section("5　龍頭股", s4, False, f"{LEAD_PCT50.iloc[-1]:.0f}% 高於 50 日線")
         + section("6　做多形態", s5, long_ok and not V6_OK, f"VCP {len(VCP)}・HTF {int((HTF['Note'] == '').sum()) if len(HTF) else 0}・收窄 {len(TIGHT)}・突破 {len(BO52)}・抗跌 {len(RESIL)}・回調 {len(PULL)}")
         + section("7　做空形態與迴避名單", s6, SHORT_GATE and not V6_OK, f"回抽 {len(S_RETEST)}・跌破 {len(BD)}・墮落龍頭 {len(FALLEN)}")
-        + section("8　持倉檢查", s8, bool(len(POS_TBL)))
+        + (section("8　持倉檢查", s8, True) if len(POS_TBL) else "")
         + ('<div class="note"><a href="brief_tc.txt">文字摘要（純文字檔）</a></div>' if os.environ.get("PMB_WEB") else section("文字摘要（可複製）", f"<pre>{esc(BRIEF_TXT)}</pre>", False))
         + f'<div class="disc">{esc(DISCLOSURE)}</div>'
         + "</div>")
@@ -5081,7 +5093,7 @@ def news_text():
         for r in EARN_NEXT.head(20).itertuples():
             L.append(f"  {r.Symbol:<6}{r.When}｜{str(r.Company)[:28]}" + ("｜在名單或持倉內" if getattr(r, "InList", False) else ""))
     else:
-        L.append("  " + (EARN_NOTE or "Yahoo 沒有列出。"))
+        L.append("  " + (EARN_NOTE or "沒有列出。"))
     L.append("【重點經濟數據（美東時間）】")
     if len(ECON):
         for r in ECON.head(15).itertuples():
@@ -5093,8 +5105,8 @@ def news_text():
     L.append("【名單與持倉的財報風險（3 個交易日內）】")
     L += ["  " + "、".join(f"{t}（{nm}，{es}）" for t, nm, es in EARN_SOON)] if EARN_SOON else ["  沒有。"]
     if NEWS:
-        L.append("【標題（Yahoo，美東時間）】")
-        L += [f"  {n['when'][5:]} [{n['t']}] {n['title']}（{n['prov']}）" for n in NEWS]
+        L.append("【市場要聞（美東時間）】")
+        L += [f"  {n['when'][5:]} [{n['t']}] {n['title']}" + (f"（{n['prov']}）" if n["prov"] else "") for n in NEWS]
     if AI_NEWS:
         L.append("【AI 消息面】")
         L += ["  " + x for x in (AI_TEXT or AI_NOTE or "沒有回應").splitlines() if x.strip()]
