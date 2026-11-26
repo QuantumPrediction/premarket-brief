@@ -6,15 +6,18 @@ state folder, which the workflow keeps on the `data` branch between runs:
   state/site/briefs/<run id>/       tc.html, brief_tc.txt, summary_tc.json, and the sc / en copies
 """
 import datetime as dt
+import html
 import json
 import math
 import os
+import re
 import shutil
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import (HK, LANGS, ROOT, ensure_languages, env, env_bool, env_num, github_wording, now_et, redirect_page, run_script,
                     translate_doc, write)  # noqa: E402
+import ledger  # noqa: E402
 
 SCRIPT = "premarket_brief_v6_3.py"
 HIST = "premarket_out"
@@ -53,7 +56,7 @@ def summary(G):
         ts, h = x["et"], x["et"].tz_convert(HK)
         day0 = day0 or h.date()
         timeline.append({"et": f"{ts:%H:%M}", "hk": f"{h:%H:%M}", "next": h.date() > day0, "what": str(x["what"]), "kind": str(x["kind"]),
-                         "code": {"我": "me", "市場": "mkt", "數據": "data", "財報": "earn"}.get(str(x["kind"]), "other")})
+                         "code": {"我": "me", "系統": "me", "市場": "mkt", "數據": "data", "財報": "earn"}.get(str(x["kind"]), "other")})
     secs = []
     st = G.get("SECT_TBL")
     if st is not None and len(st):
@@ -75,6 +78,56 @@ def summary(G):
         "anchor": "QQQ", "anchor_close": num(G["q"].c, 2), "picks_live": long_ok or short_ok, "long_ok": long_ok, "short_ok": short_ok,
         "play": list(G.get("PLAY", []))[:8], "picks": picks, "bgrade": bgrade, "timeline": timeline, "sectors": secs,
     }
+
+
+def plain(x):
+    """Anything from the script, made safe for JSON (numpy numbers, dates, NaN, sets, small tables)."""
+    if x is None or isinstance(x, (bool, str)):
+        return x
+    if isinstance(x, (int, float)):
+        return None if isinstance(x, float) and (math.isnan(x) or math.isinf(x)) else x
+    if isinstance(x, dict):
+        return {str(k): plain(v) for k, v in x.items()}
+    if isinstance(x, (list, tuple, set)):
+        return [plain(v) for v in x]
+    if hasattr(x, "item") and not hasattr(x, "columns"):       # numpy scalar
+        try:
+            return plain(x.item())
+        except (ValueError, TypeError):
+            pass
+    if hasattr(x, "isoformat"):
+        return x.isoformat()
+    if hasattr(x, "to_dict") and hasattr(x, "columns"):         # a small DataFrame
+        return [plain(r) for r in x.to_dict("records")]
+    return str(x)
+
+
+CAND_KEYS = ("Ticker", "Side", "Tier", "Setup", "Main", "Close", "Trigger", "Entry", "Pivot", "Chase", "Stop", "StopSrc", "Risk%", "Dist%",
+             "Through", "NPass", "NFail", "Fails", "Ck", "RS", "ATR%", "Earn", "Reason", "Why", "Shares", "Pos%")
+
+
+def data_json(G, s, recs):
+    """One structured file per run with the brief's numbers, tables and chart series, for other front ends."""
+    def series(obj, n=250):
+        try:
+            x = obj.dropna().iloc[-n:]
+            return [[f"{d:%Y-%m-%d}", round(float(v), 4)] for d, v in x.items()]
+        except Exception:                                            # noqa: BLE001
+            return []
+    Q = G.get("Q")
+    qqq = {k: series(Q[k]) for k in ("c", "ema21", "s50", "s200")} if Q is not None else {}
+    cands = {side: [{k: plain(c.get(k)) for k in CAND_KEYS} for c in G.get(name, [])] for side, name in (("long", "T6_L"), ("short", "T6_S"))}
+    return plain({
+        "schema": 1, "generated_utc": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), "summary": s,
+        "market": {"score": G.get("score_now"), "regime": G.get("REG_L"), "regime_name": G.get("REG_T"), "rule_state": G.get("SIDE"),
+                   "cycle": G.get("CYCLE"), "short_timing": G.get("SHORT_TIMING"), "event_day": G.get("EVENT_DAY"),
+                   "gates": s.get("gates"), "budget": G.get("T6_BUD"), "breakout_success_rate": G.get("BO_FOLLOW"),
+                   "pct_above_50": G.get("pct50_now"), "vix": G.get("vix_now")},
+        "demo_account": {"equity": G.get("ACCOUNT_EQUITY"), "base_risk_pct": G.get("BASE_RISK_PCT")},
+        "candidates": cands, "orders": G.get("T6_ORD", []), "playbook": list(G.get("PLAY", [])), "quality": list(G.get("quality", [])),
+        "series": {"score": series(G.get("SCORE")) if G.get("SCORE") is not None else [], "qqq": qqq},
+        "ledger": {"summary": ledger.summary(recs), "recent": [r for r in recs if r["group"] == "top"][-60:]},
+    })
 
 
 def prune(state, keep_days):
@@ -149,9 +202,21 @@ def main():
     dash = github_wording(open(os.path.join(state, G["DASH_PATH"]), encoding="utf-8").read())   # the script's paths are relative to state/
     txt = github_wording(G["BRIEF_TXT"] + "\n\n" + G["NEWS_TXT"])
     s = summary(G)
+    try:                                                                          # the follow-up section comes from the ledger
+        recs, _ = ledger.update(state, G)
+        led = ledger.html_tc(recs, lambda x: html.escape(str(x), quote=True), G.get("LEDGER_NOTE", ""))
+        dash = re.sub(r"<!--ledger-->.*?<!--/ledger-->", lambda m: "<!--ledger-->" + led + "<!--/ledger-->", dash, count=1, flags=re.S)
+        s["ledger"] = ledger.summary(recs)
+    except Exception as e:                                                        # noqa: BLE001 - the brief still publishes
+        print(f"Ledger skipped: {type(e).__name__}: {e}", flush=True)
+        recs = []
     write(os.path.join(out, "tc.html"), translate_doc(dash, "tc"))
     write(os.path.join(out, "brief_tc.txt"), txt)
     write(os.path.join(out, "summary_tc.json"), json.dumps(s, ensure_ascii=False, indent=1))
+    try:
+        write(os.path.join(out, "data.json"), json.dumps(data_json(G, s, recs), ensure_ascii=False, separators=(",", ":")))
+    except Exception as e:                                                        # noqa: BLE001
+        print(f"data.json skipped: {type(e).__name__}: {e}", flush=True)
     ensure_languages(out)                                                         # Simplified Chinese and English copies
     write(os.path.join(state, "marks", "brief.txt"), f"{now_et():%Y-%m-%d} {run_id}\n")
     prune(state, int(env_num("ARCHIVE_DAYS", 365)))

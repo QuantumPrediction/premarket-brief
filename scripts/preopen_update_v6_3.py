@@ -147,22 +147,22 @@ def parse_positions(text):
 def scen_of(g):
     """QQQ 開市缺口（以 ATR 計）對應的開市情景；格子 2 也用同一個函數。"""
     if g > 1:
-        return "大幅高開：不追。等回調到開市區間高位或 VWAP 企穩；持倉可分段鎖定利潤。"
+        return "大幅高開：規則不追開市價；條件是回調到開市區間高位或 VWAP 企穩。"
     elif g < -1:
-        return "大幅低開：當事件日處理，等首 30 分鐘區間形成才行動。"
+        return "大幅低開：規則按事件日處理，首 30 分鐘區間形成前不觸發。"
     elif g > 0.25:
-        return "小幅高開：不追開市第一口價；首 30 分鐘企在開市區間上半、而且沒有跌回上日收市之下，才按計劃執行。"
+        return "小幅高開：規則不追開市第一口價；條件是首 30 分鐘企在開市區間上半，而且沒有跌回上日收市之下。"
     elif g >= -0.25:
-        return "大致平開：首 30 分鐘企在開市區間上半和上日收市之上，才按計劃執行。"
+        return "大致平開：條件是首 30 分鐘企在開市區間上半和上日收市之上。"
     else:
-        return "小幅低開：先看能否守住上日低位，重上開市區間高位才動手。"
+        return "小幅低開：條件是守住上日低位，並重上開市區間高位。"
 
 def t6_order_line(o):
     """一張單的文字，照富途下單畫面的欄位次序寫，方便照抄。代號用富途的寫法（BRK-B 寫成 BRK.B）。"""
     t = o["Ticker"].replace("-", ".")
     if o["Mode"] == "開市後":
-        return (f"{t}｜開市後才落單：首 30 分鐘企在 pivot {o['Pivot']:,.2f} 之上，用限價單買入，價格不高於 {o['Limit']:,.2f}，"
-                f"數量 {o['Shares']:,}；成交後即刻落賣出止損單，止損價 {o['Stop']:,.2f}")
+        return (f"{t}｜開市後判定：首 30 分鐘企在 pivot {o['Pivot']:,.2f} 之上，限價買入，價格不高於 {o['Limit']:,.2f}，"
+                f"數量 {o['Shares']:,}；成交後設賣出止損單，止損價 {o['Stop']:,.2f}")
     side = "買入" if o["Side"] == "買入" else "賣出（沽空）"
     tail = "" if o["Side"] == "買入" else "｜沽空要融資戶口，並確認有貨可借"
     return (f"{t}｜{side}｜止損限價單｜觸發價 {o['Trigger']:,.2f}｜價格 {o['Limit']:,.2f}｜數量 {o['Shares']:,}｜期限 當日有效｜"
@@ -200,6 +200,11 @@ padding:18px 20px;max-width:1180px;border-radius:10px;line-height:1.5;font-size:
 .pmb .opp b{font-size:13px}.pmb .opp span{float:right;font-weight:700}.pmb .opp small{display:block;color:#555;font-size:12px}
 .pmb .warnbox{background:#fff8e1;border:1px solid #f0d58a;border-radius:8px;padding:6px 10px;margin:6px 0;font-size:12.5px}
 .pmb pre{white-space:pre-wrap;font-size:12px;background:#f7f7f7;padding:10px;border-radius:8px}
+.pmb .dq{margin:6px 0 8px;font-size:12.5px}
+.pmb .dq.ok{display:inline-block;padding:2px 10px;border:1px solid #9bc5a6;border-radius:999px;color:#1d5a2c;background:#eef7ef}
+.pmb details.dq summary{display:inline-block;padding:2px 10px;border:1px solid #e0c27a;border-radius:999px;background:#fdf6e3;color:#7a5a12;cursor:pointer}
+.pmb details.dq ul{margin:6px 0 0;padding-left:20px;color:#444}
+.pmb .disc{margin:20px 0 4px;padding:12px 0 0;border-top:1px solid #e3e3e3;color:#666;font-size:12px;line-height:1.6}
 </style>
 """
 
@@ -285,6 +290,28 @@ def pm_volume(Vb, sym, day, now):
     x = x[(x.index >= a) & (x.index < b)]
     return float(x.sum()) if len(x) else np.nan
 
+DISCLOSURE = ("研究聲明：本報告的全部內容由固定規則自動計算，所有讀者看到的內容相同，並不考慮任何人的財務狀況、投資目標或風險承受能力。"
+              "頁內的倉位試算只按讀者自行輸入的參數計算。內容只供研究和教育用途，不構成投資建議、要約或招攬，亦不保證準確、完整或及時。"
+              "過往表現（包括回測和跟進紀錄）不代表將來表現。")
+
+def size_attrs(o):
+    """倉位試算用的屬性（與完整簡報相同）：入場價由計劃卡的股數和風險反推，風險倍數按計劃檔的戶口和風險 %。"""
+    try:
+        sh, risk = int(o.get("PlanShares") or 0), float(o.get("PlanRisk") or 0)
+        eq, base = float(PLAN_META["equity"]), float(PLAN_META["base"])
+        if sh <= 0 or risk <= 0 or eq <= 0 or base <= 0:
+            return ""
+        lg = o["Side"] == "買入"
+        rps = risk / sh
+        entry = o["Stop"] + rps if lg else o["Stop"] - rps
+        mult = risk / (eq * base / 100)
+        return (f' data-ticker="{esc(o["Ticker"])}" data-direction="{"long" if lg else "short"}" data-entry="{entry:.4f}" data-stop="{o["Stop"]:.4f}"'
+                f' data-limit="{o["Limit"]:.4f}" data-risk-mult="{mult:.6f}" data-atr="{float(o.get("ATR") or 0):.4f}"')
+    except (TypeError, ValueError, KeyError):
+        return ""
+
+PLAN_META = {"equity": 0, "base": 0}
+
 def order_status(o, px, gate_ok, P):
     """一張單按盤前價的判斷：（代碼, 文字）。代碼：ok 可以落單、open 開市後再決定、wait 暫緩、no 不落單、dead 取消、off 閘門未開。"""
     lg = o["Side"] == "買入"
@@ -292,36 +319,36 @@ def order_status(o, px, gate_ok, P):
     trig, lim, stop, atr = o["Trigger"], o["Limit"], o["Stop"], o["ATR"]
     up, dn = ("高", "低") if lg else ("低", "高")
     if not gate_ok:
-        return "off", "閘門未開：不落單，只設提示價"
+        return "off", "閘門未開：只列作觀察"
     if not o.get("Shares"):
-        return "no", "按每注風險計出來的數量是 0（止損太遠或每注風險太細）：不落單"
+        return "no", "按示範風險計出來的數量是 0（失效位太遠或風險額太細）：不適用"
     if px is None and o["Mode"] == "開市後":
-        return "open", f"取不到盤前報價：開市後首 30 分鐘企在 pivot {o['Pivot']:,.2f} 之{'上' if lg else '下'}，才用限價單入（價格不超過 {o['Limit']:,.2f}）"
+        return "open", f"取不到盤前報價：規則要求開市後首 30 分鐘企在 pivot {o['Pivot']:,.2f} 之{'上' if lg else '下'}，限價不超過 {o['Limit']:,.2f}"
     if px is None:
-        return "ok", f"取不到盤前報價（盤前未有成交，或報價延誤）：落單前在富途確認現價仍未越過觸發價 {trig:,.2f}"
+        return "ok", f"取不到盤前報價（盤前未有成交，或報價延誤）：參數按上日收市計；現價是否已越過觸發位 {trig:,.2f} 未能確認"
     if sg * (px - stop) <= 0:
-        return "dead", f"盤前價 {px:,.2f} 已{dn}於止損 {stop:,.2f}：取消"
+        return "dead", f"盤前價 {px:,.2f} 已{dn}於形態失效位 {stop:,.2f}：形態作廢"
     gap = sg * (px - o["Close"]) / atr if atr > 0 else np.nan
     if o["Mode"] == "開市後":
         if sg * (px - o["Chase"]) > 0:
-            return "no", f"盤前價 {px:,.2f} 已超過追價上限 {o['Chase']:,.2f}：不追"
+            return "no", f"盤前價 {px:,.2f} 已超過規則追價上限 {o['Chase']:,.2f}：不適用"
         if sg * (px - o["Pivot"]) < 0:
-            return "wait", f"盤前價 {px:,.2f} 回到 pivot {o['Pivot']:,.2f} 之{'下' if lg else '上'}：突破未企穩，開市後收復 pivot 才考慮"
-        return "open", f"仍在買入區（盤前 {px:,.2f}）：開市後首 30 分鐘企在 pivot 之{'上' if lg else '下'}，用限價單入"
+            return "wait", f"盤前價 {px:,.2f} 回到 pivot {o['Pivot']:,.2f} 之{'下' if lg else '上'}：突破未企穩，規則要求開市後收復 pivot"
+        return "open", f"仍在買入區（盤前 {px:,.2f}）：規則要求開市後首 30 分鐘企在 pivot 之{'上' if lg else '下'}，以限價計"
     if sg * (px - lim) >= 0:
-        return "no", f"盤前價 {px:,.2f} 已越過限價 {lim:,.2f}：不追，今日不落單"
+        return "no", f"盤前價 {px:,.2f} 已越過限價 {lim:,.2f}：規則不追，今日不適用"
     if sg * (px - trig) >= 0:
-        return "open", (f"盤前價 {px:,.2f} 已越過觸發價 {trig:,.2f}：富途的止損單要求觸發價{up}於現價，現在落不到；"
-                        "開市後首 30 分鐘企穩觸發價之" + ("上" if lg else "下") + "而且成交放大，才用限價單入（價格不超過限價）")
+        return "open", (f"盤前價 {px:,.2f} 已越過觸發位 {trig:,.2f}：止損類委託要求觸發價{up}於現價，預設參數不再適用；"
+                        "規則要求開市後首 30 分鐘企穩觸發位之" + ("上" if lg else "下") + "而且成交放大，以限價計（不超過限價）")
     if not np.isnan(gap) and gap <= -P["gapdown_atr"]:
-        return "wait", f"盤前逆向跳空 {abs(gap):.1f} 個 ATR（{px:,.2f}）：先不落單，開市後回到上日收市附近再考慮"
+        return "wait", f"盤前逆向跳空 {abs(gap):.1f} 個 ATR（{px:,.2f}）：規則暫緩，開市後回到上日收市附近才重新判定"
     d_atr = sg * (trig - px) / atr if atr > 0 else np.nan
     if not np.isnan(d_atr) and d_atr < P["near_open_atr"]:
-        return "ok", f"可以落單；盤前價 {px:,.2f} 距觸發價只有 {d_atr:.1f} 個 ATR，開市可能即時觸發。想先看開市區間，就開市後才落"
-    return "ok", f"可以落單（盤前價 {px:,.2f}，距觸發價 {d_atr:.1f} 個 ATR）"
+        return "ok", f"參數有效；盤前價 {px:,.2f} 距觸發位只有 {d_atr:.1f} 個 ATR，開市可能即時觸發"
+    return "ok", f"參數有效（盤前價 {px:,.2f}，距觸發位 {d_atr:.1f} 個 ATR）"
 
 COLOR = {"ok": "g", "open": "a", "wait": "a", "no": "m", "dead": "r", "off": "m"}
-LABEL = {"ok": "可以落單", "open": "開市後再決定", "wait": "暫緩", "no": "不落單", "dead": "取消", "off": "閘門未開"}
+LABEL = {"ok": "參數有效", "open": "開市後判定", "wait": "暫緩", "no": "不適用", "dead": "形態作廢", "off": "閘門未開"}
 
 def main():
     t0 = time.time()
@@ -362,7 +389,7 @@ def main():
             base.update({"Ticker": t, "Shares": p_["shares"], "Stop": p_["stop"], "Entry": p_["entry"],
                          "EntryDate": str(p_["entry_d"] or "")})
             if t not in old:
-                base["Note"] = "格子 1 沒有這隻持倉的資料，只檢查止蝕"
+                base["Note"] = "完整簡報沒有這隻持倉的資料，只檢查形態失效位"
             pos.append(base)
 
     syms = [o["Ticker"] for o in orders] + [w["Ticker"] for w in watch] + [p_["Ticker"] for p_ in pos] + ["QQQ", "SPY", "IWM", "^VIX"] + list(FUT)
@@ -388,17 +415,17 @@ def main():
     scen = scen_of(gap_atr) if not np.isnan(gap_atr) else "未有 QQQ 盤前報價，開市後按四種情景判斷。"
     banner = []
     if not len(C.columns):
-        banner.append("盤前報價全部取不到（Yahoo 沒有回應）：以下判斷沒有用到盤前價，落單前在富途逐隻核對現價。")
+        banner.append("盤前報價全部取不到（Yahoo 沒有回應）：以下判斷沒有用到盤前價。")
     if stale:
-        banner.append(f"計劃檔是為 {plan.get('brief_date')} 準備的，不是 {target:%Y-%m-%d}：請先重跑格子 1。以下價位只作參考。")
+        banner.append(f"計劃檔是為 {plan.get('brief_date')} 準備的，不是 {target:%Y-%m-%d}：以下價位只作參考。")
     if phase == "未到盤前時段":
-        banner.append("現在未到盤前時段（美東 4:00 起），報價是上日盤後的；開市前約 30 分鐘再跑一次。")
+        banner.append("現在未到盤前時段（美東 4:00 起），報價是上日盤後的。")
     elif phase == "盤中":
         banner.append("已經開市：以下用的是開市後的報價（可能有延誤），預設單的判斷只供參考。")
     if not np.isnan(gap_atr) and gap_atr <= -1:
-        banner.append("大市大幅低開：新倉的單可以等開市 30 分鐘、區間形成後才落。")
+        banner.append("大市大幅低開：規則把新形態的判定延至開市 30 分鐘、區間形成之後。")
     elif not np.isnan(gap_atr) and gap_atr >= 1:
-        banner.append("大市大幅高開：突破股多數會開在觸發價之上，不追開市第一口價。")
+        banner.append("大市大幅高開：突破股多數會開在觸發位之上；規則不追開市第一口價。")
     big = []                                        # 開市後才公佈的 ★★★ 數據：之前觸發的單注碼減半
     for x in plan.get("timeline", []):
         try:
@@ -408,9 +435,9 @@ def main():
         if "★★★" in x["what"] and open_ <= et_ < close_of(target):
             big.append(f"{x['what'].replace('★★★', '').strip()}（香港 {et_.tz_convert(HKT):%H:%M}）")
     if big:
-        banner.append("今日是事件日：" + "、".join(big) + " 公佈之前觸發的單，數量按清單的一半。")
+        banner.append("今日是事件日：" + "、".join(big) + " 公佈之前觸發的參數，規則數量減半。")
     elif plan.get("event_day"):
-        banner.append("今日是事件日，但重點數據在開市前已公佈：開市後按清單的數量。")
+        banner.append("今日是事件日，但重點數據在開市前已公佈：開市後按原有的規則數量。")
 
     # ---- 持倉 ----
     prow = []
@@ -422,13 +449,13 @@ def main():
         stop, atr = p_.get("Stop"), p_.get("ATR$")
         live = []
         if px is not None and stop is not None and not np.isnan(px) and px <= stop:
-            live.append(f"盤前 {px:,.2f} 已低於止蝕 {stop:,.2f}：開市按計劃止蝕（附加的止損市價單只在常規時段觸發）")
+            live.append(f"盤前 {px:,.2f} 已低於止蝕 {stop:,.2f}：已觸及形態失效位（附加的止損市價單只在常規時段觸發）")
         if lp and close and atr and not np.isnan(close) and atr > 0:
             g = (lp[0] - close) / atr
             if g <= -P["gapdown_atr"]:
                 live.append(f"盤前低開 {abs(g):.1f} 個 ATR")
             elif g >= 2:
-                live.append(f"盤前高開 {g:.1f} 個 ATR：可考慮趁強勢分段鎖定利潤")
+                live.append(f"盤前高開 {g:.1f} 個 ATR")
         prow.append({"t": t, "px": px, "lp": lp, "close": close, "stop": stop, "live": live, "act": p_.get("Act") or "",
                      "note": p_.get("Note") or ""})
 
@@ -436,17 +463,18 @@ def main():
     res = []
     used = {"買入": 0, "沽空": 0}
     cap = {"買入": int(plan.get("n_long", 0) or 0), "沽空": int(plan.get("n_short", 0) or 0)}
+    PLAN_META.update(equity=plan.get("account_equity") or 0, base=plan.get("base_risk_pct") or 0)
     for o in sorted(orders, key=lambda x: (x["Side"] != "買入", x["Rank"])):
         gate_ok = plan.get("long_ok") if o["Side"] == "買入" else plan.get("short_ok")
         lp = last_after(C, o["Ticker"], cut)
         code, txt = order_status(o, lp[0] if lp else None, bool(gate_ok) and not stale, P)
         if stale and gate_ok:
-            code, txt = "off", "計劃檔不是今日的：先重跑格子 1"
+            code, txt = "off", "計劃檔不是今日的：參數只作參考"
         slot = ""
         if code in ("ok", "open"):
             if used[o["Side"]] < cap[o["Side"]]:
                 used[o["Side"]] += 1
-                slot = "名額內"
+                slot = "上限內"
             else:
                 slot = "後備"
         pv = pm_volume(Vb, o["Ticker"], target, now)
@@ -462,7 +490,7 @@ def main():
         sg = 1 if w["Side"] == "買入" else -1
         d = sg * (w["Trigger"] - lp[0]) / w["ATR"]
         if d <= 0:
-            walert.append(f"{w['Ticker']}：盤前 {lp[0]:,.2f} 已越過觸發價 {w['Trigger']:,.2f}（B 級只設提示，不落單）")
+            walert.append(f"{w['Ticker']}：盤前 {lp[0]:,.2f} 已越過觸發價 {w['Trigger']:,.2f}（B 級只作觀察）")
         elif d < 0.5:
             walert.append(f"{w['Ticker']}：盤前 {lp[0]:,.2f}，距觸發價 {w['Trigger']:,.2f} 只有 {d:.1f} 個 ATR")
 
@@ -481,31 +509,31 @@ def main():
 
     # ---- 輸出：文字 ----
     nowh = now.tz_convert(HKT)
-    head = (f"開市前快速更新｜簡報日 {target:%Y-%m-%d}｜美東 {now:%H:%M}・香港 {nowh:%H:%M}｜"
+    head = (f"系統開市前更新（盤前價格重算）｜簡報日 {target:%Y-%m-%d}｜美東 {now:%H:%M}・香港 {nowh:%H:%M}｜"
             + (f"距開市 {mins:.0f} 分鐘" if mins > 0 else "已開市"))
-    T = [head, f"格子 1：{plan.get('run_et')} ET 執行；Regime {plan.get('regime')}，分數 {plan.get('score')}，{plan.get('gates')}；{plan.get('verdict')}"]
+    T = [head, f"完整簡報：{plan.get('run_et')} ET 產生；Regime {plan.get('regime')}，分數 {plan.get('score')}，{plan.get('gates')}；{plan.get('verdict')}"]
     T += [f"⚠ {b}" for b in banner]
     T.append("大市：" + "；".join(f"{a} {b}" for a, b in mkt))
     T.append("開市情景：" + scen)
     if prow:
         T.append("【持倉】")
         for r in prow:
-            todo = "；".join(r["live"] + ([r["act"]] if r["act"] else [])) or "暫時不用處理"
+            todo = "；".join(r["live"] + ([r["act"]] if r["act"] else [])) or "沒有需要注意的事項"
             T.append(f"  {r['t']}：{'盤前 ' + format(r['lp'][0], ',.2f') if r['lp'] else '未有盤前價'}｜止蝕 {fnum(r['stop'])}｜{todo}")
     if res:
-        T.append("【富途下單清單】")
+        T.append("【委託與倉位參數試算（按盤前價重算）】")
         for r in res:
             T.append(f"  {r['Ticker']}｜{LABEL[r['code']]}{('・' + r['slot']) if r['slot'] else ''}｜{r['txt']}")
-            if r["code"] == "ok" and r["slot"] == "名額內":
+            if r["code"] == "ok" and r["slot"] == "上限內":
                 T.append("    " + t6_order_line(r))
     else:
-        T.append("【富途下單清單】格子 1 今日沒有首選股票，不落新倉單。")
+        T.append("【委託與倉位參數試算（按盤前價重算）】完整簡報今日沒有首選形態。")
     if walert:
         T.append("【B 級提示】" + "；".join(walert))
     if tl:
         T.append("【今晚時間表】香港時間（美東）")
         T += [f"  {h:%H:%M}{'（翌日）' if nx else ''}（{et:%H:%M}）{w}{'｜' + st if st else ''}" for h, et, w, k, st, nx in tl]
-    T.append("盤前報價來自 Yahoo，可能有延誤；落單前以富途報價為準。研究輔助用途｜資料需查證｜不保證獲利")
+    T.append("盤前報價來自 Yahoo，可能有延誤。" + DISCLOSURE)
     TXT = "\n".join(T)
     print(TXT)
 
@@ -515,12 +543,13 @@ def main():
                 + "".join(rows_) + "</tbody></table></div>")
     SM = '<div class="s">{}</div>'
     TOP = ' style="border-bottom:0"'
-    H = ['<div class="pmb">', f'<div class="hero" style="border-left-color:#1a5fb4"><div class="big">開市前快速更新</div>'
+    H = ['<div class="pmb">', f'<div class="hero" style="border-left-color:#1a5fb4"><div class="big">系統開市前更新（盤前價格重算）</div>'
          f'<div class="mid">簡報日 <b>{target:%m-%d}</b>｜美東 {now:%H:%M}・香港 {nowh:%H:%M}｜'
          + (f"距開市 <b>{mins:.0f}</b> 分鐘" if mins > 0 else "已開市") + "</div>"
-         f'<div class="sub">格子 1 於 {esc(plan.get("run_et"))} ET 執行：Regime {esc(plan.get("regime"))}，分數 {esc(plan.get("score"))}，'
+         f'<div class="sub">完整簡報於 {esc(plan.get("run_et"))} ET 產生：Regime {esc(plan.get("regime"))}，分數 {esc(plan.get("score"))}，'
          f'{esc(plan.get("gates"))}；{esc(plan.get("verdict"))}</div>'
-         + "".join(f'<div class="warnbox">⚠ {esc(b)}</div>' for b in banner)
+         + ((f'<details class="dq"><summary>數據狀態：{len(banner)} 項注意</summary><ul>' + "".join(f"<li>{esc(b)}</li>" for b in banner) + "</ul></details>")
+            if banner else '<div class="dq ok">數據狀態：正常</div>')
          + '<div class="kv">' + "".join(f"<div><small>{esc(a)}</small><b>{esc(b)}</b></div>" for a, b in mkt) + "</div>"
          + f'<div class="ans"><b>開市情景：</b>{esc(scen)}</div></div>']
     if prow:
@@ -531,30 +560,32 @@ def main():
             chg = "" if not (r["lp"] and r["close"] and not np.isnan(r["close"])) else f'{(r["lp"][0] / r["close"] - 1) * 100:+.1f}%'
             rows_.append(f'<tr><td{TOP}><b>{esc(r["t"])}</b></td><td class="num"{TOP}>{px_txt}{SM.format(chg)}</td>'
                          f'<td class="num"{TOP}>{fnum(r["stop"])}</td></tr><tr><td colspan="3" class="w" style="padding-top:0">'
-                         + (f'<b class="r">{esc("；".join(todo))}</b>' if todo else '<span class="g">暫時不用處理</span>') + "</td></tr>")
-        H.append('<div class="q">一、持倉</div>' + tb(["代號", "盤前價", "止蝕"], rows_))
-    H.append('<div class="q">二、富途下單清單</div>')
+                         + (f'<b class="r">{esc("；".join(todo))}</b>' if todo else '<span class="g">沒有需要注意的事項</span>') + "</td></tr>")
+        H.append('<div class="q">一、示範持倉</div>' + tb(["代號", "盤前價", "形態失效位"], rows_))
+    H.append('<div class="q">二、委託與倉位參數試算（按盤前價重算）</div>')
     if res:
         rows_ = []
         for r in res:
             sub = "　".join(x for x in (r["slot"], f"{r['Side']}・{r['Type']}") if x)
             p1 = f'{r["Pivot"]:,.2f}' if r["Mode"] == "開市後" else f'{r["Trigger"]:,.2f}'
             p2 = f'pivot・上限 {r["Limit"]:,.2f}' if r["Mode"] == "開市後" else f'限價 {r["Limit"]:,.2f}'
-            rows_.append(f'<tr><td{TOP}><b>{esc(r["Ticker"])}</b>{SM.format(esc(sub))}</td>'
+            rows_.append(f'<tr{size_attrs(r)}><td{TOP}><b>{esc(r["Ticker"])}</b>{SM.format(esc(sub))}</td>'
                          f'<td{TOP}><b class="{COLOR[r["code"]]}">{esc(LABEL[r["code"]])}</b></td>'
                          f'<td class="num"{TOP}>{p1}{SM.format(esc(p2))}</td>'
-                         f'<td class="num"{TOP}>{r["Shares"]:,}{SM.format("止損 " + format(r["Stop"], ",.2f"))}</td></tr>'
+                         f'<td class="num"{TOP}><span data-f="shares">{r["Shares"]:,}</span>{SM.format("失效位 " + format(r["Stop"], ",.2f"))}</td></tr>'
                          f'<tr><td colspan="4" class="w" style="padding-top:0">{esc(r["txt"])}'
                          + (SM.format(esc(r["vtxt"])) if r["vtxt"] else "") + "</td></tr>")
-        H.append(tb(["代號", "判斷", "觸發價", "數量"], rows_))
-        go = [r for r in res if r["code"] == "ok" and r["slot"] == "名額內"]
+        H.append(tb(["代號", "判定", "觸發位", "試算數量"], rows_))
+        go = [r for r in res if r["code"] == "ok" and r["slot"] == "上限內"]
         if go:
-            H.append('<h3>照抄用的文字（可以落單的）</h3><div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px">'
-                     + "".join(f'<div style="margin:3px 0">{esc(t6_order_line(r))}</div>' for r in go) + "</div>")
-        H.append(f'<div class="note">名額：做多 {cap["買入"]} 注、做空 {cap["沽空"]} 注，按格子 1 的次序分給「可以落單」和「開市後再決定」的單；'
-                 "前面的取消或不落，後備就補上。「開市後再決定」的單不要預設，開市後按說明手動落。</div>")
+            H.append('<h3>模擬參數摘要（僅供參考，非交易指令）</h3><div style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px">'
+                     + "".join(f'<div style="margin:3px 0" data-order{size_attrs(r)} data-mode="{"open" if r["Mode"] == "開市後" else "stop"}" '
+                               f'data-trigger="{r["Trigger"]:.2f}" data-pivot="{r["Pivot"]:.2f}" data-sym="{esc(r["Ticker"])}">{esc(t6_order_line(r))}</div>'
+                               for r in go) + "</div>")
+        H.append(f'<div class="note">規則示範上限：多頭 {cap["買入"]} 單位、空頭 {cap["沽空"]} 單位，按完整簡報的排序分配給「參數有效」和「開市後判定」的參數；'
+                 "排前的不適用時由後備遞補。「開市後判定」的參數不作預設。數量按頁頂設定的戶口和風險 % 試算。</div>")
     else:
-        H.append('<div class="note">格子 1 今日沒有首選股票，不落新倉單。</div>')
+        H.append('<div class="note">完整簡報今日沒有首選形態。</div>')
     if walert:
         H.append('<h3>B 級提示</h3><ul>' + "".join(f"<li>{esc(x)}</li>" for x in walert) + "</ul>")
     if tl:
@@ -562,8 +593,9 @@ def main():
                  f'<td class="w">{esc(w)}{SM.format(esc(st)) if st else ""}</td></tr>'
                  for h, et, w, k, st, nx in tl]
         H.append('<div class="q">三、今晚時間表（香港時間）</div>' + tb(["香港", "美東", "事項"], rows_))
-    H.append(f'<div class="note">盤前報價來自 Yahoo 的 5 分鐘線，可能有延誤；落單前最後一眼以富途的報價為準。'
-             f"用時 {time.time() - t0:.0f} 秒。研究輔助用途｜資料需查證｜不保證獲利</div></div>")
+    H.append(f'<div class="note">盤前報價來自 Yahoo 的 5 分鐘線，可能有延誤。</div><div class="disc">{esc(DISCLOSURE)}</div></div>')
+    H.insert(1, f'<div id="sizer-meta" hidden data-equity0="{plan.get("account_equity") or 100000:g}" data-risk0="{plan.get("base_risk_pct") or 0.75:g}" '
+                f'data-mult-long="{plan.get("mult_long") or 0:.4f}" data-mult-short="{plan.get("mult_short") or 0:.4f}" data-event="{int(bool(plan.get("event_day")))}"></div>')
     PAGE = CSS + T6_CSS + "".join(H)
     try:
         from IPython.display import display, HTML

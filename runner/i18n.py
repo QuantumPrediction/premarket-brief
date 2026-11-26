@@ -228,7 +228,9 @@ _V63_PRE = [                                                     # Chinese -> En
 ]
 _V63_POST = [                                                    # English clean-up after the phrase table
     (re.compile(r"\bbetween " + _NUM + r" to " + _NUM), r"between \1 and \2"),
-    (re.compile(r"(?<![\d.,])\b1 (name|day|item|session|stock|share)s\b"), r"1 \1"),
+    (re.compile(r"(?<![\d.,])\b1 (name|day|item|session|stock|share|unit|record)s\b"), r"1 \1"),
+    (re.compile(r"(?<=[\d%]) (?=[:;](?:\s|$))"), ""),
+    (re.compile(r"\( (?=[\d−-])"), "("),                               # "( 1.3%" -> "(1.3%"                 # "between 1 and 2 : still" -> "between 1 and 2: still"
 ]
 
 

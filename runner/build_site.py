@@ -14,6 +14,7 @@ import hashlib
 import html
 import json
 import os
+import shutil
 import re
 import sys
 
@@ -30,9 +31,9 @@ REG_BANDS = {"E": (0, 25), "D": (25, 40), "C": (40, 55), "B": (55, 70), "A": (70
 # label: (English, Traditional Chinese, Simplified Chinese)
 L = {
     "site": ("US Pre-market Brief", "美股盤前簡報", "美股盘前简报"),
-    "tagline": ("A rules-based plan for S&P 500, Nasdaq 100 and S&P 400 stocks, rebuilt every US trading day before the open.",
-                "每個美股交易日開市前，按固定規則為標普 500、納指 100 和標普 400 股票重新整理的交易計劃。",
-                "每个美股交易日开盘前，按固定规则为标普 500、纳指 100 和标普 400 股票重新整理的交易计划。"),
+    "tagline": ("Rules-based market research on S&P 500, Nasdaq 100 and S&P 400 stocks, recalculated every US trading day before the open.",
+                "每個美股交易日開市前，按固定規則為標普 500、納指 100 和標普 400 股票重新計算的規則化市場研究。",
+                "每个美股交易日开盘前，按固定规则为标普 500、纳指 100 和标普 400 股票重新计算的规则化市场研究。"),
     "brief_for": ("Brief for", "簡報日", "简报日"),
     "data_to": ("data to the close of", "數據截至", "数据截至"),
     "updated": ("Updated", "更新於", "更新于"),
@@ -47,8 +48,8 @@ L = {
     "gate_short": ("Short gate", "空頭閘門", "空头闸门"), "oversold": ("Oversold", "超賣", "超卖"),
     "open": ("open", "開", "开"), "closed": ("closed", "關", "关"), "yes": ("yes", "是", "是"), "no": ("no", "否", "否"),
     "event_day": ("Event day: key data during the session", "事件日：交易時段內有重要數據", "事件日：交易时段内有重要数据"),
-    "new_pos": ("Max new positions", "今日最多開新倉", "今日最多开新仓"),
-    "n_long_short": ("{a} long, {b} short", "多 {a}／空 {b}", "多 {a}／空 {b}"),
+    "new_pos": ("Rule exposure limit (demo)", "規則示範新倉上限", "规则示范新仓上限"),
+    "n_long_short": ("{a} long / {b} short units", "多 {a}／空 {b} 單位", "多 {a}／空 {b} 单位"),
     "universe": ("Stocks scanned", "掃描股票", "扫描股票"),
     "above50": ("Above 50-day average", "高於 50 日線", "高于 50 日线"),
     "bo": ("Breakouts that held", "突破成功率", "突破成功率"),
@@ -56,31 +57,31 @@ L = {
     "anchor": ("QQQ close", "QQQ 收市", "QQQ 收盘"),
     "cycle": ("Market cycle", "市場週期", "市场周期"),
     "open_brief": ("Open today’s full brief", "打開今日完整簡報", "打开今日完整简报"),
-    "open_pre": ("Pre-open update", "開市前更新", "开盘前更新"),
+    "open_pre": ("Automated pre-market refresh", "系統開市前更新", "系统开盘前更新"),
     "pre_time": ("checked at {t} ET", "美東 {t} 檢查", "美东 {t} 检查"),
-    "no_pre": ("Pre-open update runs about an hour before the open", "開市前約一小時會有開市前更新", "开盘前约一小时会有开盘前更新"),
-    "plan_h": ("Today’s plan", "今日計劃", "今日计划"),
-    "picks_none": ("Nothing to trade today: the rules found no setup ready. Waiting is part of the plan.",
-                   "今日沒有可以交易的形態，等待也是計劃的一部分。", "今日没有可以交易的形态，等待也是计划的一部分。"),
-    "b_h": ("Near ready, alerts only", "接近成熟，只設提示", "接近成熟，只设提示"),
-    "live_h": ("Orders for today", "今日可落單", "今日可下单"),
-    "live_none": ("No orders today: no setup has an open gate.", "今日沒有可落單的股票：沒有一個形態的閘門是開的。",
-                  "今日没有可下单的股票：没有一个形态的闸门是开的。"),
-    "watch_h": ("Watch list: gate closed, no orders", "觀察名單：閘門關，不落單", "观察名单：闸门关，不下单"),
-    "watch_note": ("Good setups, but their gate is closed. The prices are alerts only; they become orders only after the gate opens.",
-                   "形態本身不錯，但對應的閘門未開。以下價位只是提示價，閘門打開後才會變成落單價。",
-                   "形态本身不错，但对应的闸门未开。以下价位只是提示价，闸门打开后才会变成下单价。"),
+    "no_pre": ("The automated pre-market refresh runs about 45 minutes before the open", "開市前約 45 分鐘有系統開市前更新", "开盘前约 45 分钟有系统开盘前更新"),
+    "plan_h": ("Today’s rule output", "今日規則結果", "今日规则结果"),
+    "picks_none": ("No setup matches the rules today.", "今日沒有符合規則的形態。", "今日没有符合规则的形态。"),
+    "b_h": ("Near ready, watch only", "接近成熟，只作觀察", "接近成熟，只作观察"),
+    "live_h": ("Rule-matched setups", "符合規則的技術形態（Rule-Matched Setups）", "符合规则的技术形态（Rule-Matched Setups）"),
+    "live_none": ("No setup matches the rules with its gate open today.", "今日沒有閘門已開而又符合規則的形態。",
+                  "今日没有闸门已开而又符合规则的形态。"),
+    "watch_h": ("Watch list: gate closed", "觀察名單：閘門關閉", "观察名单：闸门关闭"),
+    "watch_note": ("These setups meet the other rules, but their gate is closed. The levels are for reference only.",
+                   "這些形態符合其餘規則，但對應的閘門未開；以下價位只作參考。",
+                   "这些形态符合其余规则，但对应的闸门未开；以下价位只作参考。"),
     "watch_tag": ("watch only", "只觀察", "只观察"),
     "c_alert": ("Alert", "提示價", "提示价"),
     "side_long": ("Long", "做多", "做多"), "side_short": ("Short", "做空", "做空"),
-    "sp_max": ("up to {n} new positions", "最多開 {n} 注", "最多开 {n} 注"), "sp_max1": ("up to 1 new position", "最多開 1 注", "最多开 1 注"),
-    "sp_zero": ("gate open, but no new positions today", "閘門開，但今日不開新倉", "闸门开，但今日不开新仓"),
-    "sp_closed_l": ("gate closed, no buying today", "閘門關，今日不買", "闸门关，今日不买"),
-    "sp_closed_s": ("gate closed, no new shorts today", "閘門關，今日不沽空", "闸门关，今日不沽空"),
+    "sp_max": ("gate open; rule limit {n} units", "閘門開；規則示範上限 {n} 單位", "闸门开；规则示范上限 {n} 单位"),
+    "sp_max1": ("gate open; rule limit 1 unit", "閘門開；規則示範上限 1 單位", "闸门开；规则示范上限 1 单位"),
+    "sp_zero": ("gate open; rule limit 0 units today", "閘門開；今日規則示範上限為零", "闸门开；今日规则示范上限为零"),
+    "sp_closed_l": ("gate closed", "閘門關閉", "闸门关闭"),
+    "sp_closed_s": ("gate closed", "閘門關閉", "闸门关闭"),
     "sp_watch": ("{k} on the watch list", "{k} 隻只作觀察", "{k} 只仅作观察"),
-    "play_h": ("Playbook", "今日劇本", "今日剧本"),
-    "c_ticker": ("Stock", "股票", "股票"), "c_setup": ("Setup", "形態", "形态"), "c_trigger": ("Trigger", "觸發價", "触发价"),
-    "c_stop": ("Stop", "止蝕", "止损"), "c_risk": ("Risk", "風險", "风险"), "c_dist": ("To trigger", "距觸發價", "距触发价"),
+    "play_h": ("Rule summary", "規則摘要", "规则摘要"),
+    "c_ticker": ("Stock", "股票", "股票"), "c_setup": ("Setup", "形態", "形态"), "c_trigger": ("Pivot", "技術觸發位", "技术触发位"),
+    "c_stop": ("Invalidation", "形態失效位", "形态失效位"), "c_risk": ("Risk", "風險", "风险"), "c_dist": ("To trigger", "距觸發價", "距触发价"),
     "c_cat": ("Earnings", "財報", "财报"), "c_why": ("Why", "理由", "理由"), "c_missing": ("Still missing", "尚欠", "尚欠"), "c_side": ("Side", "方向", "方向"),
     "c_date": ("Date", "日期", "日期"),
     "hist_h": ("Market health score, last {n} sessions", "市場健康分數（最近 {n} 個交易日）", "市场健康分数（最近 {n} 个交易日）"),
@@ -107,27 +108,50 @@ L = {
     "how": ((
         "Scan the S&P 500, Nasdaq 100 and S&P 400 stocks, with their sectors and industry groups.",
         "Score the market from QQQ’s trend, breadth, risk appetite, volatility and rates, then set Regime A to E.",
-        "Open or close the long, pilot and short gates; closed gates mean alerts only.",
-        "Grade every setup A or B with an 8-item checklist and size it from a fixed risk per trade.",
-        "Avoid new entries just before earnings, and recheck every order against pre-market prices before the open.",
+        "Open or close the long, pilot and short gates; with a gate closed, its setups are listed for observation only.",
+        "Grade every setup A or B with an 8-item checklist and work out an illustrative size from a fixed risk per unit.",
+        "List no new setups just before earnings, and recalculate every parameter against pre-market prices before the open.",
     ), (
         "掃描標普 500、納指 100 和標普 400 的股票，連板塊和行業組別。",
         "按 QQQ 的趨勢、市場寬度、風險胃納、波動和利率計分，定出 A 至 E 級市況。",
-        "決定多頭、試單和空頭閘門開或關；閘門關就只設提示價。",
-        "用八項清單把每個形態分成 A 級或 B 級，按固定每注風險計算注碼。",
-        "財報前不開新倉；開市前再用盤前價檢查每張單。",
+        "決定多頭、試單和空頭閘門開或關；閘門關閉時，對應的形態只列作觀察。",
+        "用八項清單把每個形態分成 A 級或 B 級，按固定每單位風險試算注碼。",
+        "財報前不列出新形態；開市前系統再用盤前價重算每組參數。",
     ), (
         "扫描标普 500、纳指 100 和标普 400 的股票，连板块和行业组别。",
         "按 QQQ 的趋势、市场宽度、风险胃纳、波动和利率计分，定出 A 至 E 级市况。",
-        "决定多头、试单和空头闸门开或关；闸门关就只设提示价。",
-        "用八项清单把每个形态分成 A 级或 B 级，按固定每笔风险计算仓位。",
-        "财报前不开新仓；开盘前再用盘前价检查每张单。",
+        "决定多头、试单和空头闸门开或关；闸门关闭时，对应的形态只列作观察。",
+        "用八项清单把每个形态分成 A 级或 B 级，按固定每单位风险试算仓位。",
+        "财报前不列出新形态；开盘前系统再用盘前价重算每组参数。",
     )),
-    "demo_note": ("Share counts and dollar amounts in the full brief use a demonstration account of {a}.",
-                  "完整簡報內的股數和金額按示範戶口 {a} 計算。", "完整简报内的股数和金额按示范账户 {a} 计算。"),
-    "disclaimer": ("For research and demonstration only. Not investment advice; data can be late or wrong, and nothing here guarantees a profit.",
-                   "只供研究和展示用途，並非投資建議；數據可能延誤或有誤，不保證獲利。",
-                   "只供研究和展示用途，并非投资建议；数据可能延误或有误，不保证获利。"),
+    "demo_note": ("Share counts and amounts in the full brief start from a demonstration account of {a}; set your own figures at the top of the brief.",
+                  "完整簡報內的股數和金額預設按示範戶口 {a} 試算，可在簡報頁頂改用自己的參數。",
+                  "完整简报内的股数和金额默认按示范账户 {a} 试算，可在简报页顶改用自己的参数。"),
+    "disclaimer": ("Research disclosure: everything here is calculated automatically by fixed rules and is the same for every reader; it does not take "
+                   "anyone’s financial situation, objectives or risk tolerance into account. Position sizes are arithmetic from the figures each reader "
+                   "enters. For research and education only; not investment advice, an offer or a solicitation, and not guaranteed to be accurate, "
+                   "complete or timely. Past results, including backtests and the follow-up record, do not indicate future results.",
+                   "研究聲明：本網站的全部內容由固定規則自動計算，所有讀者看到的內容相同，並不考慮任何人的財務狀況、投資目標或風險承受能力。"
+                   "倉位試算只按讀者自行輸入的參數計算。內容只供研究和教育用途，不構成投資建議、要約或招攬，亦不保證準確、完整或及時。"
+                   "過往表現（包括回測和跟進紀錄）不代表將來表現。",
+                   "研究声明：本网站的全部内容由固定规则自动计算，所有读者看到的内容相同，并不考虑任何人的财务状况、投资目标或风险承受能力。"
+                   "仓位试算只按读者自行输入的参数计算。内容只供研究和教育用途，不构成投资建议、要约或招揽，亦不保证准确、完整或及时。"
+                   "过往表现（包括回测和跟进记录）不代表将来表现。"),
+    "pro_h": ("Full report", "完整報告", "完整报告"),
+    "pro_body": ("The full report adds the rule-matched setup tables, setup cards with charts, the watch list, the position-size simulator "
+                 "and the follow-up record of earlier setups.",
+                 "完整報告另外包括：符合規則的技術形態表、附圖的形態參數卡、觀察名單、倉位試算工具，以及之前名單的跟進紀錄。",
+                 "完整报告另外包括：符合规则的技术形态表、附图的形态参数卡、观察名单、仓位试算工具，以及之前名单的跟进记录。"),
+    "pro_cta": ("Subscription details coming soon", "訂閱詳情稍後公佈", "订阅详情稍后公布"),
+    "sz_label": ("Position-size simulator", "倉位試算", "仓位试算"),
+    "sz_equity": ("Account (USD)", "戶口資金（美元）", "账户资金（美元）"),
+    "sz_risk": ("Base risk per unit (%)", "每單位基準風險（%）", "每单位基准风险（%）"),
+    "sz_scale": ("Scale by Regime", "按 Regime 縮放", "按 Regime 缩放"),
+    "sz_broker": ("Parameter format", "參數格式", "参数格式"),
+    "sz_generic": ("Generic", "通用", "通用"), "sz_futu": ("Futu", "富途", "富途"), "sz_ibkr": ("IBKR", "IBKR", "IBKR"),
+    "sz_note": ("Arithmetic from the figures you enter, not a recommended position. Settings are kept in this browser only.",
+                "只按你輸入的參數作數學試算，不是建議的倉位。設定只存在這部裝置的瀏覽器。",
+                "只按你输入的参数作数学试算，不是建议的仓位。设置只存在这台设备的浏览器。"),
     "sources": ("Data: Yahoo Finance, Wikipedia index lists, nasdaq.com, Cboe and FINRA. Built automatically with GitHub Actions on US trading days.",
                 "數據來源：Yahoo Finance、Wikipedia 指數成份股、nasdaq.com、Cboe 和 FINRA。美股交易日由 GitHub Actions 自動產生。",
                 "数据来源：Yahoo Finance、Wikipedia 指数成份股、nasdaq.com、Cboe 和 FINRA。美股交易日由 GitHub Actions 自动生成。"),
@@ -353,7 +377,7 @@ def timeline_list(tl, lang, tl_tc=None):
     return f'<ol class="timeline">{items}</ol>'
 
 
-KIND = {"我": "me", "市場": "mkt", "數據": "data", "財報": "earn"}
+KIND = {"我": "me", "系統": "me", "市場": "mkt", "數據": "data", "財報": "earn"}
 
 
 def archive_table(latest, latest_pre, lang, up):
@@ -377,7 +401,10 @@ def archive_table(latest, latest_pre, lang, up):
     return out
 
 
-def page(lang, latest, latest_pre, hist):
+def page(lang, latest, latest_pre, hist, mode="full"):
+    """mode "full": the whole home page. mode "free": the public teaser of BUILD_MODE=freemium_split
+    (score, grade, score chart, sectors, calendar and a box describing the full report; no setups, no links to full briefs)."""
+    free = mode == "free"
     up = "../" if LANG_DIR[lang] else ""
     nav = "".join(f'<a href="{up}{LANG_DIR[lg]}index.html" hreflang="{HTML_LANG[lg]}"' + (' aria-current="page"' if lg == lang else "")
                   + f">{LANG_NAME[lg]}</a>" for lg in LANGS) if len(LANGS) > 1 else ""
@@ -389,7 +416,7 @@ def page(lang, latest, latest_pre, hist):
             f'<a class="skip" href="#plan">{e(t("skip", lang))}</a>'
             f'<header class="top"><div class="wrap"><a class="brand" href="{up}{LANG_DIR[lang]}index.html">{e(t("site", lang))}</a>'
             f'<nav aria-label="{e(t("lang", lang))}">{nav}</nav></div></header><main class="wrap">')
-    foot = (f'</main><footer class="wrap"><p>{e(t("disclaimer", lang))}</p><p class="quiet">{e(t("sources", lang))}</p>'
+    foot = (f'</main><footer class="wrap"><p class="disc">{e(t("disclaimer", lang))}</p><p class="quiet">{e(t("sources", lang))}</p>'
             f'<p class="quiet">{e(t("built", lang, t=f"{now_et():%Y-%m-%d %H:%M}"))}</p></footer>'
             f'<script src="{up}assets/site.js?v={ASSET_VER}" defer></script></body></html>')
     if not latest:
@@ -429,16 +456,18 @@ def page(lang, latest, latest_pre, hist):
         f'<ul class="gates">{gate(t("gate_long", lang), g["long"], lang)}{gate(t("gate_pilot", lang), g["pilot"], lang)}'
         f'{gate(t("gate_short", lang), g["short"], lang, bad=True)}{gate(t("oversold", lang), g["oversold"], lang, "yes", "no", bad=True)}</ul>'
         + (f'<p class="event">{e(t("event_day", lang))}</p>' if s.get("event_day") else "")
-        + f'<div class="actions"><a class="btn" href="{up}briefs/{e(run)}/{lang}.html">{e(t("open_brief", lang))}</a>{pre_btn}</div>'
-        f'</div></section>'
+        + ("" if free else f'<div class="actions"><a class="btn" href="{up}briefs/{e(run)}/{lang}.html">{e(t("open_brief", lang))}</a>{pre_btn}</div>')
+        + f'</div></section>'
         f'<dl class="stats">{stat_html}</dl>'
+        + (f'<section id="plan" class="pro"><h2>{e(t("pro_h", lang))}</h2><p>{e(t("pro_body", lang))}</p>'
+           f'<p><span class="btn" aria-disabled="true">{e(t("pro_cta", lang))}</span></p></section>' if free else
         f'<section id="plan" class="grid2"><div><h2>{e(t("plan_h", lang))}</h2>{side_plan(s, S["tc"], watch_tc, lang)}'
         f'<h3>{e(t("live_h", lang))}</h3>'
         + (picks_table(live, lang) if live else f'<p class="quiet">{e(t("live_none" if s["picks"] else "picks_none", lang))}</p>')
         + (f'<h3>{e(t("watch_h", lang))}</h3><p class="small quiet">{e(t("watch_note", lang))}</p>{picks_table(watch, lang, watch=True)}' if watch else "")
         + f'{bgrade_table(s["bgrade"], lang)}<p class="small quiet">{e(t("demo_note", lang, a=acct))}</p></div>'
-        f'<aside><h2>{e(t("play_h", lang))}</h2><ul class="play">' + "".join(f"<li>{e(x)}</li>" for x in s["play"]) + "</ul></aside></section>"
-        f'<section class="grid2 tlsec"><div><h2>{e(t("tl_h", lang))}</h2>{timeline_list(s.get("timeline", []), lang, S["tc"].get("timeline", []))}</div>'
+        f'<aside><h2>{e(t("play_h", lang))}</h2><ul class="play">' + "".join(f"<li>{e(x)}</li>" for x in s["play"]) + "</ul></aside></section>")
+        + f'<section class="grid2 tlsec"><div><h2>{e(t("tl_h", lang))}</h2>{timeline_list(s.get("timeline", []), lang, S["tc"].get("timeline", []))}</div>'
         f'<div><h2>{e(t("subs_h", lang))}</h2><p class="small quiet">{e(t("subs_note", lang))}</p>{subs_chart(s.get("sectors", []), lang)}</div></section>')
     sc = score_chart(hist, lang)
     if sc:
@@ -448,7 +477,8 @@ def page(lang, latest, latest_pre, hist):
                  f'<details class="data"><summary>{e(t("show_data", lang))}</summary><div class="scroll"><table><thead><tr>'
                  f'<th class="n">{e(t("c_date", lang))}</th><th class="n">{e(t("score", lang))}</th><th>{e(t("regime", lang))}</th></tr></thead>'
                  f'<tbody>{rows}</tbody></table></div></details></section>')
-    body += f'<section><h2>{e(t("arch_h", lang))}</h2>{archive_table(latest, latest_pre, lang, up)}</section>'
+    if not free:
+        body += f'<section><h2>{e(t("arch_h", lang))}</h2>{archive_table(latest, latest_pre, lang, up)}</section>'
     body += f'<section class="how"><h2>{e(t("how_h", lang))}</h2><ol>' + "".join(f"<li>{e(x)}</li>" for x in L["how"][IDX[lang]]) + "</ol></section>"
     return head + body + foot
 
@@ -602,6 +632,9 @@ footer p{max-width:80ch}
  .chart .line{stroke-width:3.5}.chart .axis,.chart .cross{stroke-width:2}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.pro{border:1px solid var(--rule);border-radius:10px;padding:16px 20px;margin:28px 0}
+.pro h2{margin-top:0}
+footer .disc{font-size:13px;line-height:1.6;color:var(--ink2)}
 """
 
 JS = r"""
@@ -661,7 +694,7 @@ JS = r"""
 """
 
 
-BAR_VER = "3"
+BAR_VER = "4"
 BAR_CSS = """<style>
 body{background:#ffffff!important}
 .sitebar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;max-width:1200px;margin:0 auto 12px;
@@ -673,16 +706,48 @@ font:400 15px/1.4 -apple-system,"Segoe UI",Roboto,"Noto Sans TC","Noto Sans SC",
 .sitebar .langs a{padding:6px 14px;border-radius:999px;color:#574f43}
 .sitebar .langs a[aria-current=page]{background:#0b6574;color:#fff;font-weight:600}
 .sitebar a:focus-visible{outline:3px solid #0b6574;outline-offset:2px}
+.sizer{font:14px/1.45 -apple-system,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;color:#1d2a2e;background:#fff;
+border-bottom:1px solid #e6d7ae;padding:10px 16px}
+.sizer .sz-row{max-width:1180px;margin:0 auto;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-end}
+.sizer label{display:flex;flex-direction:column;gap:3px;font-size:12.5px;color:#574f43}
+.sizer input[type=number],.sizer select{font:inherit;font-size:15px;padding:6px 8px;border:1px solid #cdbf98;border-radius:6px;background:#fff;color:#1d2a2e;min-width:0}
+.sizer #sz-eq{width:9.5em}.sizer #sz-risk{width:5.5em}
+.sizer input[aria-invalid=true]{border-color:#b3261e;outline:2px solid #f3c6c2}
+.sizer .sz-pre{display:flex;gap:6px;align-items:center}
+.sizer .sz-pre button{font:inherit;font-size:13px;padding:6px 10px;border:1px solid #cdbf98;border-radius:999px;background:#fff;color:#1d2a2e;cursor:pointer}
+.sizer .sz-pre button:hover{border-color:#0b6574}
+.sizer .sz-tog{flex-direction:row;align-items:center;gap:6px;font-size:13.5px;color:#1d2a2e;padding-bottom:7px}
+.sizer .sz-tog input{width:18px;height:18px;accent-color:#0b6574}
+.sizer .sz-out{max-width:1180px;margin:6px auto 0;font-size:12.5px;color:#574f43}
+.sizer .sz-out b{color:#1d2a2e}
+.sizer button:focus-visible,.sizer input:focus-visible,.sizer select:focus-visible{outline:3px solid #0b6574;outline-offset:2px}
+@media (min-width:760px){.sizer{position:sticky;top:0;z-index:20;box-shadow:0 1px 0 #e6d7ae}}
 </style>"""
 
 
+def sizer_bar(lang, up):
+    """The position-size simulator's controls; sizer.js fills in the values and does the arithmetic."""
+    presets = "".join(f'<button type="button" data-eq="{v}">{v // 1000}k</button>' for v in (25000, 50000, 100000, 250000))
+    opts = "".join(f'<option value="{k}">{e(t("sz_" + k, lang))}</option>' for k in ("generic", "futu", "ibkr"))
+    return (f'<section id="sizer" class="sizer" aria-label="{e(t("sz_label", lang))}" hidden><div class="sz-row">'
+            f'<label>{e(t("sz_equity", lang))}<input id="sz-eq" type="number" inputmode="numeric" min="100" step="1000" value="100000"></label>'
+            f'<span class="sz-pre">{presets}</span>'
+            f'<label>{e(t("sz_risk", lang))}<input id="sz-risk" type="number" inputmode="decimal" min="0.05" max="10" step="0.05" value="0.75"></label>'
+            f'<label class="sz-tog"><input id="sz-scale" type="checkbox" checked>{e(t("sz_scale", lang))}</label>'
+            f'<label>{e(t("sz_broker", lang))}<select id="sz-broker">{opts}</select></label></div>'
+            f'<p class="sz-out"><b id="sz-eff" aria-live="polite"></b>　{e(t("sz_note", lang))}</p></section>'
+            f'<script src="{up}assets/sizer.js?v={ASSET_VER}" defer></script>')
+
+
 def decorate(doc, lang, depth):
-    """Add the bar (back to the home page, language switch) and the page colour to a saved brief or pre-open page."""
+    """Add the bar (back to the home page, language switch) and the page colour to a saved brief or pre-open page;
+    pages with sizer data also get the position-size simulator."""
     up = "../" * depth
     langs = "".join(f'<a href="{lg}.html" hreflang="{HTML_LANG[lg]}" lang="{HTML_LANG[lg]}"' + (' aria-current="page"' if lg == lang else "")
                     + f">{LANG_NAME[lg]}</a>" for lg in LANGS)
     bar = (f'<!--sitebar v{BAR_VER}-->{BAR_CSS}<nav class="sitebar"><a class="home" href="{up}{LANG_DIR[lang]}index.html">‹ {e(t("site", lang))}</a>'
-           f'<span class="langs" aria-label="{e(t("lang", lang))}">{langs}</span></nav><!--/sitebar-->')
+           f'<span class="langs" aria-label="{e(t("lang", lang))}">{langs}</span></nav>'
+           + (sizer_bar(lang, up) if 'id="sizer-meta"' in doc else "") + '<!--/sitebar-->')
     doc = strip_bar(doc)
     m = re.search(r"<body[^>]*>", doc)
     return doc[:m.end()] + bar + doc[m.end():] if m else bar + doc
@@ -707,7 +772,8 @@ def prepare_pages(site):
     return made, fixed
 
 
-ASSET_VER = hashlib.sha1((CSS + JS).encode("utf-8")).hexdigest()[:8]   # new file name whenever the style changes, so browsers don't keep an old copy
+SIZER_JS = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "sizer.js"), encoding="utf-8").read()
+ASSET_VER = hashlib.sha1((CSS + JS + SIZER_JS).encode("utf-8")).hexdigest()[:8]   # new file name whenever the style changes, so browsers don't keep an old copy
 
 
 def redirect(target):
@@ -715,11 +781,7 @@ def redirect(target):
             f'<link rel="canonical" href="{target}"><title>Latest brief</title></head><body><a href="{target}">{target}</a></body></html>')
 
 
-def main():
-    state = os.path.abspath(env("STATE_DIR", os.path.join(ROOT, "state")))
-    site = os.path.join(state, "site")
-    made, fixed = prepare_pages(site)
-    latest, latest_pre, hist = load(state)
+def write_home(site, latest, latest_pre, hist, mode):
     os.makedirs(os.path.join(site, "assets"), exist_ok=True)
     open(os.path.join(site, "assets", "site.css"), "w", encoding="utf-8").write(CSS.strip() + "\n")
     open(os.path.join(site, "assets", "site.js"), "w", encoding="utf-8").write(JS.strip() + "\n")
@@ -727,14 +789,44 @@ def main():
     for lang in LANGS:
         path = os.path.join(site, LANG_DIR[lang], "index.html")
         os.makedirs(os.path.dirname(path), exist_ok=True)
-        open(path, "w", encoding="utf-8").write(page(lang, latest, latest_pre, hist))
+        open(path, "w", encoding="utf-8").write(page(lang, latest, latest_pre, hist, mode))
+
+
+def publish_data(state, site, names):
+    """Copy ledger files (state/ledger/) into site/data/ so other front ends can read them."""
+    os.makedirs(os.path.join(site, "data"), exist_ok=True)
+    for name in names:
+        src = os.path.join(state, "ledger", name)
+        if os.path.exists(src):
+            shutil.copyfile(src, os.path.join(site, "data", name))
+
+
+def main():
+    """BUILD_MODE=full (default): state/site is the whole website.
+    BUILD_MODE=freemium_split: state/site is still the whole website (the full report), and state/site_free is the public teaser;
+    publish state/site_free and serve state/site behind a paywall."""
+    state = os.path.abspath(env("STATE_DIR", os.path.join(ROOT, "state")))
+    mode = env("BUILD_MODE", "full").strip().lower()
+    site = os.path.join(state, "site")
+    made, fixed = prepare_pages(site)
+    latest, latest_pre, hist = load(state)
+    write_home(site, latest, latest_pre, hist, "full")
+    open(os.path.join(site, "assets", "sizer.js"), "w", encoding="utf-8").write(SIZER_JS.strip() + "\n")
+    publish_data(state, site, ("signal_ledger.json", "regime_history.json"))
     if latest:
         run = latest[max(latest)][0]
         os.makedirs(os.path.join(site, "latest"), exist_ok=True)
         for lang in LANGS:
             open(os.path.join(site, "latest", f"{lang}.html"), "w", encoding="utf-8").write(redirect(f"../briefs/{run}/{lang}.html"))
-    print(f"Website built in {site}: {len(latest)} brief dates, {len(latest_pre)} pre-open updates, {len(hist)} score points; "
-          f"{made} translated pages added, {fixed} pages given the language bar")
+    free = os.path.join(state, "site_free")
+    if mode == "freemium_split":
+        shutil.rmtree(free, ignore_errors=True)
+        write_home(free, latest, latest_pre, hist, "free")
+        publish_data(state, free, ("regime_history.json",))
+    elif os.path.isdir(free):
+        shutil.rmtree(free, ignore_errors=True)
+    print(f"Website built in {site} ({mode}): {len(latest)} brief dates, {len(latest_pre)} pre-open updates, {len(hist)} score points; "
+          f"{made} translated pages added, {fixed} pages given the language bar" + (f"; teaser in {free}" if mode == "freemium_split" else ""))
 
 
 if __name__ == "__main__":
