@@ -1078,7 +1078,7 @@ elif q.c <= q.lo20 * 1.01:
 else:
     SHORT_TIMING = "中間位置：規則要求反彈到阻力才有新空頭形態"
 if SHORT_GATE and not LONG_GATE and not PILOT_GATE:
-    SIDE = {"阻力區": "可空反彈失敗", "中間位置": "等反彈到阻力才空", "破位邊緣": "不追空"}.get(SHORT_TIMING.split("：")[0], SIDE)
+    SIDE = {"阻力區": "空頭閘門開，阻力區", "中間位置": "空頭閘門開，中間位置", "破位邊緣": "空頭閘門開，破位邊緣"}.get(SHORT_TIMING.split("：")[0], SIDE)
 print(f"市場健康分數 {score_now:.0f}（昨 {score_prev:.0f}，5 日前 {score_5:.0f}）→ Regime {REG_L} {REG_T}｜{SIDE}｜{CYCLE}")
 
 # ---------- 個股特徵 ----------
@@ -3121,6 +3121,7 @@ padding:18px 20px;max-width:1180px;border-radius:10px;line-height:1.5;font-size:
 .pmb pre{white-space:pre-wrap;font-size:12px;background:#f7f7f7;padding:10px;border-radius:8px}
 .pmb .dq{margin:6px 0 8px;font-size:12.5px}
 .pmb .dq.ok{display:inline-block;padding:2px 10px;border:1px solid #9bc5a6;border-radius:999px;color:#1d5a2c;background:#eef7ef}
+.pmb details.dq{border:0;padding:0;background:none;box-shadow:none}
 .pmb details.dq summary{display:inline-block;padding:2px 10px;border:1px solid #e0c27a;border-radius:999px;background:#fdf6e3;color:#7a5a12;cursor:pointer}
 .pmb details.dq ul{margin:6px 0 0;padding-left:20px;color:#444}
 .pmb details.method{margin:14px 0;border:1px solid #e3e3e3;border-radius:10px;padding:8px 12px}
@@ -3765,13 +3766,13 @@ def t6_finalize():
     if not long_ok:
         n_long, lim_l = 0, "多頭與試單閘門都未開"
     else:
-        opts = [(len(T6_LA), f"A 級只有 {len(T6_LA)} 隻"), (day_cap, f"Regime {REG_L} 每日最多 {day_cap} 注"),
+        opts = [(len(T6_LA), f"A 級只有 {len(T6_LA)} 隻"), (day_cap, f"Regime {REG_L} 每日最多 {day_cap} 單位"),
                 (slots_l, f"風險上限只餘 {heat_left:.2f}%"), (n_fit, f"多倉上限只餘 {expo_left:.0f}%")]
         n_long, lim_l = min(opts, key=lambda x: x[0])
     if not T6_SGATE:
-        n_short, lim_s = 0, ("QQQ 在破位邊緣，不追空" if SHORT_GATE else "空頭條件成立但市場超賣" if (SHORT_SETUP and OVERSOLD) else "空頭閘門未開")
+        n_short, lim_s = 0, ("QQQ 在破位邊緣，規則不追空" if SHORT_GATE else "空頭條件成立但市場超賣" if (SHORT_SETUP and OVERSOLD) else "空頭閘門未開")
     else:
-        opts = [(len(T6_SA), f"A 級只有 {len(T6_SA)} 隻"), (day_cap, f"Regime {REG_L} 每日最多 {day_cap} 注"),
+        opts = [(len(T6_SA), f"A 級只有 {len(T6_SA)} 隻"), (day_cap, f"Regime {REG_L} 每日最多 {day_cap} 單位"),
                 (slots_s, f"風險上限只餘 {heat_left:.2f}%")]
         n_short, lim_s = min(opts, key=lambda x: x[0])
     T6_BUD = dict(heat_cap=heat_cap, heat_left=heat_left, expo_cap=expo_cap, expo_left=expo_left, risk_l=LONG_RISK, risk_s=short_risk,
@@ -4576,7 +4577,7 @@ def t6_lines(c):
     """計劃卡縮圖上的三條線：觸發價、止蝕、2R。"""
     sgn = 1 if c["Side"] == "多" else -1
     rps = abs(c["Entry"] - c["Stop"])
-    return [("觸發", c["Trigger"], "#1a56db"), ("止蝕", c["Stop"], "#c0392b"), ("2R", c["Entry"] + sgn * 2 * rps, "#6b7280")]
+    return [("觸發位", c["Trigger"], "#1a56db"), ("失效位", c["Stop"], "#c0392b"), ("2R", c["Entry"] + sgn * 2 * rps, "#6b7280")]
 
 def t6_chips(c, cks):
     out = []

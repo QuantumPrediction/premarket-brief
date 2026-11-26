@@ -202,6 +202,7 @@ padding:18px 20px;max-width:1180px;border-radius:10px;line-height:1.5;font-size:
 .pmb pre{white-space:pre-wrap;font-size:12px;background:#f7f7f7;padding:10px;border-radius:8px}
 .pmb .dq{margin:6px 0 8px;font-size:12.5px}
 .pmb .dq.ok{display:inline-block;padding:2px 10px;border:1px solid #9bc5a6;border-radius:999px;color:#1d5a2c;background:#eef7ef}
+.pmb details.dq{border:0;padding:0;background:none;box-shadow:none}
 .pmb details.dq summary{display:inline-block;padding:2px 10px;border:1px solid #e0c27a;border-radius:999px;background:#fdf6e3;color:#7a5a12;cursor:pointer}
 .pmb details.dq ul{margin:6px 0 0;padding-left:20px;color:#444}
 .pmb .disc{margin:20px 0 4px;padding:12px 0 0;border-top:1px solid #e3e3e3;color:#666;font-size:12px;line-height:1.6}

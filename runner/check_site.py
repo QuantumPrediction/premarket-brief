@@ -101,7 +101,7 @@ def check_site(site, errors, notes):
                 if entry <= 0 or stop <= 0 or entry == stop:
                     errors.append(f"{rel}: sizer row {a.get('data-ticker', '?')} has entry {entry} and stop {stop}")
         if os.path.basename(page) == "en.html" or "/en/" in page:
-            text = "".join(p.text)
+            text = "".join(p.text).replace("繁體", "").replace("简体", "")   # the language switch names itself in each language
             left = CJK.findall(text)
             if left:
                 sample = sorted(set(m.group(0) for m in re.finditer(r"[㐀-鿿][㐀-鿿，、：；（）「」]*", text)), key=len)[-8:]

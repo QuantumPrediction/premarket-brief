@@ -460,7 +460,7 @@ def page(lang, latest, latest_pre, hist, mode="full"):
         + f'</div></section>'
         f'<dl class="stats">{stat_html}</dl>'
         + (f'<section id="plan" class="pro"><h2>{e(t("pro_h", lang))}</h2><p>{e(t("pro_body", lang))}</p>'
-           f'<p><span class="btn" aria-disabled="true">{e(t("pro_cta", lang))}</span></p></section>' if free else
+           f'<p><span class="btn ghost" aria-disabled="true">{e(t("pro_cta", lang))}</span></p></section>' if free else
         f'<section id="plan" class="grid2"><div><h2>{e(t("plan_h", lang))}</h2>{side_plan(s, S["tc"], watch_tc, lang)}'
         f'<h3>{e(t("live_h", lang))}</h3>'
         + (picks_table(live, lang) if live else f'<p class="quiet">{e(t("live_none" if s["picks"] else "picks_none", lang))}</p>')

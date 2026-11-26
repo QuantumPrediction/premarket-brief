@@ -306,6 +306,13 @@
   "%）・做空 $": "%) · short $",
   "個 ATR，不超過追價上限。數量按限價（最差成交價）計，所以可能比參數卡少，每單位最大損失不變；跳空穿過失效位時實際損失會更大。部分券商的買入止損單要求觸發價高於現價：盤前價已越過觸發價時，預設參數不再適用；這種情況和已升穿 pivot 的形態都改為開市後判定。附加的止損單是止損市價單，只在常規時段觸發；部分券商介面在這種單沒有「附加訂單」，需要在成交後另設一張賣出止損單。沽空要融資戶口，並確認有貨可借。": "ATR, no higher than the chase limit. The quantity uses the limit (the worst fill), so it can be smaller than on the parameter card, with the same maximum loss per unit; a gap through the invalidation level makes the real loss larger. Some brokers require a buy stop’s trigger to be above the current price: once the pre-market price is past the trigger, the preset parameters no longer apply, and such cases, like setups already above the pivot, are checked after the open instead. The attached stop is a stop-market order that triggers only in regular hours; some broker screens have no “attached order” for this order type, so a separate sell stop is then needed after the fill. Short selling needs a margin account and shares available to borrow.",
   "單種和數量的說明": "Order types and quantities",
-  "文字摘要（純文字檔）": "Text summary (plain text file)"
+  "文字摘要（純文字檔）": "Text summary (plain text file)",
+  "日線圖": "daily chart",
+  "空頭閘門開，阻力區": "Short gate open, resistance zone",
+  "空頭閘門開，中間位置": "Short gate open, middle of range",
+  "空頭閘門開，破位邊緣": "Short gate open, near breakdown",
+  "每日最多": "daily maximum of",
+  "QQQ 在破位邊緣，規則不追空": "QQQ is near a breakdown; the rules do not chase shorts",
+  "回補日數＝沽空股數 ÷ 日均成交量。數據以結算日計，公佈時已滯後一至兩星期。": "Days to cover = shares sold short ÷ average daily volume. The data are as of the settlement date and are one to two weeks old when published. "
  }
 }

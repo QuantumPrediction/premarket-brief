@@ -130,6 +130,48 @@ def data_json(G, s, recs):
     })
 
 
+SVG_FONT = 'font-family="system-ui,-apple-system,&quot;Segoe UI&quot;,&quot;PingFang TC&quot;,&quot;Noto Sans TC&quot;,&quot;Microsoft JhengHei&quot;,sans-serif"'
+
+
+def externalize_charts(dash, out):
+    """Move every inline chart into its own SVG file under charts/ and load it lazily with <img>.
+    The page gets much lighter; the charts look the same."""
+    os.makedirs(os.path.join(out, "charts"), exist_ok=True)
+    n = [0]
+
+    def repl(m):
+        svg = m.group(0)
+        n[0] += 1
+        name = f"c{n[0]:02d}"
+        vb = re.search(r'viewBox="0 0 ([\d.]+) ([\d.]+)"', svg)
+        w, h = (vb.group(1), vb.group(2)) if vb else ("400", "240")
+        label = (re.search(r'aria-label="([^"]*)"', svg) or [None, ""])[1]
+        style = (re.search(r'<svg[^>]*?style="([^"]*)"', svg) or [None, "width:100%;height:auto;display:block"])[1]
+        body = svg.replace("<svg ", f"<svg {SVG_FONT} ", 1)
+        if 'xmlns="http://www.w3.org/2000/svg"' not in body[:300]:
+            body = body.replace("<svg ", '<svg xmlns="http://www.w3.org/2000/svg" ', 1)
+        write(os.path.join(out, "charts", name + ".svg"), '<?xml version="1.0" encoding="utf-8"?>\n' + body)
+        return (f'<img class="chart" src="charts/{name}.svg" alt="{label}" width="{w}" height="{h}" loading="lazy" decoding="async" '
+                f'style="{style};max-width:100%">')
+    return re.sub(r"<svg\b.*?</svg>", repl, dash, flags=re.S)
+
+
+def translate_charts(out):
+    """Simplified Chinese and English copies of the chart files, and the sc / en pages pointed at them."""
+    import i18n
+    files = sorted(f for f in os.listdir(os.path.join(out, "charts")) if re.fullmatch(r"c\d+\.svg", f)) if os.path.isdir(os.path.join(out, "charts")) else []
+    for lang in LANGS:
+        if lang == "tc":
+            continue
+        for f in files:
+            src = open(os.path.join(out, "charts", f), encoding="utf-8").read()
+            write(os.path.join(out, "charts", f[:-4] + f".{lang}.svg"), i18n.translate(src, lang, True))
+        page = os.path.join(out, f"{lang}.html")
+        if os.path.exists(page):
+            doc = open(page, encoding="utf-8").read()
+            write(page, re.sub(r'src="charts/(c\d+)\.svg"', lambda m: f'src="charts/{m.group(1)}.{lang}.svg"', doc))
+
+
 def prune(state, keep_days):
     """Keep the data branch small: site archive for keep_days, the script's daily folders for 14 days."""
     today = now_et().date()
@@ -212,6 +254,7 @@ def main():
     except Exception as e:                                                        # noqa: BLE001 - the brief still publishes
         print(f"Ledger skipped: {type(e).__name__}: {e}", flush=True)
         recs = []
+    dash = externalize_charts(dash, out)
     write(os.path.join(out, "tc.html"), translate_doc(dash, "tc"))
     write(os.path.join(out, "brief_tc.txt"), txt)
     write(os.path.join(out, "summary_tc.json"), json.dumps(s, ensure_ascii=False, indent=1))
@@ -220,6 +263,7 @@ def main():
     except Exception as e:                                                        # noqa: BLE001
         print(f"data.json skipped: {type(e).__name__}: {e}", flush=True)
     ensure_languages(out)                                                         # Simplified Chinese and English copies
+    translate_charts(out)
     write(os.path.join(state, "marks", "brief.txt"), f"{now_et():%Y-%m-%d} {run_id}\n")
     prune(state, int(env_num("ARCHIVE_DAYS", 365)))
     print(f"Saved site files for {run_id} in {out}")
