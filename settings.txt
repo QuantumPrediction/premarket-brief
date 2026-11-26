@@ -31,6 +31,9 @@ AI_MODEL=claude-sonnet-5-5
 # 網站「之前的簡報」保留日數（最少保留 5 份；365 = 一年，每份三種語言約 1.5 MB）
 ARCHIVE_DAYS=365
 
+# 網站版本：full = 全部內容公開（預設）；freemium_split = 公開網站只放免費預覽（分數、級別、分數圖、板塊、時間表），
+# 完整報告另存在 state/site（要另行放在收費服務之後）
+BUILD_MODE=full
 
 # 數據源診斷（數據源狀態表、日曆來源）：false = 只印在 Actions 的執行紀錄（預設）；true = 也顯示在簡報內
 SHOW_DEBUG_PANEL=false

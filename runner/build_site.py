@@ -14,6 +14,7 @@ import hashlib
 import html
 import json
 import os
+import shutil
 import re
 import sys
 
@@ -136,6 +137,12 @@ L = {
                    "研究声明：本网站的全部内容由固定规则自动计算，所有读者看到的内容相同，并不考虑任何人的财务状况、投资目标或风险承受能力。"
                    "仓位试算只按读者自行输入的参数计算。内容只供研究和教育用途，不构成投资建议、要约或招揽，亦不保证准确、完整或及时。"
                    "过往表现（包括回测和跟进记录）不代表将来表现。"),
+    "pro_h": ("Full report", "完整報告", "完整报告"),
+    "pro_body": ("The full report adds the rule-matched setup tables, setup cards with charts, the watch list, the position-size simulator "
+                 "and the follow-up record of earlier setups.",
+                 "完整報告另外包括：符合規則的技術形態表、附圖的形態參數卡、觀察名單、倉位試算工具，以及之前名單的跟進紀錄。",
+                 "完整报告另外包括：符合规则的技术形态表、附图的形态参数卡、观察名单、仓位试算工具，以及之前名单的跟进记录。"),
+    "pro_cta": ("Subscription details coming soon", "訂閱詳情稍後公佈", "订阅详情稍后公布"),
     "sz_label": ("Position-size simulator", "倉位試算", "仓位试算"),
     "sz_equity": ("Account (USD)", "戶口資金（美元）", "账户资金（美元）"),
     "sz_risk": ("Base risk per unit (%)", "每單位基準風險（%）", "每单位基准风险（%）"),
@@ -392,7 +399,10 @@ def archive_table(latest, latest_pre, lang, up):
     return out
 
 
-def page(lang, latest, latest_pre, hist):
+def page(lang, latest, latest_pre, hist, mode="full"):
+    """mode "full": the whole home page. mode "free": the public teaser of BUILD_MODE=freemium_split
+    (score, grade, score chart, sectors, calendar and a box describing the full report; no setups, no links to full briefs)."""
+    free = mode == "free"
     up = "../" if LANG_DIR[lang] else ""
     nav = "".join(f'<a href="{up}{LANG_DIR[lg]}index.html" hreflang="{HTML_LANG[lg]}"' + (' aria-current="page"' if lg == lang else "")
                   + f">{LANG_NAME[lg]}</a>" for lg in LANGS) if len(LANGS) > 1 else ""
@@ -444,16 +454,18 @@ def page(lang, latest, latest_pre, hist):
         f'<ul class="gates">{gate(t("gate_long", lang), g["long"], lang)}{gate(t("gate_pilot", lang), g["pilot"], lang)}'
         f'{gate(t("gate_short", lang), g["short"], lang, bad=True)}{gate(t("oversold", lang), g["oversold"], lang, "yes", "no", bad=True)}</ul>'
         + (f'<p class="event">{e(t("event_day", lang))}</p>' if s.get("event_day") else "")
-        + f'<div class="actions"><a class="btn" href="{up}briefs/{e(run)}/{lang}.html">{e(t("open_brief", lang))}</a>{pre_btn}</div>'
+        + ("" if free else f'<div class="actions"><a class="btn" href="{up}briefs/{e(run)}/{lang}.html">{e(t("open_brief", lang))}</a>{pre_btn}</div>')
         + f'</div></section>'
         f'<dl class="stats">{stat_html}</dl>'
+        + (f'<section id="plan" class="pro"><h2>{e(t("pro_h", lang))}</h2><p>{e(t("pro_body", lang))}</p>'
+           f'<p><span class="btn ghost" aria-disabled="true">{e(t("pro_cta", lang))}</span></p></section>' if free else
         f'<section id="plan" class="grid2"><div><h2>{e(t("plan_h", lang))}</h2>{side_plan(s, S["tc"], watch_tc, lang)}'
         f'<h3>{e(t("live_h", lang))}</h3>'
         + (picks_table(live, lang) if live else f'<p class="quiet">{e(t("live_none" if s["picks"] else "picks_none", lang))}</p>')
         + (f'<h3>{e(t("watch_h", lang))}</h3><p class="small quiet">{e(t("watch_note", lang))}</p>{picks_table(watch, lang, watch=True)}' if watch else "")
         + f'{bgrade_table(s["bgrade"], lang)}<p class="small quiet">{e(t("demo_note", lang, a=acct))}</p></div>'
-        f'<aside><h2>{e(t("play_h", lang))}</h2><ul class="play">' + "".join(f"<li>{e(x)}</li>" for x in s["play"]) + "</ul></aside></section>"
-        f'<section class="grid2 tlsec"><div><h2>{e(t("tl_h", lang))}</h2>{timeline_list(s.get("timeline", []), lang, S["tc"].get("timeline", []))}</div>'
+        f'<aside><h2>{e(t("play_h", lang))}</h2><ul class="play">' + "".join(f"<li>{e(x)}</li>" for x in s["play"]) + "</ul></aside></section>")
+        + f'<section class="grid2 tlsec"><div><h2>{e(t("tl_h", lang))}</h2>{timeline_list(s.get("timeline", []), lang, S["tc"].get("timeline", []))}</div>'
         f'<div><h2>{e(t("subs_h", lang))}</h2><p class="small quiet">{e(t("subs_note", lang))}</p>{subs_chart(s.get("sectors", []), lang)}</div></section>')
     sc = score_chart(hist, lang)
     if sc:
@@ -463,7 +475,8 @@ def page(lang, latest, latest_pre, hist):
                  f'<details class="data"><summary>{e(t("show_data", lang))}</summary><div class="scroll"><table><thead><tr>'
                  f'<th class="n">{e(t("c_date", lang))}</th><th class="n">{e(t("score", lang))}</th><th>{e(t("regime", lang))}</th></tr></thead>'
                  f'<tbody>{rows}</tbody></table></div></details></section>')
-    body += f'<section><h2>{e(t("arch_h", lang))}</h2>{archive_table(latest, latest_pre, lang, up)}</section>'
+    if not free:
+        body += f'<section><h2>{e(t("arch_h", lang))}</h2>{archive_table(latest, latest_pre, lang, up)}</section>'
     body += f'<section class="how"><h2>{e(t("how_h", lang))}</h2><ol>' + "".join(f"<li>{e(x)}</li>" for x in L["how"][IDX[lang]]) + "</ol></section>"
     return head + body + foot
 
@@ -617,6 +630,8 @@ footer p{max-width:80ch}
  .chart .line{stroke-width:3.5}.chart .axis,.chart .cross{stroke-width:2}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.pro{border:1px solid var(--rule);border-radius:10px;padding:16px 20px;margin:28px 0}
+.pro h2{margin-top:0}
 footer .disc{font-size:13px;line-height:1.6;color:var(--ink2)}
 """
 
@@ -764,27 +779,52 @@ def redirect(target):
             f'<link rel="canonical" href="{target}"><title>Latest brief</title></head><body><a href="{target}">{target}</a></body></html>')
 
 
-def main():
-    state = os.path.abspath(env("STATE_DIR", os.path.join(ROOT, "state")))
-    site = os.path.join(state, "site")
-    made, fixed = prepare_pages(site)
-    latest, latest_pre, hist = load(state)
+def write_home(site, latest, latest_pre, hist, mode):
     os.makedirs(os.path.join(site, "assets"), exist_ok=True)
     open(os.path.join(site, "assets", "site.css"), "w", encoding="utf-8").write(CSS.strip() + "\n")
     open(os.path.join(site, "assets", "site.js"), "w", encoding="utf-8").write(JS.strip() + "\n")
-    open(os.path.join(site, "assets", "sizer.js"), "w", encoding="utf-8").write(SIZER_JS.strip() + "\n")
     open(os.path.join(site, ".nojekyll"), "w").close()
     for lang in LANGS:
         path = os.path.join(site, LANG_DIR[lang], "index.html")
         os.makedirs(os.path.dirname(path), exist_ok=True)
-        open(path, "w", encoding="utf-8").write(page(lang, latest, latest_pre, hist))
+        open(path, "w", encoding="utf-8").write(page(lang, latest, latest_pre, hist, mode))
+
+
+def publish_data(state, site, names):
+    """Copy ledger files (state/ledger/) into site/data/ so other front ends can read them."""
+    os.makedirs(os.path.join(site, "data"), exist_ok=True)
+    for name in names:
+        src = os.path.join(state, "ledger", name)
+        if os.path.exists(src):
+            shutil.copyfile(src, os.path.join(site, "data", name))
+
+
+def main():
+    """BUILD_MODE=full (default): state/site is the whole website.
+    BUILD_MODE=freemium_split: state/site is still the whole website (the full report), and state/site_free is the public teaser;
+    publish state/site_free and serve state/site behind a paywall."""
+    state = os.path.abspath(env("STATE_DIR", os.path.join(ROOT, "state")))
+    mode = env("BUILD_MODE", "full").strip().lower()
+    site = os.path.join(state, "site")
+    made, fixed = prepare_pages(site)
+    latest, latest_pre, hist = load(state)
+    write_home(site, latest, latest_pre, hist, "full")
+    open(os.path.join(site, "assets", "sizer.js"), "w", encoding="utf-8").write(SIZER_JS.strip() + "\n")
+    publish_data(state, site, ("signal_ledger.json", "regime_history.json"))
     if latest:
         run = latest[max(latest)][0]
         os.makedirs(os.path.join(site, "latest"), exist_ok=True)
         for lang in LANGS:
             open(os.path.join(site, "latest", f"{lang}.html"), "w", encoding="utf-8").write(redirect(f"../briefs/{run}/{lang}.html"))
-    print(f"Website built in {site}: {len(latest)} brief dates, {len(latest_pre)} pre-open updates, {len(hist)} score points; "
-          f"{made} translated pages added, {fixed} pages given the language bar")
+    free = os.path.join(state, "site_free")
+    if mode == "freemium_split":
+        shutil.rmtree(free, ignore_errors=True)
+        write_home(free, latest, latest_pre, hist, "free")
+        publish_data(state, free, ("regime_history.json",))
+    elif os.path.isdir(free):
+        shutil.rmtree(free, ignore_errors=True)
+    print(f"Website built in {site} ({mode}): {len(latest)} brief dates, {len(latest_pre)} pre-open updates, {len(hist)} score points; "
+          f"{made} translated pages added, {fixed} pages given the language bar" + (f"; teaser in {free}" if mode == "freemium_split" else ""))
 
 
 if __name__ == "__main__":

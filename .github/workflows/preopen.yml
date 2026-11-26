@@ -47,6 +47,7 @@ jobs:
       DEMO_POSITIONS: ${{ vars.DEMO_POSITIONS }}
       ARCHIVE_DAYS: ${{ vars.ARCHIVE_DAYS }}
       SHOW_DEBUG_PANEL: ${{ vars.SHOW_DEBUG_PANEL }}
+      BUILD_MODE: ${{ vars.BUILD_MODE }}
     steps:
       - uses: actions/checkout@v7
 
@@ -73,9 +74,14 @@ jobs:
 
       - uses: actions/configure-pages@v6
 
+      - name: Choose the folder to publish
+        id: pub
+        run: |
+          if [ "$(python3 runner/common.py BUILD_MODE full)" = "freemium_split" ]; then echo "dir=state/site_free" >> "$GITHUB_OUTPUT"; else echo "dir=state/site" >> "$GITHUB_OUTPUT"; fi
+
       - uses: actions/upload-pages-artifact@v5
         with:
-          path: state/site
+          path: ${{ steps.pub.outputs.dir }}
 
   publish:                  # its own job: if publishing fails, "Re-run failed jobs" retries only this, not the brief
     needs: preopen
