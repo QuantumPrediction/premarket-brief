@@ -24,7 +24,7 @@ Pages artifact, so nothing is committed to `main` by the workflows:
 
 | What | Where |
 | --- | --- |
-| PNG cards | `state/site/social/<brief date>/` → served at `<site>/social/<brief date>/<file>.png` (also copied to the teaser site with `BUILD_MODE=freemium_split`); folders older than 30 days are deleted |
+| PNG cards | `state/site/social/<brief date>/` → served at `<site>/social/<brief date>/<file>.png` (also copied to the teaser site with `BUILD_MODE=freemium_split`); folders older than 7 trading days are deleted |
 | Post log | `state/social/social_post_log.json` |
 | Checked drafts of the current run | `state/social/drafts/<brief date>_<mode>.json` (kept 14 days) |
 | Threads token expiry date | `state/social/threads_token.json` (the date only, never the token) |
@@ -102,7 +102,8 @@ Settings → Secrets and variables → Actions. Add only what the platforms you 
 | `BRAND_NAME_TC`, `BRAND_NAME_SC`, `BRAND_NAME_EN`, `BRAND_WATERMARK` | White-label names and the card footer | 美股盤前簡報, 美股盘前简报, Premarket Brief, the site address |
 | `ANTHROPIC_MODEL_WRITER`, `ANTHROPIC_MODEL_QA` | Claude model ids | `claude-sonnet-5-5`, `claude-haiku-5-5` |
 | `SOCIAL_LLM_QA` | `false` turns the short model review off (the deterministic checks always run) | `true` |
-| `SOCIAL_DAILY_HKT`, `SOCIAL_PREMARKET_HKT` | The two Hong Kong times quoted on cards, in posts and in the banner | `15:15`, `21:47` |
+| `SOCIAL_DAILY_HKT`, `SOCIAL_PREMARKET_HKT` | The two Hong Kong times quoted on cards, in Chinese posts and in the banner. The brief runs at about 07:17 New York time, which is 20:17 HKT in winter and 19:17 in summer; set `19:15` / `20:47` for the summer months if you want them exact | `20:15`, `21:47` |
+| `SOCIAL_PREMARKET_ET` | The pre-open refresh in New York time, quoted in the English X post | `08:47` |
 
 ### Steps
 
@@ -147,7 +148,7 @@ The word lists and limits are at the bottom of `config.py`.
 | --- | --- |
 | `config.py` | Brand, switches, models, limits, word lists, paths |
 | `context.py` | Reads the brief and builds the one context that cards, writer and gate share |
-| `render_cards.py`, `templates/` | Cards: HTML templates → PNG, fit check, 30-day clean-up |
+| `render_cards.py`, `templates/` | Cards: HTML templates → PNG, fit check, 7-trading-day clean-up |
 | `generate_posts.py` | Claude writer, one repair pass, fixed-sentence fallback |
 | `compliance_gate.py` | The checks above |
 | `publishers/` | `telegram_pub.py`, `threads_pub.py`, `x_pub.py` |

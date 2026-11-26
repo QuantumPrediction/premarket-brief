@@ -429,11 +429,22 @@ def test_threads_token_warns_ten_days_before_expiry(state, monkeypatch):
 # ---------------- cards ----------------
 def test_old_card_folders_are_pruned(state):
     from social_engine import render_cards
-    for d in ("2026-10-01", "2026-11-20", "notes"):
+    for d in ("2026-10-01", "2026-11-17", "2026-11-18", "2026-11-27", "notes"):      # today is Friday 11-27; 11-18 is 7 weekdays back
         os.makedirs(os.path.join(state, "site", "social", d))
+    os.makedirs(os.path.join(state, "social"))
+    open(os.path.join(state, "social", "social_post_log.json"), "w").write("{}")
     gone = render_cards.prune(state, today=dt.date(2026, 11, 27))
-    assert gone == ["site/social/2026-10-01"]
-    assert sorted(os.listdir(os.path.join(state, "site", "social"))) == ["2026-11-20", "notes"]
+    assert gone == ["site/social/2026-10-01", "site/social/2026-11-17"]
+    assert sorted(os.listdir(os.path.join(state, "site", "social"))) == ["2026-11-18", "2026-11-27", "notes"]
+    assert os.path.exists(os.path.join(state, "social", "social_post_log.json"))        # the post log is never pruned
+
+
+def test_x_copy_quotes_new_york_time(ctx):
+    from social_engine import generate_posts
+    x = generate_posts.template_posts(ctx, "daily")["x_en"]
+    assert "08:47 ET pre-open gap refresh" in x and "HKT" not in x
+    assert "08:47 ET pre-open gap refresh" in generate_posts.edition_text("x_en")
+    assert gate().check("x", x, ctx) == []
 
 
 def test_card_plan_and_numbers(ctx):

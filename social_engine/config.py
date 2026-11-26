@@ -69,11 +69,15 @@ def watermark():
 
 
 def daily_hkt():
-    return env("SOCIAL_DAILY_HKT", "15:15")          # the times the posts and the web banner quote
+    return env("SOCIAL_DAILY_HKT", "20:15")          # the brief runs at about 07:17 New York time: 20:17 HKT in winter, 19:17 in summer
 
 
 def premarket_hkt():
     return env("SOCIAL_PREMARKET_HKT", "21:47")
+
+
+def premarket_et():
+    return env("SOCIAL_PREMARKET_ET", "08:47")       # the same refresh in New York time, for the English X post
 
 
 # ---------- platform switches (all off until the repository variable says "true") ----------
@@ -128,7 +132,7 @@ X_TARGET, X_MAX = 260, 280
 THREADS_TARGET, THREADS_MAX = 450, 500
 TELEGRAM_CAPTION_MAX, TELEGRAM_TEXT_MAX = 1024, 4096
 XHS_TITLE_MAX = 20
-PRUNE_DAYS = 30
+PRUNE_TRADING_DAYS = 7          # card folders older than this many weekdays are deleted (the post log is kept for good)
 
 # ---------- compliance word lists (regular expressions, case-insensitive) ----------
 BANNED_LEAKS = [r"yahoo", r"yhoo", r"yhoof2", r"\^gspc", r"\^ixic", r"\^[A-Z]{2,6}\b", r"openbb", r"fred_api", r"colab", r"跑格子", r"sharpe",

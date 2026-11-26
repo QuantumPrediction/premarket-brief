@@ -395,10 +395,19 @@ def mirror(files, state, brief_date):
             shutil.copyfile(path, os.path.join(d, name))
 
 
+def trading_days_between(d, today):
+    """Weekdays after d up to and including today (holidays are not looked up: a holiday week keeps one folder less)."""
+    n, cur = 0, d
+    while cur < today:
+        cur += dt.timedelta(days=1)
+        n += cur.weekday() < 5
+    return n
+
+
 def prune(state, today=None, days=None):
-    """Delete social/<date>/ image folders older than `days` so the data branch stays light."""
+    """Delete social/<date>/ image folders older than `days` trading days so the data branch stays light."""
     today = today or dt.date.today()
-    days = config.PRUNE_DAYS if days is None else days
+    days = config.PRUNE_TRADING_DAYS if days is None else days
     gone = []
     for site in ("site", "site_free"):
         base = os.path.join(state, site, "social")
@@ -407,7 +416,7 @@ def prune(state, today=None, days=None):
                 d = dt.date.fromisoformat(name[:10])
             except ValueError:
                 continue
-            if (today - d).days > days:
+            if trading_days_between(d, today) > days:
                 shutil.rmtree(os.path.join(base, name), ignore_errors=True)
                 gone.append(f"{site}/social/{name}")
     return gone

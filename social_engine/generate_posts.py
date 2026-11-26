@@ -81,6 +81,7 @@ writes it, Simplified Chinese as mainland readers write it, English as finance T
 EDITIONS = {
     "x_en": ("X post, English, at most {x} characters including line breaks. A punchy opening line that states the regime tension, then "
              "three or four short bullet lines of telemetry (start each with •). No links and no web addresses of any kind. "
+             "Quote schedule times in New York time (ET), never Hong Kong time: the readers are global. "
              "End with this cue or a close variant: {cue}"),
     "threads_tc": ("Threads post, Traditional Chinese, at most {th} characters. Open with today's regime tension (for example breadth "
                    "against distribution days, or which sectors lead while the grade is weak), then three concrete takeaways as short "
@@ -130,7 +131,7 @@ def schema_for(mode, keys=None):
 
 
 def cue():
-    return f"Full interactive dashboard + {config.premarket_hkt()} HKT gap refresh → link in bio."
+    return f"Full interactive dashboard + {config.premarket_et()} ET pre-open gap refresh → link in bio."
 
 
 def edition_text(key):
@@ -275,7 +276,7 @@ def template_posts(c, mode):
     vol_en = f'VIX {v["vix"]}' + (f', VIX/VIX3M {v["vix_vix3m_ratio"]}' if v["vix_vix3m_ratio"] is not None else "")
     dd = b["distribution_days_25_sessions"]
     if mode == "daily":
-        x = (f"Market Health Score {s} · Regime {g} ({name['en']})\n• {_gates(c, 'en')}\n"
+        x = (f"Health Score {s} · Regime {g} ({name['en']})\n• {_gates(c, 'en')}\n"
              f"• {b['pct_above_50dma']}% above 50DMA" + (f", {dd} distribution days" if dd is not None else "") + "\n"
              + (f"• 1M excess: {lead[0]['etf']} {sg(lead[0]['excess_1m_pct'])}% vs {lag[-1]['etf']} {sg(lag[-1]['excess_1m_pct'])}%\n" if lead and lag else "")
              + f"• {vol_en}\n{cue()}")

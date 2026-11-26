@@ -191,7 +191,8 @@ def build_context(brief, mode="daily"):
         "playbook_notes": tri(*([str(x) for x in S[lg].get("play", [])[:8]] for lg in config.LANGS)),
         "ledger": _ledger_block(records),
         "links": {"dashboard": config.site_url("tc"), "telegram_channel": config.telegram_public_url() or None,
-                  "daily_post_hkt": config.daily_hkt(), "premarket_refresh_hkt": config.premarket_hkt()},
+                  "daily_post_hkt": config.daily_hkt(), "premarket_refresh_hkt": config.premarket_hkt(),
+                  "premarket_refresh_et": config.premarket_et()},
     }
     if mode == "premarket":
         ctx["premarket"] = parse_preopen(brief["preopen"]["texts"]) if brief.get("preopen") else None

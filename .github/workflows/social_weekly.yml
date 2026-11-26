@@ -1,7 +1,7 @@
 name: Social weekly recap
 
 # Saturday 11:00 Hong Kong time: the weekend review of the last five brief dates and the signal ledger,
-# for the Telegram channel, Threads and X. Also deletes social card folders older than 30 days.
+# for the Telegram channel, Threads and X. Also deletes social card folders older than 7 trading days.
 # "Run workflow" with dry_run ticked posts nothing and keeps the preview as a downloadable artifact.
 on:
   schedule:

@@ -424,7 +424,7 @@ def telegram_banner(lang):
     url = env("TELEGRAM_PUBLIC_URL", "")
     if not re.fullmatch(r"https://(t\.me|telegram\.me)/[A-Za-z0-9_+/\-]+", url):
         return ""
-    text = t("tg_text", lang, a=env("SOCIAL_DAILY_HKT", "15:15"), b=env("SOCIAL_PREMARKET_HKT", "21:47"))
+    text = t("tg_text", lang, a=env("SOCIAL_DAILY_HKT", "20:15"), b=env("SOCIAL_PREMARKET_HKT", "21:47"))
     return (f'<aside class="tgbar"><span>{e(text)}</span><a class="tgbtn" href="{e(url)}" rel="noopener">{e(t("tg_cta", lang))} →</a></aside>')
 
 
